@@ -1,0 +1,66 @@
+// ═══════════════════════════════════════════════════════
+// android/app/build.gradle — MITRA Student App
+// ═══════════════════════════════════════════════════════
+
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // FlutterPlugin must come AFTER com.android.application
+    id "dev.flutter.flutter-gradle-plugin"
+    // Google services (Firebase) — must be LAST
+    id "com.google.gms.google-services"
+}
+
+android {
+    namespace "in.gov.mitra.student"
+    compileSdk 34
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+
+    defaultConfig {
+        applicationId "in.gov.mitra.student"
+        // Min SDK 21 = Android 5.0+ (covers 99%+ of India's devices)
+        minSdk 21
+        targetSdk 34
+        versionCode flutter.versionCode
+        versionName flutter.versionName
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug  // Replace with release keystore before publishing
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
+    }
+}
+
+flutter {
+    source "../.."
+}
+
+dependencies {
+    // Firebase BoM — manages all Firebase library versions
+    implementation platform("com.google.firebase:firebase-bom:33.0.0")
+    implementation "com.google.firebase:firebase-messaging-ktx"
+    implementation "com.google.firebase:firebase-analytics-ktx"
+    implementation "androidx.multidex:multidex:2.0.1"
+}

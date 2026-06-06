@@ -1,0 +1,139 @@
+name: mitra_student
+description: MITRA — AR Learning Platform for Indian Students. Ministry of Education, Govt. of India.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # State Management (Zustand equivalent)
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # HTTP Client (Axios equivalent)
+  dio: ^5.4.3+1
+  pretty_dio_logger: ^1.3.1
+
+  # Secure Storage (expo-secure-store equivalent)
+  flutter_secure_storage: ^9.0.0
+
+  # Local Storage (AsyncStorage equivalent)
+  shared_preferences: ^2.2.3
+
+  # SQLite (expo-sqlite equivalent)
+  sqflite: ^2.3.3
+  path: ^1.9.0
+
+  # Firebase (FCM Push Notifications)
+  firebase_core: ^2.30.1
+  firebase_messaging: ^14.9.2
+  flutter_local_notifications: ^17.1.2
+
+  # Network Info (react-native-community/netinfo equivalent)
+  connectivity_plus: ^6.0.3
+
+  # Camera (expo-camera equivalent)
+  camera: ^0.10.5+9
+
+  # Linear Gradient (expo-linear-gradient equivalent)
+  gradient_borders: ^1.0.1
+
+  # Internationalization (i18next equivalent)
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+
+  # HTTP + JSON
+  http: ^1.2.1
+
+  # Image handling
+  cached_network_image: ^3.3.1
+
+  # UI Utilities
+  flutter_svg: ^2.0.10+1
+  gap: ^3.0.1
+  shimmer: ^3.0.0
+
+  # Animation
+  lottie: ^3.1.2
+  animate_do: ^3.3.4
+
+  # Safe Area (react-native-safe-area-context equivalent)
+  # Built into Flutter via SafeArea widget
+
+  # Device Info (expo-device equivalent)
+  device_info_plus: ^10.1.0
+
+  # Package Info (expo-constants equivalent)
+  package_info_plus: ^8.0.0
+
+  # File System (expo-file-system equivalent)
+  path_provider: ^2.1.3
+
+  # Offline / Queue
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Fonts — Google Fonts (Baloo2, Mukta)
+  google_fonts: ^6.2.1
+
+  # URL Launcher
+  url_launcher: ^6.2.6
+
+  # Permission Handler
+  permission_handler: ^11.3.1
+
+  # Env Variables
+  flutter_dotenv: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.3
+  hive_generator: ^2.0.1
+  json_serializable: ^6.8.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - .env
+
+  fonts:
+    - family: Baloo2
+      fonts:
+        - asset: assets/fonts/Baloo2-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Baloo2-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Baloo2-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Baloo2-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Baloo2-ExtraBold.ttf
+          weight: 800
+    - family: Mukta
+      fonts:
+        - asset: assets/fonts/Mukta-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Mukta-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Mukta-SemiBold.ttf
+          weight: 600
+    - family: SpaceMono
+      fonts:
+        - asset: assets/fonts/SpaceMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/SpaceMono-Bold.ttf
+          weight: 700
