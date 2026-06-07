@@ -13,12 +13,13 @@ plugins {
 
 android {
     namespace "in.gov.mitra.student"
-    compileSdk 34
+    compileSdk 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -31,8 +32,8 @@ android {
 
     defaultConfig {
         applicationId "in.gov.mitra.student"
-        // Min SDK 21 = Android 5.0+ (covers 99%+ of India's devices)
-        minSdkVersion flutter.minSdkVersion
+        // Explicitly set to 24 to support camera and secure_storage packages
+        minSdkVersion 24
         targetSdk 34
         versionCode flutter.versionCode
         versionName flutter.versionName
@@ -47,7 +48,7 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
         debug {
-            applicationIdSuffix ".debug"
+            //applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
         }
     }
@@ -63,4 +64,5 @@ dependencies {
     implementation "com.google.firebase:firebase-messaging-ktx"
     implementation "com.google.firebase:firebase-analytics-ktx"
     implementation "androidx.multidex:multidex:2.0.1"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }
