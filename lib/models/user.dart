@@ -36,7 +36,12 @@ class MitraUser {
 
   bool get isStudent => role == 'student';
   bool get isTeacher => role == 'teacher';
-  String get firstName => fullName.split(' ').first;
+  
+  // 🛠️ BUG-010 FIX: Safely handles empty names so the app doesn't crash
+  String get firstName {
+    final parts = fullName.trim().split(' ');
+    return parts.isNotEmpty ? parts.first : 'Student';
+  }
 
   factory MitraUser.fromJson(Map<String, dynamic> json) {
     return MitraUser(
@@ -72,6 +77,7 @@ class MitraUser {
     'last_login_at':       lastLoginAt,
   };
 
+  // 🛠️ BUG-001 FIX: Added missing parameters to prevent data loss
   MitraUser copyWith({
     String? fullName,
     String? classGrade,
@@ -81,6 +87,8 @@ class MitraUser {
     String? avatarEmoji,
     int? totalXp,
     int? currentStreakDays,
+    String? dashboardTheme,
+    String? lastLoginAt,
   }) {
     return MitraUser(
       id:                 id,
@@ -94,8 +102,8 @@ class MitraUser {
       avatarEmoji:        avatarEmoji ?? this.avatarEmoji,
       totalXp:            totalXp ?? this.totalXp,
       currentStreakDays:  currentStreakDays ?? this.currentStreakDays,
-      dashboardTheme:     dashboardTheme,
-      lastLoginAt:        lastLoginAt,
+      dashboardTheme:     dashboardTheme ?? this.dashboardTheme,
+      lastLoginAt:        lastLoginAt ?? this.lastLoginAt,
     );
   }
 }

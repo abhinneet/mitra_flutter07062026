@@ -7,6 +7,18 @@ import 'package:go_router/go_router.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
 
+// 🛠️ BUG-008 FIX: Strict, type-safe model for Quiz Questions
+class QuizQuestion {
+  final String question;
+  final List<String> options;
+  final int correctIndex;
+  
+  QuizQuestion.fromJson(Map<String, dynamic> json)
+    : question = json['question'] as String,
+      options = List<String>.from(json['options'] as List),
+      correctIndex = json['correct'] as int;
+}
+
 class QuizScreen extends ConsumerStatefulWidget {
   final String quizId;
   const QuizScreen({super.key, required this.quizId});
@@ -15,7 +27,8 @@ class QuizScreen extends ConsumerStatefulWidget {
 }
 
 class _QuizScreenState extends ConsumerState<QuizScreen> {
-  List<dynamic> _questions = [];
+  // 🛠️ BUG-008 FIX: Use the typed model instead of dynamic list
+  List<QuizQuestion> _questions = [];
   int  _current  = 0;
   int? _selected;
   bool _loading  = true;
@@ -31,37 +44,45 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     try {
       final res = await QuizAPI.questions(widget.quizId);
       setState(() {
-        _questions = res.data['questions'] as List<dynamic>? ?? _mockQuestions;
+        // 🛠️ BUG-008 FIX: Parse data into QuizQuestion objects safely
+        final rawQuestions = res.data['questions'] as List<dynamic>?;
+        if (rawQuestions != null) {
+          _questions = rawQuestions.map((q) => QuizQuestion.fromJson(q as Map<String, dynamic>)).toList();
+        } else {
+          _questions = List.from(_mockQuestions);
+        }
         _loading   = false;
       });
     } catch (_) {
-      setState(() { _questions = _mockQuestions; _loading = false; });
+      setState(() { _questions = List.from(_mockQuestions); _loading = false; });
     }
   }
 
+  // 🛠️ BUG-008 FIX: Mock data converted to typed objects
   static final _mockQuestions = [
-    {
+    QuizQuestion.fromJson({
       'question': 'Which organelle is called the powerhouse of the cell?',
       'options': ['Nucleus', 'Mitochondria', 'Ribosome', 'Chloroplast'],
       'correct': 1,
-    },
-    {
+    }),
+    QuizQuestion.fromJson({
       'question': 'What is the chemical formula for water?',
       'options': ['CO2', 'H2O2', 'H2O', 'NaCl'],
       'correct': 2,
-    },
-    {
+    }),
+    QuizQuestion.fromJson({
       'question': 'How many planets are in our solar system?',
       'options': ['7', '8', '9', '10'],
       'correct': 1,
-    },
+    }),
   ];
 
   void _selectAnswer(int idx) => setState(() => _selected = idx);
 
   void _next() {
     if (_selected == null) return;
-    final correct = _questions[_current]['correct'] as int;
+    // 🛠️ BUG-008 FIX: Use typed getter
+    final correct = _questions[_current].correctIndex;
     if (_selected == correct) _score++;
 
     if (_current < _questions.length - 1) {
@@ -80,8 +101,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         body: Center(child: CircularProgressIndicator(color: MitraColors.saffron)),
       );
     }
+    // 🛠️ BUG-008 FIX: Extract properties directly from the typed model
     final q       = _questions[_current];
-    final options  = q['options'] as List<dynamic>;
+    final options  = q.options;
     final progress = (_current + 1) / _questions.length;
 
     return Scaffold(
@@ -114,7 +136,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               borderRadius: BorderRadius.circular(MitraRadius.lg),
               border: Border.all(color: MitraColors.border),
             ),
-            child: Text(q['question'] as String,
+            child: Text(q.question, // 🛠️ BUG-008 FIX: Typed getter
                 style: const TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w600, fontSize: 18, color: MitraColors.textPrimary, height: 1.4)),
           ),
           const SizedBox(height: MitraSpacing.lg),
@@ -147,7 +169,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                           style: TextStyle(fontFamily: 'SpaceMono', fontWeight: FontWeight.w700, fontSize: 12, color: selected ? Colors.white : MitraColors.textMuted)),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(child: Text(options[i] as String,
+                    // 🛠️ BUG-008 FIX: Typed getter doesn't need "as String"
+                    Expanded(child: Text(options[i],
                         style: TextStyle(fontFamily: 'Mukta', fontWeight: FontWeight.w500, fontSize: 15,
                             color: selected ? MitraColors.saffron : MitraColors.textPrimary))),
                   ]),

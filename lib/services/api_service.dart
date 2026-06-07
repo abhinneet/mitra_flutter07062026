@@ -57,7 +57,11 @@ class ApiService {
               '$baseUrl/api/auth/refresh',
               data: {'refreshToken': refreshToken},
             );
-            final newToken = res.data['accessToken'] as String;
+            final newToken = res.data?['accessToken'] as String?;
+            if (newToken == null) {
+              handler.reject(error);
+              return;
+            }
             await _storage.write(key: 'mitra_access_token', value: newToken);
 
             // Retry original request with new token

@@ -3,6 +3,8 @@
 // Mirrors app/login.tsx from Expo project
 // ═══════════════════════════════════════════════════════
 
+import 'dart:async'; // 🛠️ Added for Timer
+import 'package:dio/dio.dart'; // 🛠️ Added for DioException
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,22 +36,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   _Role      _role = _Role.student;
   bool       _loading    = false;
   int        _resendTimer = 0;
+  Timer?     _timer; // 🛠️ BUG-005 FIX: Added proper Timer variable
 
   // Countdown ticker
   void _startResendTimer() {
-    setState(() => _resendTimer = 30);
-    Future.doWhile(() async {
-      await Future.delayed(const Duration(seconds: 1));
-      if (!mounted) return false;
-      setState(() => _resendTimer--);
-      return _resendTimer > 0;
+    _timer?.cancel();  // 🛠️ BUG-005 FIX: Cancel existing timer
+    int countdown = 30;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _resendTimer = countdown--);
+      if (countdown < 0) timer.cancel();
     });
   }
 
   Future<void> _sendOTP() async {
     final phone = _phoneCtrl.text.trim();
-    if (phone.length != 10) {
-      _showError('Invalid Number', 'Please enter a 10-digit mobile number.');
+    // 🛠️ BUG-006 FIX: Added strict number validation
+    if (phone.length != 10 || !RegExp(r'^[0-9]{10}$').hasMatch(phone)) {
+      _showError('Invalid Number', 'Please enter a valid 10-digit mobile number.');
       return;
     }
     setState(() => _loading = true);
@@ -83,13 +90,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.read(authProvider.notifier).setUser(user);
 
       if (!mounted) return;
-      if (user.isStudent && user.classGrade == null) {
-        context.go('/setup');
-      } else if (user.isTeacher) {
-        context.go('/teacher/home');
-      } else {
-        context.go('/student/home');
-      }
+      // 🛠️ BUG-007 FIX: Let the router handle redirect logic automatically based on state
+      context.go('/');
     } catch (e) {
       _showError('Wrong OTP', _extractMessage(e, 'OTP is incorrect. Please try again.'));
     } finally {
@@ -111,10 +113,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  String _extractMessage(Object e, String fallback) => fallback;
+  // 🛠️ BUG-002 FIX: Proper error extraction
+  String _extractMessage(Object e, String fallback) {
+    if (e is DioException) {
+      if (e.response != null && e.response!.data is Map) {
+        final data = e.response!.data as Map<String, dynamic>;
+        if (data.containsKey('message')) {
+          return data['message'] as String? ?? fallback;
+        }
+        if (data.containsKey('error')) {
+          return data['error'] as String? ?? fallback;
+        }
+      }
+      return e.message ?? fallback;
+    }
+    return fallback;
+  }
 
   @override
   void dispose() {
+    _timer?.cancel(); // 🛠️ BUG-005 FIX: Clean up timer when screen closes
     _phoneCtrl.dispose();
     for (final c in _otpCtrls) c.dispose();
     for (final f in _otpFocuses) f.dispose();

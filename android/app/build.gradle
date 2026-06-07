@@ -32,7 +32,7 @@ android {
     defaultConfig {
         applicationId "in.gov.mitra.student"
         // Min SDK 21 = Android 5.0+ (covers 99%+ of India's devices)
-        minSdk 21
+        minSdkVersion flutter.minSdkVersion
         targetSdk 34
         versionCode flutter.versionCode
         versionName flutter.versionName

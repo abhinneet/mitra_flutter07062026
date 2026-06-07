@@ -12,7 +12,6 @@ import '../../constants/colors.dart';
 import '../../services/api_service.dart';
 import '../../stores/auth_store.dart';
 import '../../models/user.dart';
-import '../../widgets/gradient_button.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -35,8 +34,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.initState();
 
     // Logo entrance animation
-    _logoCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
-    _logoScale   = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _logoCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
+    _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _logoCtrl, curve: Curves.elasticOut),
     );
     _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -44,7 +44,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     // Bouncing dots
-    _dotsCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))
+    _dotsCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600))
       ..repeat(reverse: true);
 
     _logoCtrl.forward();
@@ -61,7 +62,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         context.go('/onboarding');
         return;
       }
-      final res  = await AuthAPI.me();
+      final res = await AuthAPI.me();
       final data = res.data;
       final user = MitraUser.fromJson(data['user'] ?? data);
       ref.read(authProvider.notifier).setUser(user);
@@ -86,7 +87,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    const dotColors = [MitraColors.saffron, MitraColors.gold, MitraColors.emerald];
+    const dotColors = [
+      MitraColors.saffron,
+      MitraColors.gold,
+      MitraColors.emerald
+    ];
 
     return Scaffold(
       body: Container(
@@ -103,10 +108,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             // Concentric rings
             for (final size in [200.0, 280.0, 360.0])
               Container(
-                width: size, height: size,
+                width: size,
+                height: size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: MitraColors.saffron.withOpacity(0.12)),
+                  border:
+                      Border.all(color: MitraColors.saffron.withOpacity(0.12)),
                 ),
               ),
 
@@ -122,25 +129,38 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     children: [
                       // Icon box
                       Container(
-                        width: 80, height: 80,
+                        width: 80,
+                        height: 80,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: MitraColors.gradientSaffron),
+                          gradient: const LinearGradient(
+                              colors: MitraColors.gradientSaffron),
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(
-                            color: MitraColors.saffron.withOpacity(0.4),
-                            blurRadius: 30, offset: const Offset(0, 16),
-                          )],
+                          boxShadow: [
+                            BoxShadow(
+                              color: MitraColors.saffron.withOpacity(0.4),
+                              blurRadius: 30,
+                              offset: const Offset(0, 16),
+                            )
+                          ],
                         ),
-                        child: const Center(child: Text('🎓', style: TextStyle(fontSize: 40))),
+                        child: const Center(
+                            child: Text('🎓', style: TextStyle(fontSize: 40))),
                       ),
                       const SizedBox(height: 14),
                       // App name
                       RichText(
                         text: const TextSpan(
-                          style: TextStyle(fontFamily: 'Baloo2', fontSize: 32, fontWeight: FontWeight.w800, color: MitraColors.textPrimary, letterSpacing: -0.5),
+                          style: TextStyle(
+                              fontFamily: 'Baloo2',
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              color: MitraColors.textPrimary,
+                              letterSpacing: -0.5),
                           children: [
                             TextSpan(text: 'MI'),
-                            TextSpan(text: 'TRA', style: TextStyle(color: MitraColors.saffron)),
+                            TextSpan(
+                                text: 'TRA',
+                                style: TextStyle(color: MitraColors.saffron)),
                           ],
                         ),
                       ),
@@ -148,8 +168,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       const Text(
                         'AR LEARNING PLATFORM',
                         style: TextStyle(
-                          fontFamily: 'Mukta', fontSize: 13,
-                          color: MitraColors.textMuted, letterSpacing: 2,
+                          fontFamily: 'Mukta',
+                          fontSize: 13,
+                          color: MitraColors.textMuted,
+                          letterSpacing: 2,
                         ),
                       ),
                     ],
@@ -170,7 +192,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       final anim = Tween<double>(begin: 0, end: -8).animate(
                         CurvedAnimation(
                           parent: _dotsCtrl,
-                          curve: Interval(i * 0.15, i * 0.15 + 0.7, curve: Curves.easeInOut),
+                          curve: Interval(i * 0.15, i * 0.15 + 0.7,
+                              curve: Curves.easeInOut),
                         ),
                       );
                       return AnimatedBuilder(
@@ -178,7 +201,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         builder: (ctx, _) => Transform.translate(
                           offset: Offset(0, anim.value),
                           child: Container(
-                            width: 8, height: 8,
+                            width: 8,
+                            height: 8,
                             margin: const EdgeInsets.symmetric(horizontal: 3),
                             decoration: BoxDecoration(
                               color: dotColors[i],
@@ -192,7 +216,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   const SizedBox(height: 12),
                   const Text(
                     'Ministry of Education, Govt. of India',
-                    style: TextStyle(fontFamily: 'Mukta', fontSize: 10, color: MitraColors.textMuted),
+                    style: TextStyle(
+                        fontFamily: 'Mukta',
+                        fontSize: 10,
+                        color: MitraColors.textMuted),
                   ),
                 ],
               ),

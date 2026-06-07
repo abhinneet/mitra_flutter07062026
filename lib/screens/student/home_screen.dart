@@ -8,16 +8,39 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
+import '../../services/api_service.dart'; // 🛠️ BUG-009 FIX: Added ApiService
+
+// 🛠️ BUG-009 FIX: Riverpod provider to securely fetch real subjects from the server
+final subjectsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  try {
+    final res = await CurriculumAPI.tree();
+    final rawSubjects = res.data['subjects'] as List<dynamic>? ?? [];
+    
+    // Fallback colors to keep the UI looking nice
+    final colors = [
+      const Color(0x267C5CDD), const Color(0x2600C389),
+      const Color(0x26FFB800), const Color(0x260EA5E9)
+    ];
+
+    return List.generate(rawSubjects.length, (i) {
+      final s = rawSubjects[i] as Map<String, dynamic>;
+      return {
+        'emoji': s['emoji'] ?? '📚',
+        'name': s['name'] ?? 'Subject',
+        'progress': (s['progress'] as num?)?.toDouble() ?? 0.0,
+        'ar': s['ar'] ?? s['ar_topics_count'] ?? 0,
+        'color': colors[i % colors.length],
+      };
+    });
+  } catch (_) {
+    return []; // Return an empty list if the API fails
+  }
+});
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  static const _subjects = [
-    {'emoji': '🔬', 'name': 'Science',   'progress': 0.68, 'ar': 12, 'color': Color(0x267C5CDD)},
-    {'emoji': '📐', 'name': 'Maths',     'progress': 0.45, 'ar': 8,  'color': Color(0x2600C389)},
-    {'emoji': '🏛️', 'name': 'History',   'progress': 0.30, 'ar': 6,  'color': Color(0x26FFB800)},
-    {'emoji': '🌍', 'name': 'Geography', 'progress': 0.22, 'ar': 5,  'color': Color(0x260EA5E9)},
-  ];
+  // 🛠️ BUG-009 FIX: Removed the hardcoded mock _subjects array
 
   String _greeting() {
     final h = DateTime.now().hour;
@@ -30,6 +53,9 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user      = ref.watch(currentUserProvider);
     final firstName = user?.firstName ?? 'Student';
+    
+    // 🛠️ BUG-009 FIX: Listen to the dynamic subjects data we created at the top
+    final subjectsAsync = ref.watch(subjectsProvider);
 
     return SafeArea(
       child: Column(
@@ -105,41 +131,50 @@ class HomeScreen extends ConsumerWidget {
                     child: _ContinueLearningCard(),
                   ),
 
-                  // Subjects grid
+                  // 🛠️ BUG-009 FIX: Subjects grid dynamically fetched from API with loading states
                   _Section(
                     title: 'Subjects',
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8,
-                        childAspectRatio: 1.2,
+                    child: subjectsAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(child: CircularProgressIndicator(color: MitraColors.saffron)),
                       ),
-                      itemCount: _subjects.length,
-                      itemBuilder: (ctx, i) {
-                        final s = _subjects[i];
-                        return GestureDetector(
-                          onTap: () => context.go('/student/learn'),
-                          child: Container(
-                            padding: const EdgeInsets.all(MitraSpacing.md),
-                            decoration: BoxDecoration(
-                              color: s['color'] as Color,
-                              borderRadius: BorderRadius.circular(MitraRadius.md),
-                              border: Border.all(color: MitraColors.borderLight),
+                      error: (err, stack) => const Text('Failed to load subjects', style: TextStyle(color: MitraColors.textMuted)),
+                      data: (subjects) => subjects.isEmpty 
+                        ? const Text('No subjects found.', style: TextStyle(color: MitraColors.textMuted))
+                        : GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8,
+                              childAspectRatio: 1.2,
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(s['emoji'] as String, style: const TextStyle(fontSize: 28)),
-                                const SizedBox(height: 6),
-                                Text(s['name'] as String, style: const TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w600, fontSize: 14, color: MitraColors.textPrimary)),
-                                Text('${((s['progress'] as double) * 100).toInt()}% · ${s['ar']} AR topics',
-                                    style: const TextStyle(fontFamily: 'Mukta', fontSize: 10, color: MitraColors.textMuted)),
-                              ],
-                            ),
+                            itemCount: subjects.length,
+                            itemBuilder: (ctx, i) {
+                              final s = subjects[i];
+                              return GestureDetector(
+                                onTap: () => context.go('/student/learn'),
+                                child: Container(
+                                  padding: const EdgeInsets.all(MitraSpacing.md),
+                                  decoration: BoxDecoration(
+                                    color: s['color'] as Color,
+                                    borderRadius: BorderRadius.circular(MitraRadius.md),
+                                    border: Border.all(color: MitraColors.borderLight),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(s['emoji'] as String, style: const TextStyle(fontSize: 28)),
+                                      const SizedBox(height: 6),
+                                      Text(s['name'] as String, style: const TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w600, fontSize: 14, color: MitraColors.textPrimary)),
+                                      Text('${((s['progress'] as double) * 100).toInt()}% · ${s['ar']} AR topics',
+                                          style: const TextStyle(fontFamily: 'Mukta', fontSize: 10, color: MitraColors.textMuted)),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
                     ),
                   ),
 
