@@ -31,10 +31,11 @@ import '../screens/ar/ar_viewer_screen.dart';
 import '../stores/auth_store.dart';
 
 // ── Shell navigator keys ───────────────────────────────
-final _rootKey    = GlobalKey<NavigatorState>();
+final _rootKey = GlobalKey<NavigatorState>();
 final _studentKey = GlobalKey<NavigatorState>();
 final _teacherKey = GlobalKey<NavigatorState>();
 
+// ── Router provider ────────────────────────────────────
 // ── Router provider ────────────────────────────────────
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -43,26 +44,28 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootKey,
     initialLocation: '/',
     redirect: (context, state) {
-      final loading    = authState.isLoading;
-      final loggedIn   = authState.isLoggedIn;
-      final user       = authState.user;
-      final path       = state.uri.path;
+      final loggedIn = authState.isLoggedIn;
+      final user = authState.user;
+      final path = state.uri.path;
 
-      if (loading) return '/';
+      // 🚨 THE FIX: Allow the Splash Screen to play!
+      // If the app is currently on the root path, do absolutely nothing.
+      // Let the splash_screen.dart animation finish and route the user itself.
+      if (path == '/') {
+        return null;
+      }
 
-      // If not logged in, send to onboarding/login
+      // If not logged in, strictly lock them to onboarding/login
       if (!loggedIn && path != '/onboarding' && path != '/login') {
         return '/onboarding';
       }
 
-      // If logged in but no class set (student first time), go to setup
-      if (loggedIn && user?.isStudent == true && user?.classGrade == null && path != '/setup') {
+      // If logged in but no class set (student first time), force setup
+      if (loggedIn &&
+          user?.isStudent == true &&
+          user?.classGrade == null &&
+          path != '/setup') {
         return '/setup';
-      }
-
-      // If logged in, redirect root to correct home
-      if (loggedIn && path == '/') {
-        return user?.isTeacher == true ? '/teacher/home' : '/student/home';
       }
 
       return null;
@@ -97,11 +100,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         navigatorKey: _studentKey,
         builder: (context, state, child) => StudentShell(child: child),
         routes: [
-          GoRoute(path: '/student/home',    builder: (c, s) => const HomeScreen()),
-          GoRoute(path: '/student/learn',   builder: (c, s) => const LearnScreen()),
-          GoRoute(path: '/student/ar',      builder: (c, s) => const ArTabScreen()),
-          GoRoute(path: '/student/ranks',   builder: (c, s) => const RanksScreen()),
-          GoRoute(path: '/student/profile', builder: (c, s) => const StudentProfileScreen()),
+          GoRoute(path: '/student/home', builder: (c, s) => const HomeScreen()),
+          GoRoute(
+              path: '/student/learn', builder: (c, s) => const LearnScreen()),
+          GoRoute(path: '/student/ar', builder: (c, s) => const ArTabScreen()),
+          GoRoute(
+              path: '/student/ranks', builder: (c, s) => const RanksScreen()),
+          GoRoute(
+              path: '/student/profile',
+              builder: (c, s) => const StudentProfileScreen()),
         ],
       ),
 
@@ -110,11 +117,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         navigatorKey: _teacherKey,
         builder: (context, state, child) => TeacherShell(child: child),
         routes: [
-          GoRoute(path: '/teacher/home',     builder: (c, s) => const TeacherHomeScreen()),
-          GoRoute(path: '/teacher/students', builder: (c, s) => const StudentsScreen()),
-          GoRoute(path: '/teacher/analytics',builder: (c, s) => const AnalyticsScreen()),
-          GoRoute(path: '/teacher/assign',   builder: (c, s) => const AssignScreen()),
-          GoRoute(path: '/teacher/profile',  builder: (c, s) => const TeacherProfileScreen()),
+          GoRoute(
+              path: '/teacher/home',
+              builder: (c, s) => const TeacherHomeScreen()),
+          GoRoute(
+              path: '/teacher/students',
+              builder: (c, s) => const StudentsScreen()),
+          GoRoute(
+              path: '/teacher/analytics',
+              builder: (c, s) => const AnalyticsScreen()),
+          GoRoute(
+              path: '/teacher/assign', builder: (c, s) => const AssignScreen()),
+          GoRoute(
+              path: '/teacher/profile',
+              builder: (c, s) => const TeacherProfileScreen()),
         ],
       ),
 
@@ -130,9 +146,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
           return QuizResultScreen(
-            score:      extra['score'] as int? ?? 0,
-            total:      extra['total'] as int? ?? 0,
-            xpEarned:   extra['xpEarned'] as int? ?? 0,
+            score: extra['score'] as int? ?? 0,
+            total: extra['total'] as int? ?? 0,
+            xpEarned: extra['xpEarned'] as int? ?? 0,
           );
         },
       ),
