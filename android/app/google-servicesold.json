@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "667120401227",
+    "project_id": "watchaugs-mitra",
+    "storage_bucket": "watchaugs-mitra.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:667120401227:android:dcf4aa76af10e5f2d546ce",
+        "android_client_info": {
+          "package_name": "in.gov.mitra.student"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDR6cJF263IJOYydjZGQZ6OSPoRdNCOuEA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

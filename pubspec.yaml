@@ -92,6 +92,8 @@ dependencies:
 
   # Env Variables
   flutter_dotenv: ^5.1.0
+  google_sign_in: ^7.2.0
+  firebase_auth: ^4.20.0
 
 dev_dependencies:
   flutter_test:
@@ -101,6 +103,7 @@ dev_dependencies:
   riverpod_generator: any
   hive_generator: any
   json_serializable: ^6.8.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -108,4 +111,18 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/animations/
     - .env
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png" # Keeps iOS happy
+  adaptive_icon_background: "#0B1C4B"  # 🚨 CHANGE THIS: Put your preferred background color HEX code here!
+  adaptive_icon_foreground: "assets/images/logo.png" # Tells Android to stretch this to the edges
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#FFFFFF" 
+  android: 12
+  ios: false

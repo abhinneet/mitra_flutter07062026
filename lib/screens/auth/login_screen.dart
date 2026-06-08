@@ -10,6 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
@@ -75,6 +77,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       print("=========================================");
 
       _showError('Error', _extractMessage(e, 'Failed to send OTP. Try again.'));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  // Safety flag to ensure Google is only initialized once
+  bool _isGoogleInitialized = false;
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _loading = true);
+
+    try {
+      // 1. Setup the new V7 Google Sign-In instance
+      final googleSignIn = GoogleSignIn.instance;
+
+      // 2. Initialize it (Strict requirement in Version 7+)
+      if (!_isGoogleInitialized) {
+        await googleSignIn.initialize();
+        _isGoogleInitialized = true;
+      }
+
+      // 3. Open the Google popup and let the user pick an account
+      final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
+
+      // 4. Get the Identity Token
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // 5. Get the Access Token (They separated this in Version 7)
+      final clientAuth = await googleUser.authorizationClient
+          .authorizeScopes(['email', 'profile']);
+
+      // 6. Connect to Firebase using both tokens
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+        accessToken: clientAuth.accessToken,
+      );
+
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // 🎉 SUCCESS!
+      print("=========================================");
+      print("✅ GOOGLE LOGIN SUCCESS!");
+      print("👤 Name: ${userCredential.user?.displayName}");
+      print("📧 Email: ${userCredential.user?.email}");
+      print("=========================================");
+    } catch (e) {
+      // If they just swipe the Google popup away, ignore it safely
+      if (e.toString().toLowerCase().contains('canceled')) {
+        print("User closed the Google popup.");
+      } else {
+        print("🚨 GOOGLE SIGN-IN ERROR: $e");
+        _showError('Google Login Failed',
+            'Could not sign in with Google. Please try again.');
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -344,9 +402,56 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: MitraSpacing.lg),
         _GradientButton(
-          label: 'Send OTP via WhatsApp →',
+          label: 'Send OTP →', // Generalized for future SMS integration
           loading: _loading,
           onTap: _sendOTP,
+        ),
+
+        const SizedBox(height: 24), // Spacing before the divider
+
+        // --- VISUAL "OR" DIVIDER ---
+        Row(
+          children: [
+            const Expanded(child: Divider(color: MitraColors.border)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'OR',
+                style: TextStyle(
+                  color: MitraColors.textMuted,
+                  fontFamily: 'Mukta',
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Expanded(child: Divider(color: MitraColors.border)),
+          ],
+        ),
+
+        const SizedBox(height: 24), // Spacing after the divider
+
+        // --- GOOGLE SIGN-IN BUTTON ---
+        OutlinedButton.icon(
+          onPressed: _loading ? null : _signInWithGoogle,
+          icon: Image.network(
+            'https://img.icons8.com/color/48/000000/google-logo.png',
+            height: 24,
+          ),
+          label: const Text(
+            'Continue with Google',
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: MitraColors.textPrimary),
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+            side: const BorderSide(color: MitraColors.border, width: 1.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(MitraRadius.sm),
+            ),
+          ),
         ),
       ];
 
@@ -359,7 +464,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             border: Border.all(color: MitraColors.emerald.withOpacity(0.3)),
           ),
           child: Text(
-            '💬  OTP sent via WhatsApp to +91 ${_phoneCtrl.text.substring(0, 3)}XXXXXXX',
+            '💬  OTP sent to +91 ${_phoneCtrl.text.substring(0, 3)}XXXXXXX',
             style: const TextStyle(
                 fontFamily: 'Mukta', fontSize: 13, color: MitraColors.emerald),
           ),
