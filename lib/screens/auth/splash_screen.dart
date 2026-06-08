@@ -59,12 +59,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     try {
       final token = await _storage.read(key: 'mitra_access_token');
       if (token == null) {
-        context.go('/onboarding');
+        // ✅ Tell router: done loading, not logged in → let /onboarding through
+        ref.read(authProvider.notifier).setLoading(false);
+        if (mounted) context.go('/onboarding');
         return;
       }
       final res = await AuthAPI.me();
       final data = res.data;
       final user = MitraUser.fromJson(data['user'] ?? data);
+      // ✅ setUser already sets isLoading: false (see your auth_store.dart)
       ref.read(authProvider.notifier).setUser(user);
 
       if (!mounted) return;
@@ -74,6 +77,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         context.go('/student/home');
       }
     } catch (_) {
+      // ✅ On error too, mark loading done before navigating
+      ref.read(authProvider.notifier).setLoading(false);
       if (mounted) context.go('/login');
     }
   }
@@ -95,6 +100,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: MitraColors.gradientHero,

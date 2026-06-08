@@ -1,4 +1,4 @@
-package in.gov.mitra.student
+package `in`.gov.mitra.student
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -3,7 +3,6 @@
 // ═══════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,28 +23,33 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load .env
-  await dotenv.load(fileName: '.env');
+  print("🚦 Loading .env...");
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    print("⚠️ .env issue: $e");
+  }
 
-  // Init Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  print("🔥 Initializing Firebase...");
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
+    }
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    print("⚠️ Firebase skipped: $e");
+  }
 
-  // Init Dio API client
-  ApiService.instance.init();
+  print("🌐 Initializing API...");
+  try {
+    ApiService.instance.init();
+  } catch (e) {
+    print("⚠️ API issue: $e");
+  }
 
-  // Force portrait orientation
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-  // Dark status bar
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor:        Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: MitraColors.bgDeep,
-  ));
-
+  print("✅ ALL SYSTEMS GO! Launching UI...");
   runApp(
-    // ProviderScope = Riverpod root (equivalent to React's QueryClientProvider)
     const ProviderScope(child: MitraApp()),
   );
 }
@@ -58,10 +62,10 @@ class MitraApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title:               'MITRA',
+      title: 'MITRA',
       debugShowCheckedModeBanner: false,
-      theme:               mitraTheme(),
-      routerConfig:        router,
+      theme: mitraTheme(),
+      routerConfig: router,
       // Localisation support (i18n)
       supportedLocales: const [
         Locale('en'),
