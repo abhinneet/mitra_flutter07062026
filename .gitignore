@@ -42,3 +42,7 @@ lib/firebase_options.dart
 # IDEs
 .idea/
 *.iml
+
+# Android diagnostic heap files
+*.hprof
+java_pid*.hprof
