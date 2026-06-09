@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart'; // 🚨 NEW IMPORT ADDED
 import '../../constants/colors.dart';
 
 class _Slide {
@@ -28,21 +29,24 @@ const _slides = [
     emoji: '🔬',
     title: 'See Your Textbook',
     titleAccent: 'Come Alive',
-    body: 'Point your phone at any chapter and watch 3D models of cells, planets, and historical events appear in AR — right from your textbook page.',
+    body:
+        'Point your phone at any chapter and watch 3D models of cells, planets, and historical events appear in AR — right from your textbook page.',
     gradient: MitraColors.gradientIndigo,
   ),
   _Slide(
     emoji: '🏆',
     title: 'Earn XP,',
     titleAccent: 'Climb the Leaderboard',
-    body: 'Answer quizzes, complete AR sessions, and maintain daily streaks to earn XP points and badges. Compete with classmates!',
+    body:
+        'Answer quizzes, complete AR sessions, and maintain daily streaks to earn XP points and badges. Compete with classmates!',
     gradient: [Color(0xFF1a0a0a), Color(0xFF3a1a00)],
   ),
   _Slide(
     emoji: '📴',
     title: 'Learn Even',
     titleAccent: 'Without Internet',
-    body: 'Download lessons over Wi-Fi and access all content offline — perfect for areas with limited connectivity.',
+    body:
+        'Download lessons over Wi-Fi and access all content offline — perfect for areas with limited connectivity.',
     gradient: [Color(0xFF0a1a0a), Color(0xFF0a2a1a)],
   ),
 ];
@@ -55,14 +59,14 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _ctrl     = PageController();
+  final _ctrl = PageController();
   int _currentIdx = 0;
 
   void _goNext() {
     if (_currentIdx < _slides.length - 1) {
       _ctrl.nextPage(
         duration: const Duration(milliseconds: 350),
-        curve:    Curves.easeInOut,
+        curve: Curves.easeInOut,
       );
     } else {
       context.go('/login');
@@ -81,24 +85,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: Stack(
         children: [
           PageView.builder(
-            controller:  _ctrl,
-            itemCount:   _slides.length,
+            controller: _ctrl,
+            itemCount: _slides.length,
             onPageChanged: (i) => setState(() => _currentIdx = i),
             itemBuilder: (ctx, i) => _SlideWidget(slide: _slides[i]),
           ),
 
           // Skip button
           Positioned(
-            top: 56, right: 24,
+            top: 56,
+            right: 24,
             child: TextButton(
               onPressed: () => context.go('/login'),
-              child: const Text('Skip', style: TextStyle(color: MitraColors.textMuted, fontFamily: 'Mukta')),
+              // 🚨 FIX: Replaced standard TextStyle with GoogleFonts
+              child: Text('Skip',
+                  style: GoogleFonts.mukta(color: MitraColors.textMuted)),
             ),
           ),
 
           // Bottom controls
           Positioned(
-            bottom: 48, left: 24, right: 24,
+            bottom: 48,
+            left: 24,
+            right: 24,
             child: Column(
               children: [
                 // Dot indicators
@@ -109,11 +118,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     (i) => AnimatedContainer(
                       duration: const Duration(milliseconds: 250),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width:  i == _currentIdx ? 24 : 8,
+                      width: i == _currentIdx ? 24 : 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color:         i == _currentIdx ? MitraColors.saffron : MitraColors.textMuted,
-                        borderRadius:  BorderRadius.circular(MitraRadius.pill),
+                        color: i == _currentIdx
+                            ? MitraColors.saffron
+                            : MitraColors.textMuted,
+                        borderRadius: BorderRadius.circular(MitraRadius.pill),
                       ),
                     ),
                   ),
@@ -128,15 +139,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: MitraColors.gradientSaffron),
+                        gradient: const LinearGradient(
+                            colors: MitraColors.gradientSaffron),
                         borderRadius: BorderRadius.circular(MitraRadius.pill),
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        _currentIdx < _slides.length - 1 ? 'Next →' : 'Get Started →',
-                        style: const TextStyle(
-                          fontFamily: 'Baloo2', fontWeight: FontWeight.w700,
-                          fontSize: 16, color: Colors.white,
+                        _currentIdx < _slides.length - 1
+                            ? 'Next →'
+                            : 'Get Started →',
+                        // 🚨 FIX: Replaced standard TextStyle with GoogleFonts
+                        style: GoogleFonts.baloo2(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -162,7 +178,7 @@ class _SlideWidget extends StatelessWidget {
         gradient: LinearGradient(
           colors: slide.gradient,
           begin: Alignment.topLeft,
-          end:   Alignment.bottomRight,
+          end: Alignment.bottomRight,
         ),
       ),
       child: SafeArea(
@@ -175,7 +191,8 @@ class _SlideWidget extends StatelessWidget {
 
               // AR frame illustration
               Container(
-                width: 240, height: 240,
+                width: 240,
+                height: 240,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(MitraRadius.lg),
                   border: Border.all(color: MitraColors.border, width: 1.5),
@@ -190,10 +207,16 @@ class _SlideWidget extends StatelessWidget {
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  style: const TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w800, fontSize: 28, color: MitraColors.textPrimary),
+                  // 🚨 FIX: Replaced standard TextStyle with GoogleFonts
+                  style: GoogleFonts.baloo2(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 28,
+                      color: MitraColors.textPrimary),
                   children: [
                     TextSpan(text: '${slide.title}\n'),
-                    TextSpan(text: slide.titleAccent, style: const TextStyle(color: MitraColors.saffron)),
+                    TextSpan(
+                        text: slide.titleAccent,
+                        style: const TextStyle(color: MitraColors.saffron)),
                   ],
                 ),
               ),
@@ -203,8 +226,9 @@ class _SlideWidget extends StatelessWidget {
               Text(
                 slide.body,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Mukta', fontSize: 15,
+                // 🚨 FIX: Replaced standard TextStyle with GoogleFonts
+                style: GoogleFonts.mukta(
+                  fontSize: 15,
                   color: MitraColors.textSecondary,
                   height: 1.6,
                 ),
