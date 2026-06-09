@@ -36,21 +36,21 @@ final _studentKey = GlobalKey<NavigatorState>();
 final _teacherKey = GlobalKey<NavigatorState>();
 
 // ── Router provider ────────────────────────────────────
-// ── Router provider ────────────────────────────────────
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  // 🚨 BUG FIX: Removed ref.watch(). We create the router ONCE and never delete it.
 
   return GoRouter(
     navigatorKey: _rootKey,
     initialLocation: '/',
     redirect: (context, state) {
+      // 🚨 Read the auth state dynamically "on the fly" instead!
+      final authState = ref.read(authProvider);
+
       final loggedIn = authState.isLoggedIn;
       final user = authState.user;
       final path = state.uri.path;
 
-      // 🚨 THE FIX: Allow the Splash Screen to play!
-      // If the app is currently on the root path, do absolutely nothing.
-      // Let the splash_screen.dart animation finish and route the user itself.
+      // Allow the Splash Screen to play
       if (path == '/') {
         return null;
       }

@@ -12,11 +12,11 @@ class QuizQuestion {
   final String question;
   final List<String> options;
   final int correctIndex;
-  
+
   QuizQuestion.fromJson(Map<String, dynamic> json)
-    : question = json['question'] as String,
-      options = List<String>.from(json['options'] as List),
-      correctIndex = json['correct'] as int;
+      : question = json['question'] as String,
+        options = List<String>.from(json['options'] as List),
+        correctIndex = json['correct'] as int;
 }
 
 class QuizScreen extends ConsumerStatefulWidget {
@@ -29,10 +29,10 @@ class QuizScreen extends ConsumerStatefulWidget {
 class _QuizScreenState extends ConsumerState<QuizScreen> {
   // 🛠️ BUG-008 FIX: Use the typed model instead of dynamic list
   List<QuizQuestion> _questions = [];
-  int  _current  = 0;
+  int _current = 0;
   int? _selected;
-  bool _loading  = true;
-  int  _score    = 0;
+  bool _loading = true;
+  int _score = 0;
 
   @override
   void initState() {
@@ -47,14 +47,19 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         // 🛠️ BUG-008 FIX: Parse data into QuizQuestion objects safely
         final rawQuestions = res.data['questions'] as List<dynamic>?;
         if (rawQuestions != null) {
-          _questions = rawQuestions.map((q) => QuizQuestion.fromJson(q as Map<String, dynamic>)).toList();
+          _questions = rawQuestions
+              .map((q) => QuizQuestion.fromJson(q as Map<String, dynamic>))
+              .toList();
         } else {
           _questions = List.from(_mockQuestions);
         }
-        _loading   = false;
+        _loading = false;
       });
     } catch (_) {
-      setState(() { _questions = List.from(_mockQuestions); _loading = false; });
+      setState(() {
+        _questions = List.from(_mockQuestions);
+        _loading = false;
+      });
     }
   }
 
@@ -86,10 +91,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     if (_selected == correct) _score++;
 
     if (_current < _questions.length - 1) {
-      setState(() { _current++; _selected = null; });
+      setState(() {
+        _current++;
+        _selected = null;
+      });
     } else {
       final xpEarned = _score * 50;
-      context.go('/quiz/result', extra: {'score': _score, 'total': _questions.length, 'xpEarned': xpEarned});
+      context.go('/quiz/result', extra: {
+        'score': _score,
+        'total': _questions.length,
+        'xpEarned': xpEarned
+      });
     }
   }
 
@@ -98,12 +110,13 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     if (_loading) {
       return const Scaffold(
         backgroundColor: MitraColors.bgDeep,
-        body: Center(child: CircularProgressIndicator(color: MitraColors.saffron)),
+        body: Center(
+            child: CircularProgressIndicator(color: MitraColors.saffron)),
       );
     }
     // 🛠️ BUG-008 FIX: Extract properties directly from the typed model
-    final q       = _questions[_current];
-    final options  = q.options;
+    final q = _questions[_current];
+    final options = q.options;
     final progress = (_current + 1) / _questions.length;
 
     return Scaffold(
@@ -111,8 +124,14 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       appBar: AppBar(
         backgroundColor: MitraColors.bgCard,
         title: Text('Question ${_current + 1}/${_questions.length}',
-            style: const TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w700, fontSize: 16, color: MitraColors.textPrimary)),
-        leading: IconButton(icon: const Icon(Icons.close, color: MitraColors.textMuted), onPressed: () => context.pop()),
+            style: const TextStyle(
+                fontFamily: 'Baloo2',
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: MitraColors.textPrimary)),
+        leading: IconButton(
+            icon: const Icon(Icons.close, color: MitraColors.textMuted),
+            onPressed: () => context.pop()),
       ),
       body: Padding(
         padding: const EdgeInsets.all(MitraSpacing.lg),
@@ -121,9 +140,11 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(MitraRadius.pill),
             child: LinearProgressIndicator(
-              value: progress, minHeight: 6,
+              value: progress,
+              minHeight: 6,
               backgroundColor: MitraColors.bgSurface,
-              valueColor: const AlwaysStoppedAnimation<Color>(MitraColors.saffron),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(MitraColors.saffron),
             ),
           ),
           const SizedBox(height: MitraSpacing.xl),
@@ -137,7 +158,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               border: Border.all(color: MitraColors.border),
             ),
             child: Text(q.question, // 🛠️ BUG-008 FIX: Typed getter
-                style: const TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w600, fontSize: 18, color: MitraColors.textPrimary, height: 1.4)),
+                style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    color: MitraColors.textPrimary,
+                    height: 1.4)),
           ),
           const SizedBox(height: MitraSpacing.lg),
           // Options
@@ -152,27 +178,50 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(MitraSpacing.lg),
                   decoration: BoxDecoration(
-                    color: selected ? MitraColors.saffron.withOpacity(0.15) : MitraColors.bgCard,
+                    color: selected
+                        ? MitraColors.saffron.withValues(alpha: 0.15)
+                        : MitraColors.bgCard,
                     borderRadius: BorderRadius.circular(MitraRadius.md),
-                    border: Border.all(color: selected ? MitraColors.saffron : MitraColors.border, width: selected ? 1.5 : 1),
+                    border: Border.all(
+                        color:
+                            selected ? MitraColors.saffron : MitraColors.border,
+                        width: selected ? 1.5 : 1),
                   ),
                   child: Row(children: [
                     Container(
-                      width: 28, height: 28,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: selected ? MitraColors.saffron : MitraColors.bgSurface,
-                        border: Border.all(color: selected ? MitraColors.saffron : MitraColors.border),
+                        color: selected
+                            ? MitraColors.saffron
+                            : MitraColors.bgSurface,
+                        border: Border.all(
+                            color: selected
+                                ? MitraColors.saffron
+                                : MitraColors.border),
                       ),
                       alignment: Alignment.center,
-                      child: Text(['A','B','C','D'][i],
-                          style: TextStyle(fontFamily: 'SpaceMono', fontWeight: FontWeight.w700, fontSize: 12, color: selected ? Colors.white : MitraColors.textMuted)),
+                      child: Text(['A', 'B', 'C', 'D'][i],
+                          style: TextStyle(
+                              fontFamily: 'SpaceMono',
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                              color: selected
+                                  ? Colors.white
+                                  : MitraColors.textMuted)),
                     ),
                     const SizedBox(width: 12),
                     // 🛠️ BUG-008 FIX: Typed getter doesn't need "as String"
-                    Expanded(child: Text(options[i],
-                        style: TextStyle(fontFamily: 'Mukta', fontWeight: FontWeight.w500, fontSize: 15,
-                            color: selected ? MitraColors.saffron : MitraColors.textPrimary))),
+                    Expanded(
+                        child: Text(options[i],
+                            style: TextStyle(
+                                fontFamily: 'Mukta',
+                                fontWeight: FontWeight.w500,
+                                fontSize: 15,
+                                color: selected
+                                    ? MitraColors.saffron
+                                    : MitraColors.textPrimary))),
                   ]),
                 ),
               ),
@@ -184,7 +233,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
             onTap: _selected != null ? _next : null,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: double.infinity, height: 52,
+              width: double.infinity,
+              height: 52,
               decoration: BoxDecoration(
                 gradient: _selected != null
                     ? const LinearGradient(colors: MitraColors.gradientSaffron)
@@ -194,9 +244,16 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               ),
               alignment: Alignment.center,
               child: Text(
-                _current < _questions.length - 1 ? 'Next Question →' : 'Submit Quiz →',
-                style: TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w700, fontSize: 16,
-                    color: _selected != null ? Colors.white : MitraColors.textMuted),
+                _current < _questions.length - 1
+                    ? 'Next Question →'
+                    : 'Submit Quiz →',
+                style: TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: _selected != null
+                        ? Colors.white
+                        : MitraColors.textMuted),
               ),
             ),
           ),

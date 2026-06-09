@@ -4,7 +4,6 @@
 // ═══════════════════════════════════════════════════════
 
 import 'dart:async'; // 🛠️ Added for Timer
-import 'package:dio/dio.dart'; // 🛠️ Added for DioException
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,9 +11,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../constants/colors.dart';
-import '../../services/api_service.dart';
 import '../../stores/auth_store.dart';
 import '../../models/user.dart';
 
@@ -40,6 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _loading = false;
   int _resendTimer = 0;
   Timer? _timer; // 🛠️ BUG-005 FIX: Added proper Timer variable
+  String _verificationId = '';
 
   // Countdown ticker
   void _startResendTimer() {
@@ -55,86 +55,92 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
   }
 
+  // ═══════════════════════════════════════════════════════
+  // ☁️ REAL FIREBASE CLOUD AUTHENTICATION
+  // ═══════════════════════════════════════════════════════
+
   Future<void> _sendOTP() async {
     final phone = _phoneCtrl.text.trim();
-    // 🛠️ BUG-006 FIX: Added strict number validation
     if (phone.length != 10 || !RegExp(r'^[0-9]{10}$').hasMatch(phone)) {
       _showError(
           'Invalid Number', 'Please enter a valid 10-digit mobile number.');
       return;
     }
-    setState(() => _loading = true);
-    try {
-      await AuthAPI.login('+91$phone', _role.name);
-      setState(() => _step = _LoginStep.otp);
-      _startResendTimer();
-      Future.delayed(const Duration(milliseconds: 300),
-          () => _otpFocuses[0].requestFocus());
-    } catch (e) {
-      // 🚨 ADD THESE TWO LINES 🚨
-      print("=========================================");
-      print("🚨 RAW API ERROR: $e");
-      print("=========================================");
 
-      _showError('Error', _extractMessage(e, 'Failed to send OTP. Try again.'));
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    setState(() => _loading = true);
+
+    try {
+      // 🚨 ASKS GOOGLE TO SEND A REAL SMS TEXT
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: '+91$phone',
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-resolves on some Android devices if it reads the text automatically
+          final userCred =
+              await FirebaseAuth.instance.signInWithCredential(credential);
+          await _saveUserAndNavigate(userCred.user!);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          setState(() => _loading = false);
+          _showError('Verification Failed', e.message ?? 'Unknown error');
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          // The text was successfully sent!
+          setState(() {
+            _verificationId = verificationId;
+            _loading = false;
+            _step = _LoginStep.otp;
+          });
+          _startResendTimer();
+          Future.delayed(const Duration(milliseconds: 300),
+              () => _otpFocuses[0].requestFocus());
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+      );
+    } catch (e) {
+      setState(() => _loading = false);
+      _showError('Error', 'Failed to trigger SMS. Please try again.');
     }
   }
 
-  // Safety flag to ensure Google is only initialized once
   bool _isGoogleInitialized = false;
 
   Future<void> _signInWithGoogle() async {
     setState(() => _loading = true);
 
     try {
-      // 1. Setup the new V7 Google Sign-In instance
       final googleSignIn = GoogleSignIn.instance;
 
-      // 2. Initialize it (Strict requirement in Version 7+)
       if (!_isGoogleInitialized) {
         await googleSignIn.initialize();
         _isGoogleInitialized = true;
       }
 
-      // 3. Open the Google popup and let the user pick an account
-      final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
+      final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
+      if (googleUser == null) {
+        setState(() => _loading = false);
+        return;
+      }
 
-      // 4. Get the Identity Token
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      // 5. Get the Access Token (They separated this in Version 7)
       final clientAuth = await googleUser.authorizationClient
           .authorizeScopes(['email', 'profile']);
 
-      // 6. Connect to Firebase using both tokens
       final OAuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
         accessToken: clientAuth.accessToken,
       );
 
-      final UserCredential userCredential =
+      final UserCredential userCred =
           await FirebaseAuth.instance.signInWithCredential(credential);
-
-      // 🎉 SUCCESS!
-      print("=========================================");
-      print("✅ GOOGLE LOGIN SUCCESS!");
-      print("👤 Name: ${userCredential.user?.displayName}");
-      print("📧 Email: ${userCredential.user?.email}");
-      print("=========================================");
+      await _saveUserAndNavigate(userCred.user!);
     } catch (e) {
-      // If they just swipe the Google popup away, ignore it safely
-      if (e.toString().toLowerCase().contains('canceled')) {
-        print("User closed the Google popup.");
-      } else {
-        print("🚨 GOOGLE SIGN-IN ERROR: $e");
-        _showError('Google Login Failed',
-            'Could not sign in with Google. Please try again.');
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      setState(() => _loading = false);
+      print("🚨 GOOGLE SIGN-IN ERROR: $e");
+      _showError('Google Login Failed',
+          'Could not sign in with Google. Please try again.');
     }
   }
 
@@ -144,27 +150,58 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _showError('Incomplete OTP', 'Please enter all 6 digits.');
       return;
     }
-    setState(() => _loading = true);
-    try {
-      final phone = _phoneCtrl.text.trim();
-      final res = await AuthAPI.verifyOTP('+91$phone', code, _role.name);
-      final data = res.data as Map<String, dynamic>;
-      await _storage.write(
-          key: 'mitra_access_token', value: data['accessToken'] as String);
-      await _storage.write(
-          key: 'mitra_refresh_token', value: data['refreshToken'] as String);
 
-      final user = MitraUser.fromJson(data['user'] as Map<String, dynamic>);
-      ref.read(authProvider.notifier).setUser(user);
+    setState(() => _loading = true);
+
+    try {
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: _verificationId,
+        smsCode: code,
+      );
+
+      final UserCredential userCred =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      await _saveUserAndNavigate(userCred.user!);
+    } catch (e) {
+      setState(() => _loading = false);
+      _showError('Wrong OTP', 'The OTP is incorrect or expired.');
+    }
+  }
+
+  // ── ☁️ FIRESTORE DATABASE SAVER ──
+  Future<void> _saveUserAndNavigate(User firebaseUser) async {
+    try {
+      // 1. Save the new user directly into your Firebase Database
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .set({
+        'id': firebaseUser.uid,
+        'phone': firebaseUser.phoneNumber ?? '',
+        'email': firebaseUser.email ?? '',
+        'name': firebaseUser.displayName ?? 'App ${_role.name}',
+        'role': _role.name,
+        'last_login': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      // 2. Exact match for YOUR MitraUser variables
+      final consumerUser = MitraUser(
+        id: firebaseUser.uid,
+        fullName: firebaseUser.displayName ?? 'App ${_role.name}',
+        phone: firebaseUser.phoneNumber ?? '',
+        role: _role.name,
+      );
+
+      ref.read(authProvider.notifier).setUser(consumerUser);
+      await _storage.write(key: 'mitra_consumer_logged_in', value: 'true');
+      await _storage.write(key: 'mitra_consumer_role', value: _role.name);
 
       if (!mounted) return;
-      // 🛠️ BUG-007 FIX: Let the router handle redirect logic automatically based on state
       context.go('/');
     } catch (e) {
-      _showError('Wrong OTP',
-          _extractMessage(e, 'OTP is incorrect. Please try again.'));
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      print("🚨 FIRESTORE ERROR: $e");
+      _showError('Database Error', 'Could not save profile to cloud.');
+      setState(() => _loading = false);
     }
   }
 
@@ -185,23 +222,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ],
       ),
     );
-  }
-
-  // 🛠️ BUG-002 FIX: Proper error extraction
-  String _extractMessage(Object e, String fallback) {
-    if (e is DioException) {
-      if (e.response != null && e.response!.data is Map) {
-        final data = e.response!.data as Map<String, dynamic>;
-        if (data.containsKey('message')) {
-          return data['message'] as String? ?? fallback;
-        }
-        if (data.containsKey('error')) {
-          return data['error'] as String? ?? fallback;
-        }
-      }
-      return e.message ?? fallback;
-    }
-    return fallback;
   }
 
   @override
@@ -288,7 +308,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         vertical: 12),
                                     decoration: BoxDecoration(
                                       color: _role == r
-                                          ? MitraColors.saffron.withOpacity(0.1)
+                                          ? MitraColors.saffron
+                                              .withValues(alpha: 0.1)
                                           : MitraColors.bgCard,
                                       borderRadius:
                                           BorderRadius.circular(MitraRadius.sm),
@@ -459,9 +480,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Container(
           padding: const EdgeInsets.all(MitraSpacing.md),
           decoration: BoxDecoration(
-            color: MitraColors.emerald.withOpacity(0.1),
+            color: MitraColors.emerald.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(MitraRadius.sm),
-            border: Border.all(color: MitraColors.emerald.withOpacity(0.3)),
+            border:
+                Border.all(color: MitraColors.emerald.withValues(alpha: 0.3)),
           ),
           child: Text(
             '💬  OTP sent to +91 ${_phoneCtrl.text.substring(0, 3)}XXXXXXX',

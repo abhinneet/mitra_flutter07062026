@@ -27,12 +27,12 @@ class QueuedRequest {
   });
 
   QueuedRequest copyWith({int? retries}) => QueuedRequest(
-        id:        id,
-        endpoint:  endpoint,
-        method:    method,
-        payload:   payload,
+        id: id,
+        endpoint: endpoint,
+        method: method,
+        payload: payload,
         createdAt: createdAt,
-        retries:   retries ?? this.retries,
+        retries: retries ?? this.retries,
       );
 }
 
@@ -44,7 +44,8 @@ class OfflineState {
   const OfflineState({this.isOnline = true, this.queue = const []});
 
   OfflineState copyWith({bool? isOnline, List<QueuedRequest>? queue}) =>
-      OfflineState(isOnline: isOnline ?? this.isOnline, queue: queue ?? this.queue);
+      OfflineState(
+          isOnline: isOnline ?? this.isOnline, queue: queue ?? this.queue);
 }
 
 // ── Offline Notifier ───────────────────────────────────
@@ -57,7 +58,7 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
 
   void _listenConnectivity() {
     _sub = Connectivity().onConnectivityChanged.listen((result) async {
-      final online = result != ConnectivityResult.none;
+      final online = !result.contains(ConnectivityResult.none);
       state = state.copyWith(isOnline: online);
 
       if (online && state.queue.isNotEmpty) {
@@ -91,22 +92,25 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
     required Map<String, dynamic> payload,
   }) {
     final item = QueuedRequest(
-      id:        '${DateTime.now().millisecondsSinceEpoch}-${payload.hashCode}',
-      endpoint:  endpoint,
-      method:    method,
-      payload:   payload,
+      id: '${DateTime.now().millisecondsSinceEpoch}-${payload.hashCode}',
+      endpoint: endpoint,
+      method: method,
+      payload: payload,
       createdAt: DateTime.now(),
     );
     state = state.copyWith(queue: [...state.queue, item]);
   }
 
   void _dequeue(String id) {
-    state = state.copyWith(queue: state.queue.where((r) => r.id != id).toList());
+    state =
+        state.copyWith(queue: state.queue.where((r) => r.id != id).toList());
   }
 
   void _incrementRetry(String id) {
     state = state.copyWith(
-      queue: state.queue.map((r) => r.id == id ? r.copyWith(retries: r.retries + 1) : r).toList(),
+      queue: state.queue
+          .map((r) => r.id == id ? r.copyWith(retries: r.retries + 1) : r)
+          .toList(),
     );
   }
 

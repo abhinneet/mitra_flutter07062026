@@ -47,7 +47,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (token == null) {
         print("🚨 SPLASH: No token found. Navigating to Onboarding...");
         ref.read(authProvider.notifier).setLoading(false);
-        if (mounted) context.go('/onboarding');
+
+        // 🚨 BUG FIX: Give the engine a split-second to stabilize before pushing the route
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) context.go('/onboarding');
+        });
         return;
       }
 

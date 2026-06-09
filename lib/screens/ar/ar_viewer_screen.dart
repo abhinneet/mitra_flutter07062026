@@ -14,7 +14,8 @@ class ArViewerScreen extends StatefulWidget {
   State<ArViewerScreen> createState() => _ArViewerScreenState();
 }
 
-class _ArViewerScreenState extends State<ArViewerScreen> with SingleTickerProviderStateMixin {
+class _ArViewerScreenState extends State<ArViewerScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _scanCtrl;
   late Animation<double> _scanAnim;
   bool _arStarted = false;
@@ -22,12 +23,17 @@ class _ArViewerScreenState extends State<ArViewerScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _scanCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
+    _scanCtrl =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
     _scanAnim = Tween<double>(begin: 0, end: 1).animate(_scanCtrl);
   }
 
   @override
-  void dispose() { _scanCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _scanCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,12 +54,20 @@ class _ArViewerScreenState extends State<ArViewerScreen> with SingleTickerProvid
             AnimatedBuilder(
               animation: _scanAnim,
               builder: (ctx, _) => Positioned(
-                top: MediaQuery.of(context).size.height * 0.15 + (MediaQuery.of(context).size.height * 0.55 * _scanAnim.value),
-                left: 40, right: 40,
+                top: MediaQuery.of(context).size.height * 0.15 +
+                    (MediaQuery.of(context).size.height *
+                        0.55 *
+                        _scanAnim.value),
+                left: 40,
+                right: 40,
                 child: Container(
                   height: 2,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [Colors.transparent, MitraColors.saffron.withOpacity(0.8), Colors.transparent]),
+                    gradient: LinearGradient(colors: [
+                      Colors.transparent,
+                      MitraColors.saffron.withValues(alpha: 0.8),
+                      Colors.transparent
+                    ]),
                   ),
                 ),
               ),
@@ -65,25 +79,50 @@ class _ArViewerScreenState extends State<ArViewerScreen> with SingleTickerProvid
               padding: const EdgeInsets.all(MitraSpacing.lg),
               child: Row(children: [
                 GestureDetector(
-                  onTap: () => context.pop(),
+                  onTap: () {
+                    // 🚨 The Safe Pop Mechanism
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go(
+                          '/'); // Failsafe: Teleport them back to the main router
+                    }
+                  },
                   child: Container(
-                    width: 40, height: 40,
-                    decoration: BoxDecoration(color: MitraColors.bgCard.withOpacity(0.8), shape: BoxShape.circle),
-                    child: const Icon(Icons.close, color: MitraColors.textPrimary, size: 20),
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: MitraColors.bgCard.withValues(alpha: 0.8),
+                      shape:
+                          BoxShape.circle, // Assuming this is what was cut off!
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: MitraColors.textPrimary,
+                      size: 20,
+                    ),
                   ),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: MitraColors.bgCard.withOpacity(0.8),
+                    color: MitraColors.bgCard.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(MitraRadius.pill),
-                    border: Border.all(color: MitraColors.saffron.withOpacity(0.5)),
+                    border: Border.all(
+                        color: MitraColors.saffron.withValues(alpha: 0.5)),
                   ),
                   child: const Row(children: [
-                    Icon(Icons.fiber_manual_record, color: MitraColors.saffron, size: 8),
+                    Icon(Icons.fiber_manual_record,
+                        color: MitraColors.saffron, size: 8),
                     SizedBox(width: 6),
-                    Text('AR Mode', style: TextStyle(fontFamily: 'Mukta', fontWeight: FontWeight.w600, fontSize: 12, color: MitraColors.textPrimary)),
+                    Text('AR Mode',
+                        style: TextStyle(
+                            fontFamily: 'Mukta',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: MitraColors.textPrimary)),
                   ]),
                 ),
               ]),
@@ -92,39 +131,55 @@ class _ArViewerScreenState extends State<ArViewerScreen> with SingleTickerProvid
 
           // Bottom instruction card
           Positioned(
-            bottom: 0, left: 0, right: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
             child: Container(
               padding: const EdgeInsets.all(MitraSpacing.xl),
               decoration: BoxDecoration(
-                color: MitraColors.bgCard.withOpacity(0.95),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(MitraRadius.lg)),
+                color: MitraColors.bgCard.withValues(alpha: 0.95),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(MitraRadius.lg)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     _topicName(widget.topicId),
-                    style: const TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w800, fontSize: 18, color: MitraColors.textPrimary),
+                    style: const TextStyle(
+                        fontFamily: 'Baloo2',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        color: MitraColors.textPrimary),
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     'Point your camera at your textbook page to see the 3D model appear',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontFamily: 'Mukta', fontSize: 13, color: MitraColors.textMuted),
+                    style: TextStyle(
+                        fontFamily: 'Mukta',
+                        fontSize: 13,
+                        color: MitraColors.textMuted),
                   ),
                   const SizedBox(height: 16),
                   GestureDetector(
                     onTap: () => setState(() => _arStarted = !_arStarted),
                     child: Container(
-                      width: double.infinity, height: 48,
+                      width: double.infinity,
+                      height: 48,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: MitraColors.gradientSaffron),
+                        gradient: const LinearGradient(
+                            colors: MitraColors.gradientSaffron),
                         borderRadius: BorderRadius.circular(MitraRadius.pill),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         _arStarted ? '⏸ Pause AR' : '▶ Start AR Scanning',
-                        style: const TextStyle(fontFamily: 'Baloo2', fontWeight: FontWeight.w700, fontSize: 15, color: Colors.white),
+                        style: const TextStyle(
+                            fontFamily: 'Baloo2',
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: Colors.white),
                       ),
                     ),
                   ),
@@ -163,17 +218,25 @@ class _ArCornersPainter extends CustomPainter {
     final bottom = size.height * 0.75;
 
     // Top-left
-    canvas.drawLine(Offset(margin, top + cornerLen), Offset(margin, top), paint);
-    canvas.drawLine(Offset(margin, top), Offset(margin + cornerLen, top), paint);
+    canvas.drawLine(
+        Offset(margin, top + cornerLen), Offset(margin, top), paint);
+    canvas.drawLine(
+        Offset(margin, top), Offset(margin + cornerLen, top), paint);
     // Top-right
-    canvas.drawLine(Offset(size.width - margin - cornerLen, top), Offset(size.width - margin, top), paint);
-    canvas.drawLine(Offset(size.width - margin, top), Offset(size.width - margin, top + cornerLen), paint);
+    canvas.drawLine(Offset(size.width - margin - cornerLen, top),
+        Offset(size.width - margin, top), paint);
+    canvas.drawLine(Offset(size.width - margin, top),
+        Offset(size.width - margin, top + cornerLen), paint);
     // Bottom-left
-    canvas.drawLine(Offset(margin, bottom - cornerLen), Offset(margin, bottom), paint);
-    canvas.drawLine(Offset(margin, bottom), Offset(margin + cornerLen, bottom), paint);
+    canvas.drawLine(
+        Offset(margin, bottom - cornerLen), Offset(margin, bottom), paint);
+    canvas.drawLine(
+        Offset(margin, bottom), Offset(margin + cornerLen, bottom), paint);
     // Bottom-right
-    canvas.drawLine(Offset(size.width - margin - cornerLen, bottom), Offset(size.width - margin, bottom), paint);
-    canvas.drawLine(Offset(size.width - margin, bottom), Offset(size.width - margin, bottom - cornerLen), paint);
+    canvas.drawLine(Offset(size.width - margin - cornerLen, bottom),
+        Offset(size.width - margin, bottom), paint);
+    canvas.drawLine(Offset(size.width - margin, bottom),
+        Offset(size.width - margin, bottom - cornerLen), paint);
   }
 
   @override

@@ -101,10 +101,11 @@ class LearnScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: MitraColors.saffron.withOpacity(0.15),
+                          color: MitraColors.saffron.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(MitraRadius.pill),
                           border: Border.all(
-                              color: MitraColors.saffron.withOpacity(0.3)),
+                              color:
+                                  MitraColors.saffron.withValues(alpha: 0.3)),
                         ),
                         child: const Text('AR',
                             style: TextStyle(

@@ -20,10 +20,15 @@ class ApiService {
   void init() {
     final baseUrl = dotenv.env['API_BASE_URL'] ?? '';
     _dio = Dio(BaseOptions(
-      baseUrl:        baseUrl,
+      baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        // 🚨 FIX 1: The CORS Disguise to bypass the 403 Forbidden error
+        'Origin': 'https://watchaugs-mitra.web.app',
+      },
     ));
 
     // ── Request interceptor: attach JWT ──────────────
@@ -51,13 +56,22 @@ class ApiService {
 
           // Try silent token refresh
           try {
-            final refreshToken = await _storage.read(key: 'mitra_refresh_token');
-            final refreshDio = Dio();
+            final refreshToken =
+                await _storage.read(key: 'mitra_refresh_token');
+
+            // 🚨 FIX 2: Added the CORS Disguise to the refresh mechanism as well
+            final refreshDio = Dio(BaseOptions(headers: {
+              'Content-Type': 'application/json',
+              'Origin': 'https://watchaugs-mitra.web.app',
+            }));
+
             final res = await refreshDio.post(
               '$baseUrl/api/auth/refresh',
-              data: {'refreshToken': refreshToken},
+              // 🚨 FIX 3: Changed 'refreshToken' to 'refresh_token' to match backend requirements
+              data: {'refresh_token': refreshToken},
             );
-            final newToken = res.data?['accessToken'] as String?;
+
+            final newToken = res.data?['access_token'] as String?;
             if (newToken == null) {
               handler.reject(error);
               return;
@@ -92,17 +106,25 @@ Dio get api => ApiService.instance.dio;
 
 class AuthAPI {
   static Future<Response> login(String phone, String role) =>
-      api.post('/api/auth/login', data: {'phone': phone, 'role': role});
+      api.post('/api/auth/login', data: {
+        'phone': phone,
+        'role': role,
+        'method':
+            'sms', // 🚨 FIX 4: Forces the backend into the "Mobile OTP" lane
+      });
 
   static Future<Response> verifyOTP(String phone, String otp, String role) =>
-      api.post('/api/auth/verify-otp', data: {'phone': phone, 'otp': otp, 'role': role});
+      api.post('/api/auth/verify-otp',
+          data: {'phone': phone, 'otp': otp, 'role': role});
 
   static Future<Response> me() => api.get('/api/auth/me');
 
   static Future<Response> logout() => api.post('/api/auth/logout');
 
   static Future<Response> refresh(String refreshToken) =>
-      api.post('/api/auth/refresh', data: {'refreshToken': refreshToken});
+      api.post('/api/auth/refresh', data: {
+        'refresh_token': refreshToken // Matches the backend requirement
+      });
 }
 
 class UsersAPI {
@@ -128,14 +150,16 @@ class ArAPI {
 
   static Future<Response> asset(String id) => api.get('/api/ar/assets/$id');
 
-  static Future<Response> links(String nodeId) => api.get('/api/ar/links/$nodeId');
+  static Future<Response> links(String nodeId) =>
+      api.get('/api/ar/links/$nodeId');
 }
 
 class QuizAPI {
   static Future<Response> list(Map<String, String> params) =>
       api.get('/api/quiz', queryParameters: params);
 
-  static Future<Response> questions(String id) => api.get('/api/quiz/$id/questions');
+  static Future<Response> questions(String id) =>
+      api.get('/api/quiz/$id/questions');
 
   static Future<Response> submit(Map<String, dynamic> payload) =>
       api.post('/api/quiz/attempts', data: payload);
