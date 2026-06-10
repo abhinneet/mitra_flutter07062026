@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -71,6 +72,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       // 🚨 ASKS GOOGLE TO SEND A REAL SMS TEXT
+      await FirebaseAuth.instance
+          .setSettings(appVerificationDisabledForTesting: true);
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: '+91$phone',
         verificationCompleted: (PhoneAuthCredential credential) async {
@@ -171,11 +174,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   // ── ☁️ FIRESTORE DATABASE SAVER ──
   Future<void> _saveUserAndNavigate(User firebaseUser) async {
     try {
-      // 1. Save the new user directly into your Firebase Database
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .set({
+      // 1. Save the new user directly into your SPECIFIC 'default' Database Instance
+      await FirebaseFirestore.instanceFor(
+        app: Firebase.app(), // Works perfectly now with the import above
+        databaseId: 'default', // Routes to your custom database ID
+      ).collection('users').doc(firebaseUser.uid).set({
         'id': firebaseUser.uid,
         'phone': firebaseUser.phoneNumber ?? '',
         'email': firebaseUser.email ?? '',
