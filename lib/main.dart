@@ -23,14 +23,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  print("🚦 Loading .env...");
+  debugPrint("🚦 Loading .env...");
   try {
     await dotenv.load(fileName: '.env');
   } catch (e) {
-    print("⚠️ .env issue: $e");
+    debugPrint("⚠️ .env issue: $e");
   }
 
-  print("🔥 Initializing Firebase...");
+  debugPrint("🔥 Initializing Firebase...");
   try {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
@@ -38,19 +38,22 @@ Future<void> main() async {
     }
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
-    print("⚠️ Firebase skipped: $e");
+    debugPrint("⚠️ Firebase skipped: $e");
   }
 
-  print("🌐 Initializing API...");
+  debugPrint("🌐 Initializing API...");
   try {
     ApiService.instance.init();
   } catch (e) {
-    print("⚠️ API issue: $e");
+    debugPrint("⚠️ API issue: $e");
   }
 
-  print("✅ ALL SYSTEMS GO! Launching UI...");
+  debugPrint("✅ ALL SYSTEMS GO! Launching UI...");
   runApp(
-    const ProviderScope(child: MitraApp()),
+    const ProviderScope(
+      // 👈 THIS IS REQUIRED FOR THE THEMES TO WORK
+      child: MitraApp(),
+    ),
   );
 }
 

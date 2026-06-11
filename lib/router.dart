@@ -37,30 +37,27 @@ final _teacherKey = GlobalKey<NavigatorState>();
 
 // ── Router provider ────────────────────────────────────
 final routerProvider = Provider<GoRouter>((ref) {
-  // 🚨 BUG FIX: Removed ref.watch(). We create the router ONCE and never delete it.
-
   return GoRouter(
     navigatorKey: _rootKey,
-    initialLocation: '/',
+    initialLocation: '/', // 🚨 Strict entry point
     redirect: (context, state) {
-      // 🚨 Read the auth state dynamically "on the fly" instead!
       final authState = ref.read(authProvider);
 
       final loggedIn = authState.isLoggedIn;
       final user = authState.user;
       final path = state.uri.path;
 
-      // Allow the Splash Screen to play
+      // 🚨 RULE 1: Always allow the Splash Screen to play its full animation
       if (path == '/') {
         return null;
       }
 
-      // If not logged in, strictly lock them to onboarding/login
+      // 🚨 RULE 2: If not logged in, strictly lock them to onboarding/login
       if (!loggedIn && path != '/onboarding' && path != '/login') {
         return '/onboarding';
       }
 
-      // If logged in but no class set (student first time), force setup
+      // 🚨 RULE 3: If logged in but no class set (student first time), force setup
       if (loggedIn &&
           user?.isStudent == true &&
           user?.classGrade == null &&

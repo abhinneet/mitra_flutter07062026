@@ -39,12 +39,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   _Role _role = _Role.student;
   bool _loading = false;
   int _resendTimer = 0;
-  Timer? _timer; // 🛠️ BUG-005 FIX: Added proper Timer variable
+  Timer? _timer;
   String _verificationId = '';
 
   // Countdown ticker
   void _startResendTimer() {
-    _timer?.cancel(); // 🛠️ BUG-005 FIX: Cancel existing timer
+    _timer?.cancel();
     int countdown = 30;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
@@ -71,13 +71,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _loading = true);
 
     try {
-      // 🚨 ASKS GOOGLE TO SEND A REAL SMS TEXT
       await FirebaseAuth.instance
           .setSettings(appVerificationDisabledForTesting: true);
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: '+91$phone',
         verificationCompleted: (PhoneAuthCredential credential) async {
-          // Auto-resolves on some Android devices if it reads the text automatically
           final userCred =
               await FirebaseAuth.instance.signInWithCredential(credential);
           await _saveUserAndNavigate(userCred.user!);
@@ -87,7 +85,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _showError('Verification Failed', e.message ?? 'Unknown error');
         },
         codeSent: (String verificationId, int? resendToken) {
-          // The text was successfully sent!
           setState(() {
             _verificationId = verificationId;
             _loading = false;
@@ -113,6 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _loading = true);
 
     try {
+      debugPrint("🚨 STEP 1: Starting Google Sign In...");
       final googleSignIn = GoogleSignIn.instance;
 
       if (!_isGoogleInitialized) {
@@ -121,27 +119,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
 
       final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
+
       if (googleUser == null) {
+        debugPrint("🚨 STEP 1.5: User cancelled the dialog.");
         setState(() => _loading = false);
         return;
       }
 
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      debugPrint("🚨 STEP 2: Google Account Selected: ${googleUser.email}");
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-      final clientAuth = await googleUser.authorizationClient
-          .authorizeScopes(['email', 'profile']);
-
+      debugPrint("🚨 STEP 3: Creating Firebase Credential...");
       final OAuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
-        accessToken: clientAuth.accessToken,
       );
 
+      debugPrint("🚨 STEP 4: Sending Credential to Firebase...");
       final UserCredential userCred =
           await FirebaseAuth.instance.signInWithCredential(credential);
+
+      debugPrint("🚨 STEP 5: Firebase Auth Success! Saving to Database...");
       await _saveUserAndNavigate(userCred.user!);
+
+      debugPrint("🚨 STEP 6: Routing to Dashboard!");
     } catch (e) {
       setState(() => _loading = false);
-      print("🚨 GOOGLE SIGN-IN ERROR: $e");
+      debugPrint("🚨 GOOGLE SIGN-IN FATAL ERROR: $e");
       _showError('Google Login Failed',
           'Could not sign in with Google. Please try again.');
     }
@@ -174,10 +178,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   // ── ☁️ FIRESTORE DATABASE SAVER ──
   Future<void> _saveUserAndNavigate(User firebaseUser) async {
     try {
-      // 1. Save the new user directly into your SPECIFIC 'default' Database Instance
+      // 1. Save the new user directly into your SPECIFIC '(default)' Database Instance
       await FirebaseFirestore.instanceFor(
-        app: Firebase.app(), // Works perfectly now with the import above
-        databaseId: 'default', // Routes to your custom database ID
+        app: Firebase.app(),
+        databaseId: '(default)',
       ).collection('users').doc(firebaseUser.uid).set({
         'id': firebaseUser.uid,
         'phone': firebaseUser.phoneNumber ?? '',
@@ -200,9 +204,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await _storage.write(key: 'mitra_consumer_role', value: _role.name);
 
       if (!mounted) return;
-      context.go('/');
+
+      // 🚨 BUG FIX: Route to the proper Home Screen instead of the Splash Screen
+      if (_role == _Role.teacher) {
+        context.go('/teacher/home');
+      } else {
+        context.go('/student/home');
+      }
     } catch (e) {
-      print("🚨 FIRESTORE ERROR: $e");
+      debugPrint("🚨 FIRESTORE ERROR: $e");
       _showError('Database Error', 'Could not save profile to cloud.');
       setState(() => _loading = false);
     }
@@ -229,7 +239,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _timer?.cancel(); // 🛠️ BUG-005 FIX: Clean up timer when screen closes
+    _timer?.cancel();
     _phoneCtrl.dispose();
     for (final c in _otpCtrls) c.dispose();
     for (final f in _otpFocuses) f.dispose();

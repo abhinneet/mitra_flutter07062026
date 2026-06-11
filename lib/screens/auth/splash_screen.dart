@@ -19,61 +19,74 @@ class SplashScreen extends ConsumerStatefulWidget {
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> {
+// 🚨 Added TickerProviderStateMixin to drive the custom Lottie controller
+class _SplashScreenState extends ConsumerState<SplashScreen>
+    with TickerProviderStateMixin {
+  late final AnimationController _lottieController;
   final _storage = const FlutterSecureStorage();
+
+  String? _nextRoute; // Holds the destination route once backend replies
+  bool _animationDone =
+      false; // Tracks if the animation reached its final frame
 
   @override
   void initState() {
     super.initState();
+    // Initialize the controller that will manage the Lottie playback speeds
+    _lottieController = AnimationController(vsync: this);
+
+    // Kick off the background authentication verification instantly
     _checkAuth();
   }
 
   Future<void> _checkAuth() async {
-    print("🚨 SPLASH: Timer Started");
-
-    // ⏱️ Reduced to 3 seconds for debugging
-    await Future.delayed(const Duration(seconds: 3));
-
-    print("🚨 SPLASH: Timer Finished. Checking secure storage...");
-
-    if (!mounted) return;
+    print("🚨 SPLASH: Background Auth Check Started...");
 
     try {
-      // 🐛 NOTE: If the app freezes, it is almost always on this exact line!
       final token = await _storage.read(key: 'mitra_access_token');
-
       print("🚨 SPLASH: Storage read successful. Token is: $token");
 
       if (token == null) {
-        print("🚨 SPLASH: No token found. Navigating to Onboarding...");
+        print("🚨 SPLASH: No token found. Preparing routing to Onboarding...");
         ref.read(authProvider.notifier).setLoading(false);
-
-        // 🚨 BUG FIX: Give the engine a split-second to stabilize before pushing the route
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (mounted) context.go('/onboarding');
-        });
-        return;
-      }
-
-      print("🚨 SPLASH: Token found. Contacting backend...");
-      final res = await AuthAPI.me();
-      final data = res.data;
-      final user = MitraUser.fromJson(data['user'] ?? data);
-
-      ref.read(authProvider.notifier).setUser(user);
-
-      print("🚨 SPLASH: User loaded. Navigating to Home...");
-      if (!mounted) return;
-      if (user.isTeacher) {
-        context.go('/teacher/home');
+        _nextRoute = '/onboarding';
       } else {
-        context.go('/student/home');
+        print("🚨 SPLASH: Token found. Contacting backend...");
+        final res = await AuthAPI.me();
+        final data = res.data;
+        final user = MitraUser.fromJson(data['user'] ?? data);
+
+        ref.read(authProvider.notifier).setUser(user);
+        print("🚨 SPLASH: User loaded successfully.");
+
+        _nextRoute = user.isTeacher ? '/teacher/home' : '/student/home';
       }
     } catch (e) {
-      print("🚨 SPLASH ERROR: Something crashed! Error details: $e");
+      print("🚨 SPLASH ERROR: Authentication check crashed: $e");
       ref.read(authProvider.notifier).setLoading(false);
-      if (mounted) context.go('/login');
+      _nextRoute = '/login';
     }
+
+    // Attempt to navigate if the animation beat the network request
+    _attemptNavigation();
+  }
+
+  /// Evaluates if both conditions are met before switching screens
+  void _attemptNavigation() {
+    if (_animationDone && _nextRoute != null) {
+      print(
+          "🚨 SPLASH: Animation complete & route ready. Navigating to $_nextRoute");
+      if (mounted) {
+        context.go(_nextRoute!);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _lottieController
+        .dispose(); // Always clean up controllers to prevent memory leaks
+    super.dispose();
   }
 
   @override
@@ -85,9 +98,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         height: double.infinity,
         child: Lottie.asset(
           'assets/animations/splash_animation.json',
+          controller: _lottieController,
           fit: BoxFit.cover,
-          repeat:
-              false, // 🚨 Tells the animation to play ONCE and hold on the final frame!
+          onLoaded: (composition) {
+            // 1. Set the controller's duration to match the JSON file perfectly
+            _lottieController.duration = composition.duration;
+
+            // 2. Play the animation forward exactly once
+            _lottieController.forward().then((_) {
+              setState(() => _animationDone = true);
+              // 3. Trigger navigation now that the final frame has been reached
+              _attemptNavigation();
+            });
+          },
         ),
       ),
     );
