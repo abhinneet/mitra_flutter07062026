@@ -33,7 +33,7 @@ class LearnScreen extends ConsumerWidget {
         children: [
           // Header
           Container(
-            color: MitraColors.bgCard,
+            color: Colors.white.withValues(alpha: 0.05), // ✨ Glass Header
             padding: const EdgeInsets.all(MitraSpacing.lg),
             child: const Row(
               children: [
@@ -69,9 +69,11 @@ class LearnScreen extends ConsumerWidget {
                 return Container(
                   padding: const EdgeInsets.all(MitraSpacing.lg),
                   decoration: BoxDecoration(
-                    color: MitraColors.bgCard,
+                    color: Colors.white.withValues(alpha: 0.08), // ✨ Glass Card
                     borderRadius: BorderRadius.circular(MitraRadius.md),
-                    border: Border.all(color: MitraColors.border),
+                    border: Border.all(
+                        color: Colors.white
+                            .withValues(alpha: 0.2)), // ✨ Glass Border
                   ),
                   child: Row(
                     children: [

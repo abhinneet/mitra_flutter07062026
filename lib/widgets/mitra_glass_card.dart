@@ -8,12 +8,12 @@ class MitraGlassCard extends StatelessWidget {
   final Color activeColor;
 
   const MitraGlassCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.isSelected,
     required this.onTap,
     required this.activeColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

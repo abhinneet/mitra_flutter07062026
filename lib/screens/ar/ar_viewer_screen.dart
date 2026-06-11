@@ -218,10 +218,10 @@ class _ArCornersPainter extends CustomPainter {
     final bottom = size.height * 0.75;
 
     // Top-left
-    canvas.drawLine(
-        Offset(margin, top + cornerLen), Offset(margin, top), paint);
-    canvas.drawLine(
-        Offset(margin, top), Offset(margin + cornerLen, top), paint);
+    canvas.drawLine(const Offset(margin, top + cornerLen),
+        const Offset(margin, top), paint);
+    canvas.drawLine(const Offset(margin, top),
+        const Offset(margin + cornerLen, top), paint);
     // Top-right
     canvas.drawLine(Offset(size.width - margin - cornerLen, top),
         Offset(size.width - margin, top), paint);

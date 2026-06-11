@@ -24,13 +24,13 @@ class AnalyticsScreen extends ConsumerWidget {
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(MitraSpacing.lg),
-            children: [
+            children: const [
               _AnalyticsCard(title: 'Class Average', value: '74%', subtitle: '+3% from last week', positive: true),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _AnalyticsCard(title: 'Quiz Completion Rate', value: '63%', subtitle: 'Target: 80%', positive: false),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _AnalyticsCard(title: 'AR Sessions This Week', value: '128', subtitle: '+22% from last week', positive: true),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _AnalyticsCard(title: 'Students Active Today', value: '31/42', subtitle: '74% attendance', positive: true),
             ],
           ),

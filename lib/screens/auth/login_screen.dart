@@ -118,17 +118,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _isGoogleInitialized = true;
       }
 
-      final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
-
-      if (googleUser == null) {
-        debugPrint("🚨 STEP 1.5: User cancelled the dialog.");
-        setState(() => _loading = false);
-        return;
-      }
+      final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
 
       debugPrint("🚨 STEP 2: Google Account Selected: ${googleUser.email}");
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
       debugPrint("🚨 STEP 3: Creating Firebase Credential...");
       final OAuthCredential credential = GoogleAuthProvider.credential(
@@ -241,8 +234,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void dispose() {
     _timer?.cancel();
     _phoneCtrl.dispose();
-    for (final c in _otpCtrls) c.dispose();
-    for (final f in _otpFocuses) f.dispose();
+    for (final c in _otpCtrls) {
+      c.dispose();
+    }
+    for (final f in _otpFocuses) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -444,11 +441,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         const SizedBox(height: 24), // Spacing before the divider
 
         // --- VISUAL "OR" DIVIDER ---
-        Row(
+        const Row(
           children: [
-            const Expanded(child: Divider(color: MitraColors.border)),
+            Expanded(child: Divider(color: MitraColors.border)),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'OR',
                 style: TextStyle(
@@ -459,7 +456,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
             ),
-            const Expanded(child: Divider(color: MitraColors.border)),
+            Expanded(child: Divider(color: MitraColors.border)),
           ],
         ),
 
@@ -546,10 +543,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           fillColor: MitraColors.bgCard,
                         ),
                         onChanged: (val) {
-                          if (val.isNotEmpty && i < 5)
+                          if (val.isNotEmpty && i < 5) {
                             _otpFocuses[i + 1].requestFocus();
-                          if (val.isEmpty && i > 0)
+                          }
+                          if (val.isEmpty && i > 0) {
                             _otpFocuses[i - 1].requestFocus();
+                          }
                         },
                       ),
                     ),
@@ -572,7 +571,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: () {
                     setState(() {
                       _step = _LoginStep.phone;
-                      for (final c in _otpCtrls) c.clear();
+                      for (final c in _otpCtrls) {
+                        c.clear();
+                      }
                     });
                   },
                   child: const Text('← Change Number / Resend OTP',

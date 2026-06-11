@@ -32,16 +32,16 @@ class TeacherHomeScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(MitraSpacing.lg),
+            const Padding(
+              padding: EdgeInsets.all(MitraSpacing.lg),
               child: Column(children: [
-                Row(children: const [
+                Row(children: [
                   Expanded(child: _MetricCard(emoji: '👥', label: 'Students',   value: '42')),
                   SizedBox(width: 12),
                   Expanded(child: _MetricCard(emoji: '📊', label: 'Avg Score',  value: '74%')),
                 ]),
-                const SizedBox(height: 12),
-                Row(children: const [
+                SizedBox(height: 12),
+                Row(children: [
                   Expanded(child: _MetricCard(emoji: '📝', label: 'Quizzes',    value: '8')),
                   SizedBox(width: 12),
                   Expanded(child: _MetricCard(emoji: '🏆', label: 'Completion', value: '63%')),

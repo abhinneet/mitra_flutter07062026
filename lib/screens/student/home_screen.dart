@@ -65,7 +65,7 @@ class HomeScreen extends ConsumerWidget {
         children: [
           // ── Header ───────────────────────────────────
           Container(
-            color: MitraColors.bgCard,
+            color: Colors.white.withValues(alpha: 0.05), // ✨ Glass effect
             padding: const EdgeInsets.all(MitraSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +191,8 @@ class HomeScreen extends ConsumerWidget {
                                     padding:
                                         const EdgeInsets.all(MitraSpacing.md),
                                     decoration: BoxDecoration(
-                                      color: s['color'] as Color,
+                                      color: (s['color'] as Color)
+                                          .withValues(alpha: 0.1),
                                       borderRadius:
                                           BorderRadius.circular(MitraRadius.md),
                                       border: Border.all(
@@ -345,9 +346,11 @@ class _ContinueLearningCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
-          color: MitraColors.bgCard,
-          borderRadius: BorderRadius.circular(MitraRadius.md),
-          border: Border.all(color: MitraColors.border),
+          // ✨ CHANGED: Solid background to translucent glass
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(MitraRadius.sm),
+          // ✨ CHANGED: Solid border to translucent glass border
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,7 +358,8 @@ class _ContinueLearningCard extends StatelessWidget {
             Container(
                 height: 3,
                 decoration: const BoxDecoration(
-                  color: MitraColors.saffron,
+                  color:
+                      MitraColors.saffron, // Keep the saffron highlight line!
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(MitraRadius.md),
                       topRight: Radius.circular(MitraRadius.md)),
@@ -381,11 +385,11 @@ class _ContinueLearningCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(MitraRadius.pill),
-                    child: LinearProgressIndicator(
+                    child: const LinearProgressIndicator(
                       value: 0.65,
                       minHeight: 5,
                       backgroundColor: MitraColors.bgSurface,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
+                      valueColor: AlwaysStoppedAnimation<Color>(
                           MitraColors.saffron),
                     ),
                   ),
@@ -439,9 +443,9 @@ class _QuickAction extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 3),
             padding: const EdgeInsets.all(MitraSpacing.md),
             decoration: BoxDecoration(
-              color: MitraColors.bgCard,
-              borderRadius: BorderRadius.circular(MitraRadius.sm),
-              border: Border.all(color: MitraColors.border),
+              color: Colors.white.withValues(alpha: 0.08), // ✨ Glass effect
+              borderRadius: BorderRadius.circular(MitraRadius.md),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             ),
             child: Column(
               children: [
@@ -477,8 +481,8 @@ class _RankRow extends StatelessWidget {
         padding: const EdgeInsets.all(MitraSpacing.sm),
         decoration: BoxDecoration(
           color: isMe
-              ? MitraColors.saffron.withValues(alpha: 0.1)
-              : MitraColors.bgCard,
+              ? MitraColors.saffron.withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(MitraRadius.sm),
           border: Border.all(
               color: isMe

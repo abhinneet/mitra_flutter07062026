@@ -5,7 +5,7 @@ import '../widgets/mitra_glass_card.dart';
 import '../widgets/mitra_scaffold.dart';
 
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

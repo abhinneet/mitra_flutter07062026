@@ -9,12 +9,12 @@ class MitraScaffold extends ConsumerWidget {
   final bool useSafeArea;
 
   const MitraScaffold({
-    Key? key,
+    super.key,
     required this.body,
     this.appBar,
     this.bottomNavigationBar,
     this.useSafeArea = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,39 +1,43 @@
-// ═══════════════════════════════════════════════════════
-// Student Shell — Bottom Tab Navigator
-// Mirrors app/student/_layout.tsx from Expo project
-// ═══════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../constants/colors.dart';
+//import '../../constants/colors.dart';
+import '../../widgets/mitra_scaffold.dart'; // ✨ Added
 
 class StudentShell extends StatelessWidget {
   final Widget child;
   const StudentShell({super.key, required this.child});
 
   static const _tabs = [
-    _Tab(label: 'Home',    emoji: '🏠', route: '/student/home'),
-    _Tab(label: 'Learn',   emoji: '📚', route: '/student/learn'),
-    _Tab(label: 'AR',      emoji: '🥽', route: '/student/ar'),
-    _Tab(label: 'Ranks',   emoji: '🏆', route: '/student/ranks'),
+    _Tab(label: 'Home', emoji: '🏠', route: '/student/home'),
+    _Tab(label: 'Learn', emoji: '📚', route: '/student/learn'),
+    _Tab(label: 'AR', emoji: '🥽', route: '/student/ar'),
+    _Tab(label: 'Ranks', emoji: '🏆', route: '/student/ranks'),
     _Tab(label: 'Profile', emoji: '👤', route: '/student/profile'),
   ];
 
   int _currentIndex(BuildContext context) {
     final loc = GoRouterState.of(context).uri.path;
-    return _tabs.indexWhere((t) => loc.startsWith(t.route)).clamp(0, _tabs.length - 1);
+    return _tabs
+        .indexWhere((t) => loc.startsWith(t.route))
+        .clamp(0, _tabs.length - 1);
   }
 
   @override
   Widget build(BuildContext context) {
     final idx = _currentIndex(context);
-    return Scaffold(
+
+    // ✨ FIX 2: Wrapped the entire shell in MitraScaffold
+    return MitraScaffold(
+      useSafeArea: false, // Let the child screens handle safe areas
       body: child,
       bottomNavigationBar: Container(
-        height: 72,
-        decoration: const BoxDecoration(
-          color: MitraColors.bgCard,
-          border: Border(top: BorderSide(color: MitraColors.border)),
+        height: 72 +
+            MediaQuery.of(context).padding.bottom, // Account for iPhone notch
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.3), // ✨ Glass bottom nav
+          border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -54,14 +58,18 @@ class StudentShell extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Mukta', fontWeight: FontWeight.w500,
                         fontSize: 10,
-                        color: focused ? MitraColors.saffron : MitraColors.textMuted,
+                        color: focused
+                            ? Colors.white
+                            : Colors.white60, // ✨ Updated text colors
                       ),
                     ),
                     if (focused)
                       Container(
-                        width: 4, height: 4,
+                        width: 4,
+                        height: 4,
                         margin: const EdgeInsets.only(top: 2),
-                        decoration: const BoxDecoration(color: MitraColors.saffron, shape: BoxShape.circle),
+                        decoration: const BoxDecoration(
+                            color: Colors.white, shape: BoxShape.circle),
                       ),
                   ],
                 ),

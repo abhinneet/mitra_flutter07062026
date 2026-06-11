@@ -57,7 +57,7 @@ class RanksScreen extends ConsumerWidget {
       child: Column(
         children: [
           Container(
-              color: MitraColors.bgCard,
+              color: Colors.white.withValues(alpha: 0.05), // ✨ Glass Header
               padding: const EdgeInsets.all(MitraSpacing.lg),
               child: const Row(children: [
                 Text('🏆', style: TextStyle(fontSize: 24)),
@@ -81,13 +81,15 @@ class RanksScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(MitraSpacing.md),
                   decoration: BoxDecoration(
                     color: isMe
-                        ? MitraColors.saffron.withValues(alpha: 0.1)
-                        : MitraColors.bgCard,
+                        ? MitraColors.saffron.withValues(alpha: 0.15)
+                        : Colors.white.withValues(
+                            alpha: 0.05), // ✨ Glass background for others
                     borderRadius: BorderRadius.circular(MitraRadius.md),
                     border: Border.all(
                         color: isMe
                             ? MitraColors.saffron.withValues(alpha: 0.3)
-                            : MitraColors.border),
+                            : Colors.white.withValues(
+                                alpha: 0.15)), // ✨ Glass border for others
                   ),
                   child: Row(children: [
                     Text(l['emoji'] as String,
