@@ -25,33 +25,42 @@ class StudentShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // We grab the current URL path to know exactly which tab we are on
+    final loc = GoRouterState.of(context).uri.path;
     final idx = _currentIndex(context);
 
-    // ✨ THE FIX: This widget listens directly to the physical Android hardware button
     return BackButtonListener(
       onBackButtonPressed: () async {
-        // 1. Show the exit dialog and wait for their answer
-        final bool shouldExit = await _showExitDialog(context) ?? false;
+        // 1. Let GoRouter pop naturally if there is a deep screen/modal open
+        if (GoRouter.of(context).canPop()) {
+          GoRouter.of(context).pop();
+          return true; // Stop Android from interfering
+        }
 
-        // 2. If they clicked 'Yes', securely close the app
+        // 2. If we are on ANY tab other than Home, route them to Home!
+        if (loc != '/student/home') {
+          context.go('/student/home');
+          return true; // Stop Android from interfering
+        }
+
+        // 3. We are on the Home tab and have nowhere else to go. Show the dialog!
+        final bool shouldExit = await _showExitDialog(context) ?? false;
         if (shouldExit) {
           SystemNavigator.pop();
         }
 
-        // 3. 🚨 CRITICAL: Returning 'true' tells the Android OS:
-        // "I have handled this button press, DO NOT pass it to GoRouter!"
         return true;
       },
+      // 👇 Your UI remains completely untouched from here down
       child: MitraScaffold(
-        useSafeArea: false, // Let the child screens handle safe areas
+        useSafeArea: false,
         body: child,
         bottomNavigationBar: Container(
-          height: 72 +
-              MediaQuery.of(context).padding.bottom, // Account for iPhone notch
+          height: 72 + MediaQuery.of(context).padding.bottom,
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.3), // ✨ Glass bottom nav
+            color: Colors.black.withValues(alpha: 0.3),
             border: Border(
                 top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
           ),
@@ -73,11 +82,10 @@ class StudentShell extends StatelessWidget {
                       Text(
                         _tabs[i].label,
                         style: TextStyle(
-                          fontFamily: 'Mukta', fontWeight: FontWeight.w500,
+                          fontFamily: 'Mukta',
+                          fontWeight: FontWeight.w500,
                           fontSize: 10,
-                          color: focused
-                              ? Colors.white
-                              : Colors.white60, // ✨ Updated text colors
+                          color: focused ? Colors.white : Colors.white60,
                         ),
                       ),
                       if (focused)
