@@ -74,7 +74,6 @@ class MitraApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: mitraTheme(),
       routerConfig: router,
-      // Localisation support (i18n)
       supportedLocales: const [
         Locale('en'),
         Locale('hi'),

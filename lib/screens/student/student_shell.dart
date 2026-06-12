@@ -27,18 +27,20 @@ class StudentShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final idx = _currentIndex(context);
 
-    // ✨ FIX: Wrapped the MitraScaffold in a PopScope to intercept the back button
-    return PopScope(
-      canPop: false, // Prevents the default exit behavior
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-
-        // Trigger the dialog and wait for the user's choice
+    // ✨ THE FIX: This widget listens directly to the physical Android hardware button
+    return BackButtonListener(
+      onBackButtonPressed: () async {
+        // 1. Show the exit dialog and wait for their answer
         final bool shouldExit = await _showExitDialog(context) ?? false;
 
+        // 2. If they clicked 'Yes', securely close the app
         if (shouldExit) {
-          SystemNavigator.pop(); // Kills the app if they clicked 'Yes'
+          SystemNavigator.pop();
         }
+
+        // 3. 🚨 CRITICAL: Returning 'true' tells the Android OS:
+        // "I have handled this button press, DO NOT pass it to GoRouter!"
+        return true;
       },
       child: MitraScaffold(
         useSafeArea: false, // Let the child screens handle safe areas

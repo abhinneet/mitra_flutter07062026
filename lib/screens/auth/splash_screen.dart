@@ -9,6 +9,9 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../../services/api_service.dart';
 import '../../stores/auth_store.dart';
@@ -25,7 +28,6 @@ class SplashScreen extends ConsumerStatefulWidget {
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _lottieController;
-  final _storage = const FlutterSecureStorage();
 
   String? _nextRoute; // Holds the destination route once backend replies
   bool _animationDone =
@@ -42,46 +44,62 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _checkAuth() async {
-    print("🚨 SPLASH: Background Auth Check Started...");
+    debugPrint("🚨 SPLASH: Checking native Firebase Auth...");
 
     try {
-      final token = await _storage.read(key: 'mitra_access_token');
-      print("🚨 SPLASH: Storage read successful. Token is: $token");
+      // 1. Ask Firebase natively if someone is logged in (100x more reliable than local storage)
+      final firebaseUser = FirebaseAuth.instance.currentUser;
 
-      if (token == null) {
-        print("🚨 SPLASH: No token found. Checking onboarding status...");
-        ref.read(authProvider.notifier).setLoading(false);
+      if (firebaseUser != null) {
+        debugPrint(
+            "🚨 SPLASH: User found! Fetching full profile from database...");
 
-        // ✨ THE FIX: Check the phone's memory to see if they've been here before
+        // 2. Fetch their complete profile so GoRouter's Rule 3 doesn't block them
+        final doc = await FirebaseFirestore.instanceFor(
+          app: Firebase.app(),
+          databaseId: '(default)',
+        ).collection('users').doc(firebaseUser.uid).get();
+
+        if (doc.exists) {
+          final data = doc.data()!;
+
+          // 3. Rebuild the user with all their data (especially class_grade!)
+          final consumerUser = MitraUser(
+            id: firebaseUser.uid,
+            fullName: data['name'] ?? 'Student',
+            phone: data['phone'] ?? '',
+            role: data['role'] ?? 'student',
+          ).copyWith(
+            classGrade:
+                data['class_grade'], // ✨ This stops GoRouter from attacking!
+            assignedState: data['assigned_state'],
+            avatarEmoji: data['avatar_emoji'] ?? '🎒',
+            languagePreference: data['language_preference'] ?? 'en',
+          );
+
+          ref.read(authProvider.notifier).setUser(consumerUser);
+
+          // 4. Send them home
+          _nextRoute =
+              data['role'] == 'teacher' ? '/teacher/home' : '/student/home';
+        } else {
+          // They authenticated via OTP but never finished the setup screen
+          _nextRoute = '/setup';
+        }
+      } else {
+        // No one is logged in. Check SharedPreferences to see if we skip Onboarding.
         final prefs = await SharedPreferences.getInstance();
         final bool hasCompletedOnboarding =
             prefs.getBool('onboardingComplete') ?? false;
 
-        if (hasCompletedOnboarding) {
-          // They already did onboarding but aren't logged in. Send to Login.
-          _nextRoute = '/login';
-        } else {
-          // Very first time opening the app. Send to Onboarding.
-          _nextRoute = '/onboarding';
-        }
-      } else {
-        print("🚨 SPLASH: Token found. Contacting backend...");
-        final res = await AuthAPI.me();
-        final data = res.data;
-        final user = MitraUser.fromJson(data['user'] ?? data);
-
-        ref.read(authProvider.notifier).setUser(user);
-        print("🚨 SPLASH: User loaded successfully.");
-
-        _nextRoute = user.isTeacher ? '/teacher/home' : '/student/home';
+        _nextRoute = hasCompletedOnboarding ? '/login' : '/onboarding';
       }
     } catch (e) {
-      print("🚨 SPLASH ERROR: Authentication check crashed: $e");
+      debugPrint("🚨 SPLASH ERROR: $e");
       ref.read(authProvider.notifier).setLoading(false);
       _nextRoute = '/login';
     }
 
-    // Attempt to navigate if the animation beat the network request
     _attemptNavigation();
   }
 
