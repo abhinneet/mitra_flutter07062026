@@ -8,7 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'stores/theme_store.dart';
 import 'constants/colors.dart';
 import 'router.dart';
 import 'services/api_service.dart';
@@ -52,12 +54,18 @@ Future<void> main() async {
   } catch (e) {
     debugPrint("⚠️ API issue: $e");
   }
+  // ✨ NEW: Tell the phone to load its hard drive before showing the UI
+  debugPrint("💾 Loading local storage...");
+  final prefs = await SharedPreferences.getInstance();
 
   debugPrint("✅ ALL SYSTEMS GO! Launching UI...");
   runApp(
-    const ProviderScope(
-      // 👈 THIS IS REQUIRED FOR THE THEMES TO WORK
-      child: MitraApp(),
+    ProviderScope(
+      // ✨ NEW: We inject the loaded preferences into the ProviderScope we built earlier!
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const MitraApp(),
     ),
   );
 }
@@ -69,10 +77,15 @@ class MitraApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
+    // ✨ NEW: Watch the theme provider we just created
+    final currentThemeMode = ref.watch(themeProvider);
+
     return MaterialApp.router(
       title: 'MITRA',
       debugShowCheckedModeBanner: false,
-      theme: mitraTheme(),
+      theme: mitraTheme(), // Your default/light theme
+      darkTheme: ThemeData.dark(), // Your dark theme fallback
+      themeMode: currentThemeMode,
       routerConfig: router,
       supportedLocales: const [
         Locale('en'),

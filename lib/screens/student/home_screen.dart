@@ -60,6 +60,19 @@ class HomeScreen extends ConsumerWidget {
 
     // 🛠️ BUG-009 FIX: Listen to the dynamic subjects data we created at the top
     final subjectsAsync = ref.watch(subjectsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // ✨ NEW: Dynamic Theme Colors (Adapts instantly when theme changes)
+    final glassColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.04);
+    final glassBorder = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black.withValues(alpha: 0.08);
+    final mainTextColor = isDark
+        ? Colors.white
+        : const Color(0xFF1E293B); // Dark navy for light mode
+    final mutedTextColor = isDark ? Colors.white70 : Colors.black54;
 
     // ✨ The PopScope securely wraps the entire screen UI
     return PopScope(
@@ -118,75 +131,112 @@ class HomeScreen extends ConsumerWidget {
           children: [
             // ── Header ───────────────────────────────────
             Container(
-              color: Colors.white.withValues(alpha: 0.05), // ✨ Glass effect
-              padding: const EdgeInsets.all(MitraSpacing.lg),
+              // 1️⃣ THEME-ADAPTIVE GLASS: Uses the dynamic variables to look great in Light or Dark mode
+              decoration: BoxDecoration(
+                color: glassColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(28), // Sweeping curved bottom
+                  bottomRight: Radius.circular(28),
+                ),
+                border: Border(
+                  bottom: BorderSide(color: glassBorder, width: 1.5),
+                ),
+              ),
+              // 2️⃣ HEADER HEIGHT: Increased top and bottom padding makes the header much taller
+              padding: const EdgeInsets.fromLTRB(20, 32, 20, 36),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_greeting(),
-                              style: const TextStyle(
-                                  fontFamily: 'Mukta',
-                                  fontSize: 12,
-                                  color: MitraColors.textMuted)),
-                          Text('$firstName 👋',
-                              style: const TextStyle(
-                                  fontFamily: 'Baloo2',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20,
-                                  color: MitraColors.textPrimary)),
+                          Text(
+                            _greeting(),
+                            // 3️⃣ TEXT SIZE: Increased to 15, adapts to theme
+                            style: TextStyle(
+                                fontFamily: 'Mukta',
+                                fontSize: 15,
+                                color: mutedTextColor),
+                          ),
+                          Text(
+                            '$firstName 👋',
+                            // 3️⃣ TEXT SIZE: Increased to 30, adapts to theme
+                            style: TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 30,
+                                color: mainTextColor),
+                          ),
                         ],
                       ),
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: MitraColors.bgSurface,
-                          border:
-                              Border.all(color: MitraColors.border, width: 1.5),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(user?.avatarEmoji ?? '🎒',
-                            style: const TextStyle(fontSize: 24)),
+
+                      // 4️⃣ CONTENT: Notification Bell + Larger Avatar
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.notifications_none_rounded,
+                                color: mainTextColor, size: 28),
+                            onPressed: () {
+                              // Future Notification Screen Route
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 54, // Larger avatar (was 44)
+                            height: 54,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark
+                                  ? const Color(0xFF0F172A)
+                                  : Colors.white, // Adapts avatar background
+                              border: Border.all(
+                                  color: MitraColors.saffron, width: 2.5),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(user?.avatarEmoji ?? '🎒',
+                                style: const TextStyle(fontSize: 28)),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(
+                      height: 20), // More breathing room before the chips
+
                   // Class chip
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: MitraColors.saffron.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(MitraRadius.pill),
                       border: Border.all(
-                          color: MitraColors.saffron.withValues(alpha: 0.3)),
+                          color: MitraColors.saffron.withValues(alpha: 0.4)),
                     ),
                     child: Text(
                       '🏫 ${user?.classGrade ?? "Class IX"} · ${user?.assignedState ?? "India"}',
                       style: const TextStyle(
                           fontFamily: 'Mukta',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13, // Larger chip text
                           color: MitraColors.saffron),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
+
                   // Stats row
                   Row(
                     children: [
-                      _StatChip(
-                          '🔥 ${user?.currentStreakDays ?? 0} day streak'),
+                      _StatChip('🔥 ${user?.currentStreakDays ?? 0} day streak',
+                          isDark),
                       const SizedBox(width: 8),
-                      _StatChip('⭐ ${user?.totalXp ?? 0} XP'),
+                      _StatChip('⭐ ${user?.totalXp ?? 0} XP', isDark),
                       const SizedBox(width: 8),
-                      const _StatChip('🥇 #1 in class'),
+                      _StatChip('🥇 #1 in class', isDark),
                     ],
                   ),
                 ],
@@ -356,21 +406,33 @@ class HomeScreen extends ConsumerWidget {
 
 class _StatChip extends StatelessWidget {
   final String text;
-  const _StatChip(this.text);
+  final bool isDark; // ✨ Receives the theme status
+
+  const _StatChip(this.text, this.isDark);
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: MitraColors.bgSurface,
+          // ✨ Changes chip background based on theme
+          color: isDark
+              ? Colors.black.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(MitraRadius.pill),
-          border: Border.all(color: MitraColors.border),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.1),
+          ),
         ),
         child: Text(text,
-            style: const TextStyle(
+            style: TextStyle(
                 fontFamily: 'SpaceMono',
-                fontSize: 11,
-                color: MitraColors.textSecondary)),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? Colors.white70
+                    : Colors.black87)), // ✨ Text color adapts
       );
 }
 

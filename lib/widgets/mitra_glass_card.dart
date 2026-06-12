@@ -25,7 +25,7 @@ class MitraGlassCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -41,21 +41,21 @@ class MitraGlassCard extends StatelessWidget {
               decoration: BoxDecoration(
                 // Frosted layer
                 color: isSelected
-                    ? Colors.white.withOpacity(0.25)
-                    : Colors.white.withOpacity(0.08),
+                    ? Colors.white.withValues(alpha: 0.25)
+                    : Colors.white.withValues(alpha: 0.08),
                 // "Glass edge" highlight
                 border: Border.all(
                   color: isSelected
-                      ? activeColor.withOpacity(0.8)
-                      : Colors.white.withOpacity(0.15),
+                      ? activeColor.withValues(alpha: 0.8)
+                      : Colors.white.withValues(alpha: 0.15),
                   width: 1.5,
                 ),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.2),
-                    Colors.white.withOpacity(0.05),
+                    Colors.white.withValues(alpha: 0.2),
+                    Colors.white.withValues(alpha: 0.05),
                   ],
                 ),
               ),
@@ -69,7 +69,7 @@ class MitraGlassCard extends StatelessWidget {
                     color: Colors.white,
                     shadows: [
                       Shadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         offset: const Offset(0, 1),
                         blurRadius: 2,
                       ),

@@ -4,7 +4,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +12,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import '../../services/api_service.dart';
+// import '../../services/api_service.dart'; // Unused: kept for reference
 import '../../stores/auth_store.dart';
 import '../../models/user.dart';
 
@@ -106,7 +105,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   /// Evaluates if both conditions are met before switching screens
   void _attemptNavigation() {
     if (_animationDone && _nextRoute != null) {
-      print(
+      debugPrint(
           "🚨 SPLASH: Animation complete & route ready. Navigating to $_nextRoute");
       if (mounted) {
         context.go(_nextRoute!);
