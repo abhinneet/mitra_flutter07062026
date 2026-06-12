@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import '../../services/api_service.dart';
 import '../../stores/auth_store.dart';
@@ -47,9 +49,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       print("🚨 SPLASH: Storage read successful. Token is: $token");
 
       if (token == null) {
-        print("🚨 SPLASH: No token found. Preparing routing to Onboarding...");
+        print("🚨 SPLASH: No token found. Checking onboarding status...");
         ref.read(authProvider.notifier).setLoading(false);
-        _nextRoute = '/onboarding';
+
+        // ✨ THE FIX: Check the phone's memory to see if they've been here before
+        final prefs = await SharedPreferences.getInstance();
+        final bool hasCompletedOnboarding =
+            prefs.getBool('onboardingComplete') ?? false;
+
+        if (hasCompletedOnboarding) {
+          // They already did onboarding but aren't logged in. Send to Login.
+          _nextRoute = '/login';
+        } else {
+          // Very first time opening the app. Send to Onboarding.
+          _nextRoute = '/onboarding';
+        }
       } else {
         print("🚨 SPLASH: Token found. Contacting backend...");
         final res = await AuthAPI.me();
@@ -101,6 +115,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           controller: _lottieController,
           fit: BoxFit.cover,
           onLoaded: (composition) {
+            // ✨ THE MAGIC FIX: Remove the native splash screen right NOW!
+            // The Lottie file is loaded in memory, so there will be zero blank flash.
+            FlutterNativeSplash.remove();
+
             // 1. Set the controller's duration to match the JSON file perfectly
             _lottieController.duration = composition.duration;
 

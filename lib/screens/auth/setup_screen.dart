@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/colors.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/mitra_glass_card.dart';
@@ -111,6 +112,11 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
               assignedState: _state,
             ),
           );
+
+      // ✨ INJECTED CODE: Lock the onboarding door permanently
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboardingComplete', true);
+
       if (mounted) context.go('/student/home');
     } catch (e) {
       debugPrint("🚨 SETUP FIRESTORE ERROR: $e");

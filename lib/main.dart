@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'constants/colors.dart';
 import 'router.dart';
@@ -21,7 +22,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // ✨ 1. Capture the binding so we can pass it to the splash screen
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // ✨ 2. FREEZE THE NATIVE SPLASH SCREEN!
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   debugPrint("🚦 Loading .env...");
   try {

@@ -25,7 +25,7 @@ dependencies:
   flutter_secure_storage: ^9.0.0
 
   # Local Storage (AsyncStorage equivalent)
-  shared_preferences: ^2.2.3
+  shared_preferences: ^2.5.5
 
   # SQLite (expo-sqlite equivalent)
   sqflite: ^2.3.3
@@ -126,6 +126,12 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#0B1C4B"
+  image: "assets/images/logo_padded.png" # ✨ Point to the new padded file
+  branding: "assets/images/branding.png"
+  branding_mode: bottom
+  
   android_12:
     color: "#0B1C4B"
+    image: "assets/images/logo_padded.png" # ✨ Point to the new padded file
+    branding: "assets/images/branding.png"
   ios: false

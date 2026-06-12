@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart'; //
 
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
@@ -195,6 +196,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.read(authProvider.notifier).setUser(consumerUser);
       await _storage.write(key: 'mitra_consumer_logged_in', value: 'true');
       await _storage.write(key: 'mitra_consumer_role', value: _role.name);
+
+      // ✨ INJECTED CODE: Lock the onboarding door permanently for returning users
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboardingComplete', true);
 
       if (!mounted) return;
 
