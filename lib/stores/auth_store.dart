@@ -1,13 +1,12 @@
 // ═══════════════════════════════════════════════════════
 // MITRA Auth State — Riverpod Provider
-// Mirrors store/useAuthStore.ts (Zustand) from Expo project
 // ═══════════════════════════════════════════════════════
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user.dart';
-
-const _storage = FlutterSecureStorage();
 
 // ── Auth State class ───────────────────────────────────
 class AuthState {
@@ -27,28 +26,65 @@ class AuthState {
     bool? isLoading,
   }) {
     return AuthState(
-      user:       user ?? this.user,
+      user: user ?? this.user,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
-      isLoading:  isLoading ?? this.isLoading,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }
 
 // ── Auth Notifier ──────────────────────────────────────
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthState());
+  // ✨ The listener starts the exact moment the app boots
+  AuthNotifier() : super(const AuthState()) {
+    _listenToFirebaseAuth();
+  }
 
-  /// Set user after successful login/me check
+  void _listenToFirebaseAuth() {
+    FirebaseAuth.instance.authStateChanges().listen((firebaseUser) async {
+      if (firebaseUser != null) {
+        try {
+          // ✨ Fetch the real profile data from Firestore automatically
+          final doc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(firebaseUser.uid)
+              .get();
+
+          if (doc.exists) {
+            final data = doc.data()!;
+
+            final realUser = MitraUser(
+              id: firebaseUser.uid,
+              fullName: data['full_name'] ?? data['name'] ?? 'Student',
+              phone: data['phone'] ?? '',
+              role: data['role'] ?? 'student',
+            ).copyWith(
+              classGrade: data['class_grade'],
+              assignedState: data['assigned_state'],
+              avatarEmoji: data['avatar_emoji'] ?? '⚡',
+              languagePreference: data['language_preference'] ?? 'en',
+            );
+
+            setUser(realUser);
+          }
+        } catch (e) {
+          debugPrint("🚨 BACKGROUND FETCH ERROR: $e");
+        }
+      } else {
+        // User logged out
+        state = const AuthState(isLoggedIn: false, isLoading: false);
+      }
+    });
+  }
+
   void setUser(MitraUser user) {
     state = state.copyWith(user: user, isLoggedIn: true, isLoading: false);
   }
 
-  /// Partial update (e.g. after profile setup)
   void updateUser(MitraUser updated) {
     state = state.copyWith(user: updated);
   }
 
-  /// Add XP (mirrors addXP action)
   void addXP(int amount) {
     final current = state.user;
     if (current != null) {
@@ -62,10 +98,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: loading);
   }
 
-  /// Clear tokens + reset state on logout
   Future<void> logout() async {
-    await _storage.delete(key: 'mitra_access_token');
-    await _storage.delete(key: 'mitra_refresh_token');
+    await FirebaseAuth.instance.signOut();
     state = const AuthState(isLoggedIn: false, isLoading: false);
   }
 }

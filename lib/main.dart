@@ -9,8 +9,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'stores/theme_store.dart';
+import 'theme/theme_provider.dart';
 import 'constants/colors.dart';
 import 'router.dart';
 import 'services/api_service.dart';
@@ -77,25 +78,45 @@ class MitraApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
-    // ✨ NEW: Watch the theme provider we just created
-    final currentThemeMode = ref.watch(themeProvider);
-
     return MaterialApp.router(
       title: 'MITRA',
       debugShowCheckedModeBanner: false,
       theme: mitraTheme(), // Your default/light theme
       darkTheme: ThemeData.dark(), // Your dark theme fallback
-      themeMode: currentThemeMode,
+      themeMode: ThemeMode.dark,
       routerConfig: router,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       supportedLocales: const [
-        Locale('en'),
-        Locale('hi'),
-        Locale('ta'),
-        Locale('te'),
-        Locale('kn'),
-        Locale('bn'),
-        Locale('mr'),
-        Locale('gu'),
+        // ── The 22 Official Languages of India ──
+        Locale('as'), // Assamese
+        Locale('bn'), // Bengali
+        Locale('brx'), // Bodo
+        Locale('doi'), // Dogri
+        Locale('gu'), // Gujarati
+        Locale('hi'), // Hindi
+        Locale('kn'), // Kannada
+        Locale('ks'), // Kashmiri
+        Locale('kok'), // Konkani
+        Locale('mai'), // Maithili
+        Locale('ml'), // Malayalam
+        Locale('mni'), // Manipuri (Meitei)
+        Locale('mr'), // Marathi
+        Locale('ne'), // Nepali
+        Locale('or'), // Odia
+        Locale('pa'), // Punjabi
+        Locale('sa'), // Sanskrit
+        Locale('sat'), // Santali
+        Locale('sd'), // Sindhi
+        Locale('ta'), // Tamil
+        Locale('te'), // Telugu
+        Locale('ur'), // Urdu
+
+        // ── Standard English Fallback ──
+        Locale('en'), // English
       ],
     );
   }

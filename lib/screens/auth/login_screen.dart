@@ -254,47 +254,55 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: MitraColors.bgDeep,
       body: Column(
         children: [
-          // ── Top hero art ────────────────────────────
+          // ── Top hero art (Custom Uploaded Logo) ────────────────────────────
           Container(
-            height: 200,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF1a0a3e),
-                  Color(0xFF2D1B69),
-                  Color(0xFF0a2010)
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            width: double.infinity,
+            height: 220, // ✨ Gives the header a fixed, beautiful height
+            color: const Color(0xFF0F1B3E),
+            child: Stack(
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                        colors: MitraColors.gradientSaffron),
-                    borderRadius: BorderRadius.circular(18),
+                // 1. THE BACKGROUND: Locks the logo to the left side and covers the empty space
+                Positioned.fill(
+                  child: Image.asset(
+                    'assets/images/logo_horizontal_1800x500_navy.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.centerLeft,
                   ),
-                  alignment: Alignment.center,
-                  child: const Text('🎓', style: TextStyle(fontSize: 36)),
                 ),
-                const SizedBox(height: 8),
-                const Text('Welcome to MITRA',
-                    style: TextStyle(
-                        fontFamily: 'Baloo2',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 20,
-                        color: MitraColors.textPrimary)),
-                const Text('Sign in to continue learning',
-                    style: TextStyle(
-                        fontFamily: 'Mukta',
-                        fontSize: 13,
-                        color: MitraColors.textMuted)),
+
+                // 2. THE FOREGROUND: Pushes the text to the right side, inline with the logo
+                const SafeArea(
+                  bottom: false,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                          right: 24.0), // Breathing room on the edge
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment
+                            .end, // Aligns text cleanly to the right
+                        children: [
+                          Text(
+                            'Welcome to MITRA',
+                            style: TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 22,
+                                color: Colors.white),
+                          ),
+                          Text(
+                            'Sign in to continue learning',
+                            style: TextStyle(
+                                fontFamily: 'Mukta',
+                                fontSize: 13,
+                                color: Colors.white70),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

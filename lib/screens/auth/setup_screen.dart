@@ -13,8 +13,24 @@ import '../../theme/theme_provider.dart';
 import '../../widgets/mitra_glass_card.dart';
 import '../../widgets/mitra_scaffold.dart';
 import '../../stores/auth_store.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
-const _avatars = ['🎒', '🌟', '🔬', '📚', '🏆', '🌍', '🎯', '⚡', '🌱', '🎨'];
+const _avatars = [
+  '👨‍🎓',
+  '👩‍🎓',
+  '🦸‍♂️',
+  '🦸‍♀️',
+  '🕵️‍♂️',
+  '🕵️‍♀️',
+  '👨‍🚀',
+  '👩‍🚀',
+  '🥷',
+  '🧙‍♀️',
+  '👨‍🎤',
+  '👩‍🎤'
+];
+
 const _classes = [
   'Class 1',
   'Class 2',
@@ -64,11 +80,52 @@ class SetupScreen extends ConsumerStatefulWidget {
 class _SetupScreenState extends ConsumerState<SetupScreen> {
   int _step = 0;
   String _lang = 'hi';
-  String _avatar = '🎒';
+  String _avatar = '👨‍🎓';
   String _cls = '';
   String _state = '';
   bool _loading = false;
+  bool _isDetectingLocation = false; // ✨ NEW: GPS Loading flag
   late TextEditingController _nameCtrl;
+
+  // ✨ NEW: The Auto-Locator Function
+  Future<void> _autoDetectLocation() async {
+    setState(() => _isDetectingLocation = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) throw Exception('Location services are disabled.');
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions denied.');
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permanently denied.');
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isNotEmpty &&
+          placemarks.first.administrativeArea != null) {
+        // Match the detected state (e.g., "Gujarat") with your dropdown list
+        String detected = placemarks.first.administrativeArea!;
+        if (_states.contains(detected)) {
+          setState(() => _state = detected);
+        } else {
+          _showAlert('Detected state ($detected) is not in our list yet!');
+        }
+      }
+    } catch (e) {
+      _showAlert('Could not detect location: $e');
+    } finally {
+      setState(() => _isDetectingLocation = false);
+    }
+  }
 
   @override
   void initState() {
@@ -430,6 +487,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
             }).toList(),
           ),
           const SizedBox(height: MitraSpacing.lg),
+
+          // ✨ NEW: Strict Auto-Detect Location Card (Dropdown Completely Removed)
           const Text('Your State',
               style: TextStyle(
                   fontFamily: 'Baloo2',
@@ -437,30 +496,91 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   fontSize: 16,
                   color: Colors.white)),
           const SizedBox(height: MitraSpacing.sm),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(MitraRadius.sm),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _state.isEmpty ? null : _state,
-                isExpanded: true,
-                hint: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('Select state',
-                        style: TextStyle(color: Colors.white54))),
-                dropdownColor: const Color(0xFF1E293B),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                style:
-                    const TextStyle(color: Colors.white, fontFamily: 'Mukta'),
-                items: _states
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) setState(() => _state = v);
-                },
+
+          GestureDetector(
+            // Prevent tapping if it's already loading
+            onTap: _isDetectingLocation ? null : _autoDetectLocation,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                // Glows with your theme color when successfully detected
+                color: _state.isNotEmpty
+                    ? activeHighlight.withValues(alpha: 0.1)
+                    : Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(MitraRadius.md),
+                border: Border.all(
+                  color: _state.isNotEmpty
+                      ? activeHighlight
+                      : Colors.white.withValues(alpha: 0.2),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _state.isNotEmpty ? Icons.check_circle : Icons.my_location,
+                    color: _state.isNotEmpty ? activeHighlight : Colors.white70,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _state.isNotEmpty
+                              ? 'Location Verified'
+                              : 'Location Required',
+                          style: TextStyle(
+                            fontFamily: 'Mukta',
+                            fontSize: 12,
+                            color: _state.isNotEmpty
+                                ? activeHighlight
+                                : Colors.white54,
+                          ),
+                        ),
+                        Text(
+                          _state.isNotEmpty
+                              ? _state
+                              : 'Tap to auto-detect state',
+                          style: const TextStyle(
+                            fontFamily: 'Baloo2',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Show loading spinner OR the 'Update' text depending on state
+                  if (_isDetectingLocation)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  else if (_state.isNotEmpty)
+                    TextButton(
+                      onPressed: _autoDetectLocation,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text('UPDATE',
+                          style: TextStyle(
+                            fontFamily: 'Mukta',
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white70,
+                          )),
+                    ),
+                ],
               ),
             ),
           ),

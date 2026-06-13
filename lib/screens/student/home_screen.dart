@@ -82,42 +82,50 @@ class HomeScreen extends ConsumerWidget {
 
         final bool shouldExit = await showDialog<bool>(
               context: context,
-              builder: (context) => AlertDialog(
-                backgroundColor: const Color(0xFF1E293B),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                title: const Text(
-                  'Exit App?',
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+              builder: (dialogContext) => PopScope(
+                canPop: false,
+                onPopInvokedWithResult:
+                    (bool dialogDidPop, Object? dialogResult) {
+                  if (dialogDidPop) return;
+                  Navigator.of(dialogContext).pop(false);
+                },
+                child: AlertDialog(
+                  backgroundColor: const Color(0xFF1E293B),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  title: const Text(
+                    'Exit App?',
+                    style: TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
+                  content: const Text(
+                    'Are you sure you want to exit Mitra?',
+                    style: TextStyle(
+                      fontFamily: 'Mukta',
+                      color: Colors.white70,
+                      fontSize: 15,
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      child: const Text('Cancel',
+                          style: TextStyle(
+                              color: Colors.white54, fontFamily: 'Mukta')),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                      child: const Text('Exit',
+                          style: TextStyle(
+                              color: Color(0xFFFBBF24),
+                              fontFamily: 'Baloo2',
+                              fontWeight: FontWeight.w700)),
+                    ),
+                  ],
                 ),
-                content: const Text(
-                  'Are you sure you want to exit Mitra?',
-                  style: TextStyle(
-                    fontFamily: 'Mukta',
-                    color: Colors.white70,
-                    fontSize: 15,
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel',
-                        style: TextStyle(
-                            color: Colors.white54, fontFamily: 'Mukta')),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Exit',
-                        style: TextStyle(
-                            color: Color(0xFFFBBF24),
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w700)),
-                  ),
-                ],
               ),
             ) ??
             false;

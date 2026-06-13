@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// 1. Define your 5 new themes
+// 1. The Hard Drive Link (Allows main.dart to pass the memory in)
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('Initialized in main.dart');
+});
+
+// 2. Define your 5 new themes
 enum MitraTheme {
   midnightSlate,
   deepForest,
@@ -10,48 +16,68 @@ enum MitraTheme {
   abyssalBlue,
 }
 
-// 2. The Riverpod state (defaults to Midnight Slate)
-final themeProvider =
-    StateProvider<MitraTheme>((ref) => MitraTheme.midnightSlate);
+// 3. ✨ NEW: The Smart Theme Notifier (Replaces StateProvider)
+class ThemeNotifier extends StateNotifier<MitraTheme> {
+  final SharedPreferences _prefs;
+  static const _themeKey = 'mitra_custom_theme_saved';
 
-// 3. The Helper class to fetch colors anywhere in the app
+  // When the app boots, instantly load the saved theme
+  ThemeNotifier(this._prefs) : super(_loadSavedTheme(_prefs));
+
+  static MitraTheme _loadSavedTheme(SharedPreferences prefs) {
+    final savedThemeName = prefs.getString(_themeKey);
+    if (savedThemeName != null) {
+      // Find the saved theme from the enum list
+      return MitraTheme.values.firstWhere(
+        (theme) => theme.name == savedThemeName,
+        orElse: () => MitraTheme.midnightSlate,
+      );
+    }
+    return MitraTheme.midnightSlate; // Default if nothing is saved
+  }
+
+  // ✨ NEW: The method that updates the UI AND saves to the hard drive!
+  void setTheme(MitraTheme theme) {
+    state = theme;
+    _prefs.setString(_themeKey, theme.name);
+  }
+}
+
+// 4. ✨ NEW: The upgraded Provider
+final themeProvider = StateNotifierProvider<ThemeNotifier, MitraTheme>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return ThemeNotifier(prefs);
+});
+
+// 5. The Helper class (Untouched - your beautiful colors remain intact!)
 class ThemeHelper {
   static List<Color> getBackgroundGradient(MitraTheme theme) {
     switch (theme) {
       case MitraTheme.midnightSlate:
-        return [
-          const Color(0xFF1E293B),
-          const Color(0xFF0F172A)
-        ]; // Slate & Indigo
+        return [const Color(0xFF1E293B), const Color(0xFF0F172A)];
       case MitraTheme.deepForest:
-        return [const Color(0xFF064E3B), const Color(0xFF022C22)]; // Dark Pine
+        return [const Color(0xFF064E3B), const Color(0xFF022C22)];
       case MitraTheme.twilightPurple:
-        return [
-          const Color(0xFF312E81),
-          const Color(0xFF1E1B4B)
-        ]; // Muted Purple
+        return [const Color(0xFF312E81), const Color(0xFF1E1B4B)];
       case MitraTheme.warmCharcoal:
-        return [
-          const Color(0xFF292524),
-          const Color(0xFF1C1917)
-        ]; // Warm Gray/Amber
+        return [const Color(0xFF292524), const Color(0xFF1C1917)];
       case MitraTheme.abyssalBlue:
-        return [const Color(0xFF1E3A8A), const Color(0xFF172554)]; // Deep Navy
+        return [const Color(0xFF1E3A8A), const Color(0xFF172554)];
     }
   }
 
   static Color getActiveHighlight(MitraTheme theme) {
     switch (theme) {
       case MitraTheme.midnightSlate:
-        return const Color(0xFF22D3EE); // Cyan
+        return const Color(0xFF22D3EE);
       case MitraTheme.deepForest:
-        return const Color(0xFF34D399); // Mint
+        return const Color(0xFF34D399);
       case MitraTheme.twilightPurple:
-        return const Color(0xFFFBBF24); // Saffron
+        return const Color(0xFFFBBF24);
       case MitraTheme.warmCharcoal:
-        return const Color(0xFFFCD34D); // Soft Gold
+        return const Color(0xFFFCD34D);
       case MitraTheme.abyssalBlue:
-        return const Color(0xFFFB923C); // Vibrant Coral
+        return const Color(0xFFFB923C);
     }
   }
 

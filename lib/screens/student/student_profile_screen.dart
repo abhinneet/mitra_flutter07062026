@@ -95,7 +95,7 @@ class StudentProfileScreen extends ConsumerWidget {
 
                       return GestureDetector(
                         onTap: () {
-                          ref.read(themeProvider.notifier).state = theme;
+                          ref.read(themeProvider.notifier).setTheme(theme);
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),

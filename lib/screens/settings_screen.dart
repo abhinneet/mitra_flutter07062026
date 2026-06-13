@@ -61,7 +61,7 @@ class SettingsScreen extends ConsumerWidget {
                     activeColor: activeHighlight,
                     onTap: () {
                       // ✨ THIS LINE CHANGES THE GLOBAL THEME INSTANTLY ✨
-                      ref.read(themeProvider.notifier).state = themeOption;
+                      ref.read(themeProvider.notifier).setTheme(themeOption);
                     },
                   );
                 },
