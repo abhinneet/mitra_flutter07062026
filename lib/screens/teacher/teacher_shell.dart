@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 
 class _Tab {
@@ -12,22 +13,24 @@ class TeacherShell extends StatelessWidget {
   const TeacherShell({super.key, required this.child});
 
   static const _tabs = [
-    _Tab('Home',     '🏠', '/teacher/home'),
+    _Tab('Home', '🏠', '/teacher/home'),
     _Tab('Students', '👥', '/teacher/students'),
-    _Tab('Analytics','📊', '/teacher/analytics'),
-    _Tab('Content',  '📚', '/teacher/assign'),
-    _Tab('Profile',  '👤', '/teacher/profile'),
+    _Tab('Analytics', '📊', '/teacher/analytics'),
+    _Tab('Content', '📚', '/teacher/assign'),
+    _Tab('Profile', '👤', '/teacher/profile'),
   ];
 
   int _idx(BuildContext ctx) {
     final loc = GoRouterState.of(ctx).uri.path;
-    return _tabs.indexWhere((t) => loc.startsWith(t.route)).clamp(0, _tabs.length - 1);
+    return _tabs
+        .indexWhere((t) => loc.startsWith(t.route))
+        .clamp(0, _tabs.length - 1);
   }
 
   @override
   Widget build(BuildContext context) {
     final idx = _idx(context);
-    return Scaffold(
+    return MitraScaffold(
       body: child,
       bottomNavigationBar: Container(
         height: 72,
@@ -49,15 +52,22 @@ class TeacherShell extends StatelessWidget {
                   children: [
                     Text(_tabs[i].emoji, style: const TextStyle(fontSize: 22)),
                     const SizedBox(height: 2),
-                    Text(_tabs[i].label, style: TextStyle(
-                      fontFamily: 'Mukta', fontWeight: FontWeight.w500, fontSize: 10,
-                      color: focused ? MitraColors.emerald : MitraColors.textMuted,
-                    )),
+                    Text(_tabs[i].label,
+                        style: TextStyle(
+                          fontFamily: 'Mukta',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                          color: focused
+                              ? MitraColors.emerald
+                              : MitraColors.textMuted,
+                        )),
                     if (focused)
                       Container(
-                        width: 4, height: 4,
+                        width: 4,
+                        height: 4,
                         margin: const EdgeInsets.only(top: 2),
-                        decoration: const BoxDecoration(color: MitraColors.emerald, shape: BoxShape.circle),
+                        decoration: const BoxDecoration(
+                            color: MitraColors.emerald, shape: BoxShape.circle),
                       ),
                   ],
                 ),

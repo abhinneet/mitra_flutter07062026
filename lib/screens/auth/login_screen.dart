@@ -13,11 +13,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart'; //
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
 import '../../models/user.dart';
+import '../../widgets/mitra_scaffold.dart';
+import '../../theme/theme_provider.dart';
+//import '../../theme/theme_provider.dart';
 
 enum _LoginStep { phone, otp }
 
@@ -250,18 +253,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MitraColors.bgDeep,
+    // ✨ RESTORED: Fetching the dynamic color safely inside the UI!
+    final activeTheme = ref.watch(themeProvider);
+    final activeHighlight = ThemeHelper.getActiveHighlight(activeTheme);
+
+    return MitraScaffold(
       body: Column(
         children: [
-          // ── Top hero art (Custom Uploaded Logo) ────────────────────────────
+          // ── Top hero art (Theme-Blended) ────────────────────────────
           Container(
             width: double.infinity,
-            height: 220, // ✨ Gives the header a fixed, beautiful height
-            color: const Color(0xFF0F1B3E),
+            height: 220,
+            decoration: BoxDecoration(
+              // ✨ THE MAGIC: Smoothly fades from Logo Navy into the current Theme Background!
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF0F1B3E), // Matches the logo's top edge
+                  Theme.of(context)
+                      .scaffoldBackgroundColor, // Fades seamlessly into the active theme // Fades seamlessly into the active theme
+                ],
+                stops: const [
+                  0.6,
+                  1.0
+                ], // Keeps it mostly navy, fading only at the very bottom
+              ),
+            ),
             child: Stack(
               children: [
-                // 1. THE BACKGROUND: Locks the logo to the left side and covers the empty space
                 Positioned.fill(
                   child: Image.asset(
                     'assets/images/logo_horizontal_1800x500_navy.png',
@@ -269,19 +289,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     alignment: Alignment.centerLeft,
                   ),
                 ),
-
-                // 2. THE FOREGROUND: Pushes the text to the right side, inline with the logo
                 const SafeArea(
                   bottom: false,
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
-                      padding: EdgeInsets.only(
-                          right: 24.0), // Breathing room on the edge
+                      padding: EdgeInsets.only(right: 24.0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment
-                            .end, // Aligns text cleanly to the right
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
                             'Welcome to MITRA',
@@ -375,10 +391,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: MitraSpacing.lg),
 
+                  // ✨ We hand the color down to the methods!
                   if (_step == _LoginStep.phone)
-                    ..._buildPhoneStep()
+                    ..._buildPhoneStep(activeHighlight) // ✨ Passing it down
                   else
-                    ..._buildOTPStep(),
+                    ..._buildOTPStep(activeHighlight), // ✨ Passing it down
                 ],
               ),
             ),
@@ -388,7 +405,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  List<Widget> _buildPhoneStep() => [
+  List<Widget> _buildPhoneStep(Color activeHighlight) => [
         const Text('MOBILE NUMBER',
             style: TextStyle(
                 fontFamily: 'Mukta',
@@ -448,6 +465,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _GradientButton(
           label: 'Send OTP →', // Generalized for future SMS integration
           loading: _loading,
+          color: activeHighlight,
           onTap: _sendOTP,
         ),
 
@@ -499,7 +517,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ];
 
-  List<Widget> _buildOTPStep() => [
+  List<Widget> _buildOTPStep(Color activeHighlight) => [
         Container(
           padding: const EdgeInsets.all(MitraSpacing.md),
           decoration: BoxDecoration(
@@ -604,8 +622,14 @@ class _GradientButton extends StatelessWidget {
   final String label;
   final bool loading;
   final VoidCallback onTap;
-  const _GradientButton(
-      {required this.label, required this.loading, required this.onTap});
+  final Color? color; // ✨ Restored parameter
+
+  const _GradientButton({
+    required this.label,
+    required this.loading,
+    required this.onTap,
+    this.color, // ✨ Restored parameter
+  });
 
   @override
   Widget build(BuildContext context) => GestureDetector(
@@ -614,7 +638,11 @@ class _GradientButton extends StatelessWidget {
           width: double.infinity,
           height: 52,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: MitraColors.gradientSaffron),
+            // ✨ If a theme color is provided, use it. Otherwise, use the Saffron gradient.
+            color: color,
+            gradient: color == null
+                ? const LinearGradient(colors: MitraColors.gradientSaffron)
+                : null,
             borderRadius: BorderRadius.circular(MitraRadius.pill),
           ),
           alignment: Alignment.center,

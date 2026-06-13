@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/theme_provider.dart';
 import '../widgets/mitra_glass_card.dart';
-import '../widgets/mitra_scaffold.dart';
+import '../widgets/mitra_scaffold_backup.dart';
+import '../../constants/colors.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -10,7 +11,6 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeTheme = ref.watch(themeProvider);
-    final activeHighlight = ThemeHelper.getActiveHighlight(activeTheme);
 
     return MitraScaffold(
       appBar: AppBar(
@@ -58,7 +58,7 @@ class SettingsScreen extends ConsumerWidget {
                   return MitraGlassCard(
                     title: ThemeHelper.getThemeName(themeOption),
                     isSelected: activeTheme == themeOption,
-                    activeColor: activeHighlight,
+                    activeColor: MitraColors.saffron,
                     onTap: () {
                       // ✨ THIS LINE CHANGES THE GLOBAL THEME INSTANTLY ✨
                       ref.read(themeProvider.notifier).setTheme(themeOption);

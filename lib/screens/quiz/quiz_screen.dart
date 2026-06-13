@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
 
@@ -119,8 +120,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     final options = q.options;
     final progress = (_current + 1) / _questions.length;
 
-    return Scaffold(
-      backgroundColor: MitraColors.bgDeep,
+    return MitraScaffold(
+      //backgroundColor: MitraColors.bgDeep,
       appBar: AppBar(
         backgroundColor: MitraColors.bgCard,
         title: Text('Question ${_current + 1}/${_questions.length}',

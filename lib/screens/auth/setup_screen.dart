@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/colors.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/mitra_glass_card.dart';
-import '../../widgets/mitra_scaffold.dart';
+import '../../widgets/mitra_scaffold_backup.dart';
 import '../../stores/auth_store.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -204,9 +204,9 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
     return Consumer(
       builder: (context, ref, child) {
+        // ✨ RESTORED: Safely fetching the color!
         final activeTheme = ref.watch(themeProvider);
-        final activeHighlight = ThemeHelper.getActiveHighlight(
-            activeTheme); // Corrected Method Name!
+        final activeHighlight = ThemeHelper.getActiveHighlight(activeTheme);
 
         return MitraScaffold(
           body: Column(
@@ -226,7 +226,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                                     child: Container(
                                         height: 1,
                                         color: i <= _step
-                                            ? activeHighlight
+                                            ? MitraColors.saffron
                                             : Colors.white.withValues(
                                                 alpha: 0.2))), // Updated alpha
                               Container(
@@ -237,7 +237,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                                   color: i < _step
                                       ? MitraColors.emerald
                                       : (i == _step
-                                          ? activeHighlight
+                                          ? MitraColors.saffron
                                           : Colors.white
                                               .withValues(alpha: 0.1)),
                                   border: Border.all(
@@ -261,7 +261,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                                     child: Container(
                                         height: 1,
                                         color: i < _step
-                                            ? activeHighlight
+                                            ? MitraColors.saffron
                                             : Colors.white
                                                 .withValues(alpha: 0.2))),
                             ],
@@ -272,7 +272,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                                   fontFamily: 'Mukta',
                                   fontSize: 11,
                                   color: i == _step
-                                      ? activeHighlight
+                                      ? MitraColors.saffron
                                       : Colors.white70)),
                         ],
                       ),
@@ -330,15 +330,16 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                activeHighlight,
-                                activeHighlight.withValues(alpha: 0.7)
+                                MitraColors.saffron,
+                                MitraColors.saffron.withValues(alpha: 0.7)
                               ],
                             ),
                             borderRadius:
                                 BorderRadius.circular(MitraRadius.pill),
                             boxShadow: [
                               BoxShadow(
-                                  color: activeHighlight.withValues(alpha: 0.3),
+                                  color: MitraColors.saffron
+                                      .withValues(alpha: 0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4))
                             ],
@@ -386,7 +387,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
               return MitraGlassCard(
                 title: l['label']!,
                 isSelected: selected,
-                activeColor: activeHighlight,
+                activeColor: MitraColors.saffron,
                 onTap: () => setState(() => _lang = l['code']!),
               );
             }).toList(),
@@ -421,7 +422,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                           borderRadius: BorderRadius.circular(MitraRadius.sm),
                           border: Border.all(
                               color: _avatar == e
-                                  ? activeHighlight
+                                  ? MitraColors.saffron
                                   : Colors.white.withValues(alpha: 0.15),
                               width: 1.5),
                         ),
@@ -458,7 +459,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                       BorderSide(color: Colors.white.withValues(alpha: 0.2))),
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(MitraRadius.sm),
-                  borderSide: BorderSide(color: activeHighlight, width: 1.5)),
+                  borderSide:
+                      const BorderSide(color: MitraColors.saffron, width: 1.5)),
             ),
           ),
         ],
@@ -481,7 +483,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
               return MitraGlassCard(
                 title: c,
                 isSelected: _cls == c,
-                activeColor: activeHighlight,
+                activeColor: MitraColors.saffron,
                 onTap: () => setState(() => _cls = c),
               );
             }).toList(),
@@ -506,12 +508,12 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
               decoration: BoxDecoration(
                 // Glows with your theme color when successfully detected
                 color: _state.isNotEmpty
-                    ? activeHighlight.withValues(alpha: 0.1)
+                    ? MitraColors.saffron.withValues(alpha: 0.1)
                     : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(MitraRadius.md),
                 border: Border.all(
                   color: _state.isNotEmpty
-                      ? activeHighlight
+                      ? MitraColors.saffron
                       : Colors.white.withValues(alpha: 0.2),
                   width: 1.5,
                 ),
@@ -520,7 +522,9 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                 children: [
                   Icon(
                     _state.isNotEmpty ? Icons.check_circle : Icons.my_location,
-                    color: _state.isNotEmpty ? activeHighlight : Colors.white70,
+                    color: _state.isNotEmpty
+                        ? MitraColors.saffron
+                        : Colors.white70,
                     size: 28,
                   ),
                   const SizedBox(width: 16),
@@ -536,7 +540,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                             fontFamily: 'Mukta',
                             fontSize: 12,
                             color: _state.isNotEmpty
-                                ? activeHighlight
+                                ? MitraColors.saffron
                                 : Colors.white54,
                           ),
                         ),

@@ -15,6 +15,7 @@ import 'package:firebase_core/firebase_core.dart';
 // import '../../services/api_service.dart'; // Unused: kept for reference
 import '../../stores/auth_store.dart';
 import '../../models/user.dart';
+import '../../widgets/mitra_scaffold.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -122,8 +123,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF181335),
+    return MitraScaffold(
+      //backgroundColor: const Color(0xFF181335),
       body: SizedBox(
         width: double.infinity,
         height: double.infinity,

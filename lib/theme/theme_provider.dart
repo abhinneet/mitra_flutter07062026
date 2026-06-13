@@ -95,4 +95,21 @@ class ThemeHelper {
         return "Abyssal Blue";
     }
   }
+
+  static ThemeData getThemeData(MitraTheme theme) {
+    final highlight = getActiveHighlight(theme);
+    final bgColors = getBackgroundGradient(theme);
+    final baseColor = bgColors.last;
+
+    return ThemeData(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: baseColor,
+      primaryColor: highlight,
+      colorScheme: ColorScheme.dark(
+        primary: highlight,
+        surface: baseColor,
+      ),
+      fontFamily: 'Mukta',
+    );
+  }
 }

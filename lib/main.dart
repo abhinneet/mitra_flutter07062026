@@ -78,12 +78,21 @@ class MitraApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
+    // ✨ 1. Grab the living theme from Riverpod
+    final activeTheme = ref.watch(themeProvider);
+
     return MaterialApp.router(
       title: 'MITRA',
       debugShowCheckedModeBanner: false,
-      theme: mitraTheme(), // Your default/light theme
-      darkTheme: ThemeData.dark(), // Your dark theme fallback
-      themeMode: ThemeMode.dark,
+      color: MitraColors.saffron,
+
+      // ✨ 2. Feed the dynamic theme directly into the root engine!
+      // (Change 'getThemeData' to whatever method you use to get your ThemeData)
+      theme: ThemeHelper.getThemeData(activeTheme),
+
+      // 🚨 3. We removed darkTheme and themeMode because your custom ThemeHelper
+      // now natively handles all the coloring for every scenario!
+
       routerConfig: router,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

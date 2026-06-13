@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 
 class QuizResultScreen extends StatelessWidget {
@@ -28,8 +29,8 @@ class QuizResultScreen extends StatelessWidget {
             ? 'Good job!'
             : 'Keep practising!';
 
-    return Scaffold(
-      backgroundColor: MitraColors.bgDeep,
+    return MitraScaffold(
+      //backgroundColor: MitraColors.bgDeep,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(MitraSpacing.xl),

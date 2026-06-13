@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart'; // 🚨 NEW IMPORT ADDED
+import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 
 class _Slide {
@@ -81,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MitraScaffold(
       body: Stack(
         children: [
           PageView.builder(
