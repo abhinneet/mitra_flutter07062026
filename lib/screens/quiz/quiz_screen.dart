@@ -7,18 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
-
-// 🛠️ BUG-008 FIX: Strict, type-safe model for Quiz Questions
-class QuizQuestion {
-  final String question;
-  final List<String> options;
-  final int correctIndex;
-
-  QuizQuestion.fromJson(Map<String, dynamic> json)
-      : question = json['question'] as String,
-        options = List<String>.from(json['options'] as List),
-        correctIndex = json['correct'] as int;
-}
+// ✨ Added our new central Architecture Imports
+import '../../models/quiz_model.dart';
+import '../../theme/theme_provider.dart';
 
 class QuizScreen extends ConsumerStatefulWidget {
   final String quizId;
@@ -45,12 +36,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     try {
       final res = await QuizAPI.questions(widget.quizId);
       setState(() {
-        // 🛠️ BUG-008 FIX: Parse data into QuizQuestion objects safely
         final rawQuestions = res.data['questions'] as List<dynamic>?;
         if (rawQuestions != null) {
-          _questions = rawQuestions
-              .map((q) => QuizQuestion.fromJson(q as Map<String, dynamic>))
-              .toList();
+          // ✨ Maps your API JSON directly into our new global model!
+          _questions = rawQuestions.map((q) {
+            final map = q as Map<String, dynamic>;
+            return QuizQuestion(
+              questionText: map['question'] as String,
+              options: List<String>.from(map['options'] as List),
+              correctAnswerIndex: map['correct'] as int,
+            );
+          }).toList();
         } else {
           _questions = List.from(_mockQuestions);
         }
@@ -64,31 +60,31 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     }
   }
 
-  // 🛠️ BUG-008 FIX: Mock data converted to typed objects
+  // ✨ Upgraded to match the new property names
   static final _mockQuestions = [
-    QuizQuestion.fromJson({
-      'question': 'Which organelle is called the powerhouse of the cell?',
-      'options': ['Nucleus', 'Mitochondria', 'Ribosome', 'Chloroplast'],
-      'correct': 1,
-    }),
-    QuizQuestion.fromJson({
-      'question': 'What is the chemical formula for water?',
-      'options': ['CO2', 'H2O2', 'H2O', 'NaCl'],
-      'correct': 2,
-    }),
-    QuizQuestion.fromJson({
-      'question': 'How many planets are in our solar system?',
-      'options': ['7', '8', '9', '10'],
-      'correct': 1,
-    }),
+    const QuizQuestion(
+      questionText: 'Which organelle is called the powerhouse of the cell?',
+      options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Chloroplast'],
+      correctAnswerIndex: 1,
+    ),
+    const QuizQuestion(
+      questionText: 'What is the chemical formula for water?',
+      options: ['CO2', 'H2O2', 'H2O', 'NaCl'],
+      correctAnswerIndex: 2,
+    ),
+    const QuizQuestion(
+      questionText: 'How many planets are in our solar system?',
+      options: ['7', '8', '9', '10'],
+      correctAnswerIndex: 1,
+    ),
   ];
 
   void _selectAnswer(int idx) => setState(() => _selected = idx);
 
   void _next() {
     if (_selected == null) return;
-    // 🛠️ BUG-008 FIX: Use typed getter
-    final correct = _questions[_current].correctIndex;
+    // ✨ Uses the new correctAnswerIndex property from the global model
+    final correct = _questions[_current].correctAnswerIndex;
     if (_selected == correct) _score++;
 
     if (_current < _questions.length - 1) {
@@ -108,30 +104,39 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✨ Fetch the user's dynamic theme so the UI matches their preference!
+    final activeTheme = ref.watch(themeProvider);
+    final themeHighlight = ThemeHelper.getActiveHighlight(activeTheme);
+
     if (_loading) {
-      return const Scaffold(
+      return Scaffold(
+        // Kept as standard Scaffold for pure loading state
         backgroundColor: MitraColors.bgDeep,
         body: Center(
-            child: CircularProgressIndicator(color: MitraColors.saffron)),
+          // ✨ Dynamic loading color
+          child: CircularProgressIndicator(color: themeHighlight),
+        ),
       );
     }
-    // 🛠️ BUG-008 FIX: Extract properties directly from the typed model
+
     final q = _questions[_current];
     final options = q.options;
     final progress = (_current + 1) / _questions.length;
 
     return MitraScaffold(
-      //backgroundColor: MitraColors.bgDeep,
+      // 🚨 backgroundColor permanently removed! The smart canvas handles it.
       appBar: AppBar(
-        backgroundColor: MitraColors.bgCard,
+        // ✨ Made transparent to let the global gradient & watermark shine!
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text('Question ${_current + 1}/${_questions.length}',
             style: const TextStyle(
                 fontFamily: 'Baloo2',
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
-                color: MitraColors.textPrimary)),
+                color: Colors.white)), // White looks best on gradients
         leading: IconButton(
-            icon: const Icon(Icons.close, color: MitraColors.textMuted),
+            icon: const Icon(Icons.close, color: Colors.white70),
             onPressed: () => context.pop()),
       ),
       body: Padding(
@@ -143,9 +148,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
-              backgroundColor: MitraColors.bgSurface,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(MitraColors.saffron),
+              backgroundColor: MitraColors.bgSurface.withValues(alpha: 0.5),
+              // ✨ Uses dynamic theme color instead of hardcoded Saffron
+              valueColor: AlwaysStoppedAnimation<Color>(themeHighlight),
             ),
           ),
           const SizedBox(height: MitraSpacing.xl),
@@ -154,16 +159,18 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(MitraSpacing.xl),
             decoration: BoxDecoration(
-              color: MitraColors.bgCard,
+              color: MitraColors.bgCard.withValues(
+                  alpha: 0.8), // Slight transparency looks beautiful
               borderRadius: BorderRadius.circular(MitraRadius.lg),
-              border: Border.all(color: MitraColors.border),
+              border:
+                  Border.all(color: MitraColors.border.withValues(alpha: 0.2)),
             ),
-            child: Text(q.question, // 🛠️ BUG-008 FIX: Typed getter
+            child: Text(q.questionText, // ✨ Updated to use new model property
                 style: const TextStyle(
                     fontFamily: 'Baloo2',
                     fontWeight: FontWeight.w600,
                     fontSize: 18,
-                    color: MitraColors.textPrimary,
+                    color: Colors.white,
                     height: 1.4)),
           ),
           const SizedBox(height: MitraSpacing.lg),
@@ -180,12 +187,14 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                   padding: const EdgeInsets.all(MitraSpacing.lg),
                   decoration: BoxDecoration(
                     color: selected
-                        ? MitraColors.saffron.withValues(alpha: 0.15)
-                        : MitraColors.bgCard,
+                        ? themeHighlight.withValues(
+                            alpha: 0.15) // ✨ Dynamic Highlight
+                        : MitraColors.bgCard.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(MitraRadius.md),
                     border: Border.all(
-                        color:
-                            selected ? MitraColors.saffron : MitraColors.border,
+                        color: selected
+                            ? themeHighlight
+                            : MitraColors.border.withValues(alpha: 0.2),
                         width: selected ? 1.5 : 1),
                   ),
                   child: Row(children: [
@@ -194,13 +203,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                       height: 28,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: selected
-                            ? MitraColors.saffron
-                            : MitraColors.bgSurface,
+                        color:
+                            selected ? themeHighlight : MitraColors.bgSurface,
                         border: Border.all(
                             color: selected
-                                ? MitraColors.saffron
-                                : MitraColors.border),
+                                ? themeHighlight
+                                : MitraColors.border.withValues(alpha: 0.2)),
                       ),
                       alignment: Alignment.center,
                       child: Text(['A', 'B', 'C', 'D'][i],
@@ -208,21 +216,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                               fontFamily: 'SpaceMono',
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
-                              color: selected
-                                  ? Colors.white
-                                  : MitraColors.textMuted)),
+                              color: selected ? Colors.black : Colors.white70)),
                     ),
                     const SizedBox(width: 12),
-                    // 🛠️ BUG-008 FIX: Typed getter doesn't need "as String"
                     Expanded(
                         child: Text(options[i],
                             style: TextStyle(
                                 fontFamily: 'Mukta',
                                 fontWeight: FontWeight.w500,
                                 fontSize: 15,
-                                color: selected
-                                    ? MitraColors.saffron
-                                    : MitraColors.textPrimary))),
+                                color:
+                                    selected ? themeHighlight : Colors.white))),
                   ]),
                 ),
               ),
@@ -237,10 +241,10 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               width: double.infinity,
               height: 52,
               decoration: BoxDecoration(
-                gradient: _selected != null
-                    ? const LinearGradient(colors: MitraColors.gradientSaffron)
-                    : null,
-                color: _selected == null ? MitraColors.bgSurface : null,
+                // ✨ Uses the dynamic theme color for the button
+                color: _selected != null
+                    ? themeHighlight
+                    : MitraColors.bgSurface.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(MitraRadius.pill),
               ),
               alignment: Alignment.center,
@@ -252,9 +256,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                     fontFamily: 'Baloo2',
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
-                    color: _selected != null
-                        ? Colors.white
-                        : MitraColors.textMuted),
+                    // If button is highlighted, text becomes black for contrast
+                    color: _selected != null ? Colors.black : Colors.white54),
               ),
             ),
           ),
