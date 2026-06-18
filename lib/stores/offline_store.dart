@@ -505,8 +505,9 @@ class OfflineNotifier extends StateNotifier<OfflineState> {
 
     state = state.copyWith(queue: updated);
 
-    if (changed == null)
+    if (changed == null) {
       return; // item was removed concurrently; nothing to persist
+    }
 
     try {
       await _box.put(id, jsonEncode(changed!.toJson()));
