@@ -108,6 +108,7 @@ dev_dependencies:
   hive_generator: any
   json_serializable: ^6.8.0
   flutter_launcher_icons: ^0.14.4
+  uuid: ^4.0.0
 
 flutter:
   uses-material-design: true
