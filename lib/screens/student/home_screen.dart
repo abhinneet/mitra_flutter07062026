@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
 import '../../services/api_service.dart'; // 🛠️ BUG-009 FIX: Added ApiService
+import '../../stores/offline_store.dart'; // ✅ ADD THIS
 
 // 🛠️ BUG-009 FIX: Riverpod provider to securely fetch real subjects from the server
 final subjectsProvider =
@@ -341,7 +342,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // Quick Actions
+                    // Quick Actions (existing - don't change above)
                     _Section(
                       title: 'Quick Actions',
                       child: Row(

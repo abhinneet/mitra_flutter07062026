@@ -10,6 +10,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'theme/theme_provider.dart';
 import 'constants/colors.dart';
@@ -58,6 +59,13 @@ Future<void> main() async {
   // ✨ NEW: Tell the phone to load its hard drive before showing the UI
   debugPrint("💾 Loading local storage...");
   final prefs = await SharedPreferences.getInstance();
+
+  debugPrint("🗄️ Initializing Hive...");
+  try {
+    await Hive.initFlutter();
+  } catch (e) {
+    debugPrint("⚠️ Hive initialization issue: $e");
+  }
 
   debugPrint("✅ ALL SYSTEMS GO! Launching UI...");
   runApp(
