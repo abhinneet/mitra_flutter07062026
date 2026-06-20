@@ -14,7 +14,7 @@ import '../screens/auth/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/setup_screen.dart';
 import '../screens/student/student_shell.dart';
-import '../screens/student/home_screen.dart';
+import 'screens/student/home_screen.dart';
 import '../screens/student/learn_screen.dart';
 import '../screens/student/ar_tab_screen.dart';
 import '../screens/student/ranks_screen.dart';
