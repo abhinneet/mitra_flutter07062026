@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user.dart';
+import '../services/telemetry_service.dart';
+import '../providers/telemetry_provider.dart';
 
 // ── Auth State class ───────────────────────────────────
 class AuthState {
@@ -35,8 +37,9 @@ class AuthState {
 
 // ── Auth Notifier ──────────────────────────────────────
 class AuthNotifier extends StateNotifier<AuthState> {
-  // ✨ The listener starts the exact moment the app boots
-  AuthNotifier() : super(const AuthState()) {
+  final Ref ref; // ✨ ADD THIS
+
+  AuthNotifier({required this.ref}) : super(const AuthState()) {
     _listenToFirebaseAuth();
   }
 
@@ -65,7 +68,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
               languagePreference: data['language_preference'] ?? 'en',
             );
 
-            setUser(realUser);
+            await setUser(realUser);
+          } else {
+            // Firebase Auth succeeded but no Firestore profile yet
+            // (e.g. brand-new signup, doc not yet created). Surface this
+            // rather than silently doing nothing.
+            debugPrint("⚠️  No user profile found for ${firebaseUser.uid}");
           }
         } catch (e) {
           debugPrint("🚨 BACKGROUND FETCH ERROR: $e");
@@ -77,8 +85,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
     });
   }
 
-  void setUser(MitraUser user) {
+  Future<void> setUser(MitraUser user) async {
     state = state.copyWith(user: user, isLoggedIn: true, isLoading: false);
+    await _initializeTelemetry();
+  }
+
+  Future<void> _initializeTelemetry() async {
+    try {
+      final outcome = await TelemetryService.create();
+      if (outcome.isUsable && outcome.service != null) {
+        ref.read(telemetryServiceProvider.notifier).state = outcome.service;
+        debugPrint('✅ TelemetryService initialized');
+      } else {
+        debugPrint('⚠️  TelemetryService init failed: ${outcome.result}');
+      }
+    } catch (error) {
+      debugPrint('❌ TelemetryService init error: $error');
+    }
   }
 
   void updateUser(MitraUser updated) {
@@ -106,7 +129,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 // ── Provider ───────────────────────────────────────────
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
-  (ref) => AuthNotifier(),
+  (ref) => AuthNotifier(ref: ref),
 );
 
 // Convenience providers
