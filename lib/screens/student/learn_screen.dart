@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════
 // SCREEN: Learn Screen — Curriculum tree + AR topics
-// Mirrors app/student/learn.tsx from Expo project
+// Back button handled entirely by StudentShell
 // ═══════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
 
-// ── Provider for curriculum data ──────────────────────
 final curriculumProvider = FutureProvider<List<dynamic>>((ref) async {
   final res = await CurriculumAPI.tree();
   return res.data['subjects'] as List<dynamic>? ?? [];
@@ -27,13 +26,13 @@ class LearnScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // ── NO PopScope — StudentShell.BackButtonListener handles ALL back logic ──
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Container(
-            color: Colors.white.withValues(alpha: 0.05), // ✨ Glass Header
+            color: Colors.white.withValues(alpha: 0.05),
             padding: const EdgeInsets.all(MitraSpacing.lg),
             child: const Row(
               children: [
@@ -58,7 +57,6 @@ class LearnScreen extends ConsumerWidget {
               ],
             ),
           ),
-
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.all(MitraSpacing.lg),
@@ -69,11 +67,10 @@ class LearnScreen extends ConsumerWidget {
                 return Container(
                   padding: const EdgeInsets.all(MitraSpacing.lg),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08), // ✨ Glass Card
+                    color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(MitraRadius.md),
-                    border: Border.all(
-                        color: Colors.white
-                            .withValues(alpha: 0.2)), // ✨ Glass Border
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     children: [

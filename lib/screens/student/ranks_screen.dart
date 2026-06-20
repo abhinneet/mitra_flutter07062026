@@ -1,4 +1,5 @@
 // Ranks / Leaderboard Screen
+// Back button handled entirely by StudentShell
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../constants/colors.dart';
@@ -53,22 +54,25 @@ class RanksScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+
+    // ── NO PopScope — StudentShell.BackButtonListener handles ALL back logic ──
     return SafeArea(
       child: Column(
         children: [
           Container(
-              color: Colors.white.withValues(alpha: 0.05), // ✨ Glass Header
-              padding: const EdgeInsets.all(MitraSpacing.lg),
-              child: const Row(children: [
-                Text('🏆', style: TextStyle(fontSize: 24)),
-                SizedBox(width: 10),
-                Text('Leaderboard',
-                    style: TextStyle(
-                        fontFamily: 'Baloo2',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 20,
-                        color: MitraColors.textPrimary)),
-              ])),
+            color: Colors.white.withValues(alpha: 0.05),
+            padding: const EdgeInsets.all(MitraSpacing.lg),
+            child: const Row(children: [
+              Text('🏆', style: TextStyle(fontSize: 24)),
+              SizedBox(width: 10),
+              Text('Leaderboard',
+                  style: TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 20,
+                      color: MitraColors.textPrimary)),
+            ]),
+          ),
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.all(MitraSpacing.lg),
@@ -82,14 +86,12 @@ class RanksScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: isMe
                         ? MitraColors.saffron.withValues(alpha: 0.15)
-                        : Colors.white.withValues(
-                            alpha: 0.05), // ✨ Glass background for others
+                        : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(MitraRadius.md),
                     border: Border.all(
                         color: isMe
                             ? MitraColors.saffron.withValues(alpha: 0.3)
-                            : Colors.white.withValues(
-                                alpha: 0.15)), // ✨ Glass border for others
+                            : Colors.white.withValues(alpha: 0.15)),
                   ),
                   child: Row(children: [
                     Text(l['emoji'] as String,

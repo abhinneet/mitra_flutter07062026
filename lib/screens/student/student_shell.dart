@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-//import '../../constants/colors.dart';
-import '../../widgets/mitra_scaffold_backup.dart'; // ✨ Added
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import '../../widgets/mitra_scaffold_backup.dart';
 
 class StudentShell extends StatelessWidget {
   final Widget child;
@@ -23,35 +22,89 @@ class StudentShell extends StatelessWidget {
         .clamp(0, _tabs.length - 1);
   }
 
+  Future<void> _handleBack(BuildContext context) async {
+    final loc = GoRouterState.of(context).uri.path;
+
+    // 1. If GoRouter has something to pop (modal/deep screen), pop it
+    if (GoRouter.of(context).canPop()) {
+      GoRouter.of(context).pop();
+      return;
+    }
+
+    // 2. If NOT on Home tab, go to Home tab first
+    if (loc != '/student/home') {
+      context.go('/student/home');
+      return;
+    }
+
+    // 3. ON Home tab with nowhere to go — show exit dialog
+    final bool shouldExit = await _showExitDialog(context) ?? false;
+    if (shouldExit) {
+      SystemNavigator.pop();
+    }
+    // If cancelled, do nothing — stays on Home, dialog resets ✅
+  }
+
+  Future<bool?> _showExitDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1232).withValues(alpha: 0.95),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+        ),
+        title: const Text(
+          'Exit App?',
+          style: TextStyle(
+              fontFamily: 'Baloo2',
+              fontWeight: FontWeight.w700,
+              fontSize: 22,
+              color: Colors.white),
+        ),
+        content: const Text(
+          'Are you sure you want to close the application?',
+          style: TextStyle(
+              fontFamily: 'Mukta', fontSize: 16, color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('No',
+                style: TextStyle(
+                    fontFamily: 'Baloo2', fontSize: 16, color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF3B55),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(999)),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Yes',
+                style: TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // We grab the current URL path to know exactly which tab we are on
-    final loc = GoRouterState.of(context).uri.path;
     final idx = _currentIndex(context);
 
-    return BackButtonListener(
-      onBackButtonPressed: () async {
-        // 1. Let GoRouter pop naturally if there is a deep screen/modal open
-        if (GoRouter.of(context).canPop()) {
-          GoRouter.of(context).pop();
-          return true; // Stop Android from interfering
-        }
-
-        // 2. If we are on ANY tab other than Home, route them to Home!
-        if (loc != '/student/home') {
-          context.go('/student/home');
-          return true; // Stop Android from interfering
-        }
-
-        // 3. We are on the Home tab and have nowhere else to go. Show the dialog!
-        final bool shouldExit = await _showExitDialog(context) ?? false;
-        if (shouldExit) {
-          SystemNavigator.pop();
-        }
-
-        return true;
+    return PopScope(
+      // canPop: false means WE handle ALL back presses — Android never exits directly
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) return;
+        await _handleBack(context);
       },
-      // 👇 Your UI remains completely untouched from here down
       child: MitraScaffold(
         useSafeArea: false,
         body: child,
@@ -106,59 +159,7 @@ class StudentShell extends StatelessWidget {
       ),
     );
   }
-
-  // ✨ The Glass Exit Dialog (Added inside the StudentShell class)
-  Future<bool?> _showExitDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1C1232)
-            .withValues(alpha: 0.95), // Matches your dark aesthetic
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-              color: Colors.white.withValues(alpha: 0.2)), // Glass border
-        ),
-        title: const Text(
-          'Exit App?',
-          style: TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w700,
-              fontSize: 22,
-              color: Colors.white),
-        ),
-        content: const Text(
-          'Are you sure you want to close the application?',
-          style: TextStyle(
-              fontFamily: 'Mukta', fontSize: 16, color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('No',
-                style: TextStyle(
-                    fontFamily: 'Baloo2', fontSize: 16, color: Colors.white70)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(
-                  0xFFFF3B55), // Crimson red for destructive actions
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999)),
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Yes',
-                style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16)),
-          ),
-        ],
-      ),
-    );
-  }
-} // <-- End of StudentShell class
+}
 
 class _Tab {
   final String label;

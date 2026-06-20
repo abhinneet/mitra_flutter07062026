@@ -1,10 +1,10 @@
 // Student Profile Screen
+// Back button handled entirely by StudentShell
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
-import '../../theme/theme_provider.dart'; // ✨ Imported the theme engine
-//import '../../widgets/mitra_glass_card.dart'; // ✨ Imported your glass component
+import '../../theme/theme_provider.dart';
 
 class StudentProfileScreen extends ConsumerWidget {
   const StudentProfileScreen({super.key});
@@ -12,8 +12,9 @@ class StudentProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final activeTheme = ref.watch(themeProvider); // ✨ Watch the global theme
+    final activeTheme = ref.watch(themeProvider);
 
+    // ── NO PopScope — StudentShell.BackButtonListener handles ALL back logic ──
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -22,7 +23,7 @@ class StudentProfileScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(MitraSpacing.xl),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05), // Glass Hero
+              color: Colors.white.withValues(alpha: 0.05),
               border: Border(
                   bottom:
                       BorderSide(color: Colors.white.withValues(alpha: 0.1))),
@@ -61,28 +62,24 @@ class StudentProfileScreen extends ConsumerWidget {
                   value: '${user?.currentStreakDays ?? 0}'),
               const SizedBox(height: 32),
 
-              // ── Appearance / Theme Selector ────────────────────
+              // ── Theme Selector ─────────────────────────────────
               Theme(
-                data: Theme.of(context).copyWith(
-                    dividerColor:
-                        Colors.transparent), // Hides default ugly lines
+                data: Theme.of(context)
+                    .copyWith(dividerColor: Colors.transparent),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(
-                        alpha: 0.05), // ✨ Glass container for the accordion
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(MitraRadius.md),
                     border:
                         Border.all(color: Colors.white.withValues(alpha: 0.15)),
                   ),
                   child: ExpansionTile(
-                    title: const Text(
-                      'Themes',
-                      style: TextStyle(
-                          fontFamily: 'Baloo2',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18,
-                          color: Colors.white),
-                    ),
+                    title: const Text('Themes',
+                        style: TextStyle(
+                            fontFamily: 'Baloo2',
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                            color: Colors.white)),
                     leading: const Text('🎨', style: TextStyle(fontSize: 20)),
                     iconColor: Colors.white,
                     collapsedIconColor: Colors.white70,
@@ -94,20 +91,17 @@ class StudentProfileScreen extends ConsumerWidget {
                       final gradient = ThemeHelper.getBackgroundGradient(theme);
 
                       return GestureDetector(
-                        onTap: () {
-                          ref.read(themeProvider.notifier).setTheme(theme);
-                        },
+                        onTap: () =>
+                            ref.read(themeProvider.notifier).setTheme(theme),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.only(
-                              bottom: 8), // Tighter margin inside the list
+                          margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 14),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? highlight.withValues(alpha: 0.1)
-                                : Colors.white
-                                    .withValues(alpha: 0.05), // ✨ Glass tile
+                                : Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(MitraRadius.md),
                             border: Border.all(
                               color: isSelected
@@ -119,64 +113,55 @@ class StudentProfileScreen extends ConsumerWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // LEFT: Checkmark & Theme Name
-                              Row(
-                                children: [
-                                  if (isSelected) ...[
-                                    Icon(Icons.check_circle,
-                                        color: highlight, size: 20),
-                                    const SizedBox(width: 10),
-                                  ],
-                                  Text(
-                                    ThemeHelper.getThemeName(theme),
-                                    style: TextStyle(
-                                      fontFamily: 'Baloo2',
-                                      fontWeight: isSelected
-                                          ? FontWeight.w700
-                                          : FontWeight.w600,
-                                      fontSize: 16,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.white70,
-                                    ),
-                                  ),
+                              Row(children: [
+                                if (isSelected) ...[
+                                  Icon(Icons.check_circle,
+                                      color: highlight, size: 20),
+                                  const SizedBox(width: 10),
                                 ],
-                              ),
-
-                              // RIGHT: Visual Color Samples
-                              Row(
-                                children: [
-                                  // Sample 1: The Background Gradient
-                                  Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        colors: gradient,
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      border: Border.all(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.4)),
-                                    ),
+                                Text(
+                                  ThemeHelper.getThemeName(theme),
+                                  style: TextStyle(
+                                    fontFamily: 'Baloo2',
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w600,
+                                    fontSize: 16,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.white70,
                                   ),
-                                  const SizedBox(width: 8),
-                                  // Sample 2: The Highlight/Active Color
-                                  Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: highlight,
-                                      border: Border.all(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.4)),
+                                ),
+                              ]),
+                              Row(children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: gradient,
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
+                                    border: Border.all(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.4)),
                                   ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: highlight,
+                                    border: Border.all(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.4)),
+                                  ),
+                                ),
+                              ]),
                             ],
                           ),
                         ),
@@ -221,7 +206,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(MitraSpacing.lg),
         decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08), // Glass Card
+            color: Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(MitraRadius.md),
             border: Border.all(color: Colors.white.withValues(alpha: 0.2))),
         child: Row(children: [

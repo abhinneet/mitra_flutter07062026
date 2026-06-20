@@ -1,51 +1,64 @@
 // ═══════════════════════════════════════════════════════
 // SCREEN S-05: Student Home Dashboard
-// Mirrors app/student/home.tsx from Expo project
+// Back button handled entirely by StudentShell
 // ═══════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart';
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
-import '../../services/api_service.dart'; // 🛠️ BUG-009 FIX: Added ApiService
-import '../../stores/offline_store.dart'; // ✅ ADD THIS
+import '../../services/api_service.dart';
+import '../../stores/offline_store.dart';
 
-// 🛠️ BUG-009 FIX: Riverpod provider to securely fetch real subjects from the server
-final subjectsProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  try {
-    final res = await CurriculumAPI.tree();
-    final rawSubjects = res.data['subjects'] as List<dynamic>? ?? [];
+class Subject {
+  final String emoji;
+  final String name;
+  final double progress;
+  final int arCount;
+  final Color color;
 
-    // Fallback colors to keep the UI looking nice
-    final colors = [
-      const Color(0x267C5CDD),
-      const Color(0x2600C389),
-      const Color(0x26FFB800),
-      const Color(0x260EA5E9)
-    ];
+  const Subject({
+    required this.emoji,
+    required this.name,
+    required this.progress,
+    required this.arCount,
+    required this.color,
+  });
 
-    return List.generate(rawSubjects.length, (i) {
-      final s = rawSubjects[i] as Map<String, dynamic>;
-      return {
-        'emoji': s['emoji'] ?? '📚',
-        'name': s['name'] ?? 'Subject',
-        'progress': (s['progress'] as num?)?.toDouble() ?? 0.0,
-        'ar': s['ar'] ?? s['ar_topics_count'] ?? 0,
-        'color': colors[i % colors.length],
-      };
-    });
-  } catch (_) {
-    return []; // Return an empty list if the API fails
+  factory Subject.fromJson(Map<String, dynamic> json, Color color) {
+    return Subject(
+      emoji: json['emoji'] as String? ?? '📚',
+      name: json['name'] as String? ?? 'Subject',
+      progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
+      arCount: (json['ar'] ?? json['ar_topics_count'] ?? 0) as int,
+      color: color,
+    );
   }
+}
+
+final subjectsProvider = FutureProvider<List<Subject>>((ref) async {
+  final res = await CurriculumAPI.tree();
+  final rawSubjects = res.data['subjects'] as List<dynamic>? ?? [];
+
+  const colors = [
+    Color(0x267C5CDD),
+    Color(0x2600C389),
+    Color(0x26FFB800),
+    Color(0x260EA5E9),
+  ];
+
+  return [
+    for (var i = 0; i < rawSubjects.length; i++)
+      Subject.fromJson(
+        rawSubjects[i] as Map<String, dynamic>,
+        colors[i % colors.length],
+      ),
+  ];
 });
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-
-  // 🛠️ BUG-009 FIX: Removed the hardcoded mock _subjects array
 
   String _greeting() {
     final h = DateTime.now().hour;
@@ -58,354 +71,239 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final firstName = user?.firstName ?? 'Student';
-
-    // 🛠️ BUG-009 FIX: Listen to the dynamic subjects data we created at the top
     final subjectsAsync = ref.watch(subjectsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ✨ NEW: Dynamic Theme Colors (Adapts instantly when theme changes)
     final glassColor = isDark
         ? Colors.white.withValues(alpha: 0.08)
         : Colors.black.withValues(alpha: 0.04);
     final glassBorder = isDark
         ? Colors.white.withValues(alpha: 0.15)
         : Colors.black.withValues(alpha: 0.08);
-    final mainTextColor = isDark
-        ? Colors.white
-        : const Color(0xFF1E293B); // Dark navy for light mode
+    final mainTextColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final mutedTextColor = isDark ? Colors.white70 : Colors.black54;
 
-    // ✨ The PopScope securely wraps the entire screen UI
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, Object? result) async {
-        if (didPop) return;
-
-        final bool shouldExit = await showDialog<bool>(
-              context: context,
-              builder: (dialogContext) => PopScope(
-                canPop: false,
-                onPopInvokedWithResult:
-                    (bool dialogDidPop, Object? dialogResult) {
-                  if (dialogDidPop) return;
-                  Navigator.of(dialogContext).pop(false);
-                },
-                child: AlertDialog(
-                  backgroundColor: const Color(0xFF1E293B),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  title: const Text(
-                    'Exit App?',
-                    style: TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  content: const Text(
-                    'Are you sure you want to exit Mitra?',
-                    style: TextStyle(
-                      fontFamily: 'Mukta',
-                      color: Colors.white70,
-                      fontSize: 15,
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(false),
-                      child: const Text('Cancel',
+    // ── NO PopScope here — StudentShell.BackButtonListener handles ALL back logic ──
+    return SafeArea(
+      child: Column(
+        children: [
+          // ── Header ───────────────────────────────────
+          Container(
+            decoration: BoxDecoration(
+              color: glassColor,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+              border: Border(
+                bottom: BorderSide(color: glassBorder, width: 1.5),
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 32, 20, 36),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _greeting(),
                           style: TextStyle(
-                              color: Colors.white54, fontFamily: 'Mukta')),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(true),
-                      child: const Text('Exit',
+                              fontFamily: 'Mukta',
+                              fontSize: 15,
+                              color: mutedTextColor),
+                        ),
+                        Text(
+                          '$firstName 👋',
                           style: TextStyle(
-                              color: Color(0xFFFBBF24),
                               fontFamily: 'Baloo2',
-                              fontWeight: FontWeight.w700)),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 30,
+                              color: mainTextColor),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.notifications_none_rounded,
+                              color: mainTextColor, size: 28),
+                          onPressed: () {},
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color:
+                                isDark ? const Color(0xFF0F172A) : Colors.white,
+                            border: Border.all(
+                                color: MitraColors.saffron, width: 2.5),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(user?.avatarEmoji ?? '🎒',
+                              style: const TextStyle(fontSize: 28)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-            ) ??
-            false;
+                const SizedBox(height: 20),
 
-        if (shouldExit) {
-          SystemNavigator.pop();
-        }
-      },
-      child: SafeArea(
-        child: Column(
-          children: [
-            // ── Header ───────────────────────────────────
-            Container(
-              // 1️⃣ THEME-ADAPTIVE GLASS: Uses the dynamic variables to look great in Light or Dark mode
-              decoration: BoxDecoration(
-                color: glassColor,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(28), // Sweeping curved bottom
-                  bottomRight: Radius.circular(28),
+                // Class chip
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: MitraColors.saffron.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(MitraRadius.pill),
+                    border: Border.all(
+                        color: MitraColors.saffron.withValues(alpha: 0.4)),
+                  ),
+                  child: Text(
+                    '🏫 ${user?.classGrade ?? "Class IX"} · ${user?.assignedState ?? "India"}',
+                    style: const TextStyle(
+                        fontFamily: 'Mukta',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: MitraColors.saffron),
+                  ),
                 ),
-                border: Border(
-                  bottom: BorderSide(color: glassBorder, width: 1.5),
-                ),
-              ),
-              // 2️⃣ HEADER HEIGHT: Increased top and bottom padding makes the header much taller
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 36),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _greeting(),
-                            // 3️⃣ TEXT SIZE: Increased to 15, adapts to theme
-                            style: TextStyle(
-                                fontFamily: 'Mukta',
-                                fontSize: 15,
-                                color: mutedTextColor),
-                          ),
-                          Text(
-                            '$firstName 👋',
-                            // 3️⃣ TEXT SIZE: Increased to 30, adapts to theme
-                            style: TextStyle(
-                                fontFamily: 'Baloo2',
-                                fontWeight: FontWeight.w800,
-                                fontSize: 30,
-                                color: mainTextColor),
-                          ),
-                        ],
-                      ),
+                const SizedBox(height: 16),
 
-                      // 4️⃣ CONTENT: Notification Bell + Larger Avatar
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.notifications_none_rounded,
-                                color: mainTextColor, size: 28),
-                            onPressed: () {
-                              // Future Notification Screen Route
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 54, // Larger avatar (was 44)
-                            height: 54,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isDark
-                                  ? const Color(0xFF0F172A)
-                                  : Colors.white, // Adapts avatar background
-                              border: Border.all(
-                                  color: MitraColors.saffron, width: 2.5),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(user?.avatarEmoji ?? '🎒',
-                                style: const TextStyle(fontSize: 28)),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                      height: 20), // More breathing room before the chips
-
-                  // Class chip
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: MitraColors.saffron.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(MitraRadius.pill),
-                      border: Border.all(
-                          color: MitraColors.saffron.withValues(alpha: 0.4)),
-                    ),
-                    child: Text(
-                      '🏫 ${user?.classGrade ?? "Class IX"} · ${user?.assignedState ?? "India"}',
-                      style: const TextStyle(
-                          fontFamily: 'Mukta',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13, // Larger chip text
-                          color: MitraColors.saffron),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Stats row
-                  Row(
-                    children: [
-                      _StatChip('🔥 ${user?.currentStreakDays ?? 0} day streak',
-                          isDark),
-                      const SizedBox(width: 8),
-                      _StatChip('⭐ ${user?.totalXp ?? 0} XP', isDark),
-                      const SizedBox(width: 8),
-                      _StatChip('🥇 #1 in class', isDark),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Body ─────────────────────────────────────
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 32),
-                child: Column(
+                // Stats row
+                Row(
                   children: [
-                    // Continue Learning
-                    _Section(
-                      title: 'Continue Learning',
-                      trailing: const Text('See all',
+                    _StatChip('🔥 ${user?.currentStreakDays ?? 0} day streak',
+                        isDark),
+                    const SizedBox(width: 8),
+                    _StatChip('⭐ ${user?.totalXp ?? 0} XP', isDark),
+                    const SizedBox(width: 8),
+                    _StatChip('🥇 #1 in class', isDark),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // ── Body ─────────────────────────────────────
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: Column(
+                children: [
+                  // Continue Learning
+                  _Section(
+                    title: 'Continue Learning',
+                    trailing: const Text('See all',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: MitraColors.saffron,
+                            fontFamily: 'Mukta')),
+                    child: const _ContinueLearningCard(),
+                  ),
+
+                  // Subjects
+                  _Section(
+                    title: 'Subjects',
+                    child: subjectsAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(
+                            child: CircularProgressIndicator(
+                                color: MitraColors.saffron)),
+                      ),
+                      error: (err, stack) => const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text('Failed to load subjects',
+                            style: TextStyle(color: MitraColors.textMuted)),
+                      ),
+                      data: (subjects) => subjects.isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text('No subjects found.',
+                                  style:
+                                      TextStyle(color: MitraColors.textMuted)),
+                            )
+                          : GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                                childAspectRatio: 1.2,
+                              ),
+                              itemCount: subjects.length,
+                              itemBuilder: (ctx, i) =>
+                                  _SubjectCard(subject: subjects[i]),
+                            ),
+                    ),
+                  ),
+
+                  // Quick Actions
+                  _Section(
+                    title: 'Quick Actions',
+                    child: Row(
+                      children: [
+                        _QuickAction(
+                            emoji: '🥽',
+                            label: 'Open AR',
+                            onTap: () => context.go('/student/ar')),
+                        _QuickAction(
+                            emoji: '📝',
+                            label: 'Take Quiz',
+                            onTap: () => context.go('/student/quiz')),
+                        _QuickAction(
+                            emoji: '🏆',
+                            label: 'Leaderboard',
+                            onTap: () => context.go('/student/ranks')),
+                        _QuickAction(
+                            emoji: '📴',
+                            label: 'Download',
+                            onTap: () => context.go('/student/learn')),
+                      ],
+                    ),
+                  ),
+
+                  // Class Rank
+                  _Section(
+                    title: 'Class Rank',
+                    trailing: GestureDetector(
+                      onTap: () => context.go('/student/ranks'),
+                      child: const Text('View all',
                           style: TextStyle(
                               fontSize: 12,
                               color: MitraColors.saffron,
                               fontFamily: 'Mukta')),
-                      child: _ContinueLearningCard(),
                     ),
-
-                    // 🛠️ BUG-009 FIX: Subjects grid dynamically fetched from API with loading states
-                    _Section(
-                      title: 'Subjects',
-                      child: subjectsAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.all(32.0),
-                          child: Center(
-                              child: CircularProgressIndicator(
-                                  color: MitraColors.saffron)),
-                        ),
-                        error: (err, stack) => const Text(
-                            'Failed to load subjects',
-                            style: TextStyle(color: MitraColors.textMuted)),
-                        data: (subjects) => subjects.isEmpty
-                            ? const Text('No subjects found.',
-                                style: TextStyle(color: MitraColors.textMuted))
-                            : GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 8,
-                                  mainAxisSpacing: 8,
-                                  childAspectRatio: 1.2,
-                                ),
-                                itemCount: subjects.length,
-                                itemBuilder: (ctx, i) {
-                                  final s = subjects[i];
-                                  return GestureDetector(
-                                    onTap: () => context.go('/student/learn'),
-                                    child: Container(
-                                      padding:
-                                          const EdgeInsets.all(MitraSpacing.md),
-                                      decoration: BoxDecoration(
-                                        color: (s['color'] as Color)
-                                            .withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(
-                                            MitraRadius.md),
-                                        border: Border.all(
-                                            color: MitraColors.borderLight),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(s['emoji'] as String,
-                                              style: const TextStyle(
-                                                  fontSize: 28)),
-                                          const SizedBox(height: 6),
-                                          Text(s['name'] as String,
-                                              style: const TextStyle(
-                                                  fontFamily: 'Baloo2',
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 14,
-                                                  color:
-                                                      MitraColors.textPrimary)),
-                                          Text(
-                                              '${((s['progress'] as double) * 100).toInt()}% · ${s['ar']} AR topics',
-                                              style: const TextStyle(
-                                                  fontFamily: 'Mukta',
-                                                  fontSize: 10,
-                                                  color:
-                                                      MitraColors.textMuted)),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
+                    child: Column(
+                      children: [
+                        _RankRow(
+                            rank: '🥇',
+                            name: firstName,
+                            xp: user?.totalXp ?? 1200,
+                            isMe: true),
+                        const SizedBox(height: 8),
+                        const _RankRow(
+                            rank: '🥈', name: 'Rahul S.', xp: 980, isMe: false),
+                        const SizedBox(height: 8),
+                        const _RankRow(
+                            rank: '🥉', name: 'Priya M.', xp: 860, isMe: false),
+                      ],
                     ),
-
-                    // Quick Actions (existing - don't change above)
-                    _Section(
-                      title: 'Quick Actions',
-                      child: Row(
-                        children: [
-                          _QuickAction(
-                              emoji: '🥽',
-                              label: 'Open AR',
-                              onTap: () => context.go('/student/ar')),
-                          _QuickAction(
-                              emoji: '📝',
-                              label: 'Take Quiz',
-                              onTap: () => context.go('/student/learn')),
-                          _QuickAction(
-                              emoji: '🏆',
-                              label: 'Leaderboard',
-                              onTap: () => context.go('/student/ranks')),
-                          _QuickAction(
-                              emoji: '📴',
-                              label: 'Download',
-                              onTap: () => context.go('/student/learn')),
-                        ],
-                      ),
-                    ),
-
-                    // Class Rank
-                    _Section(
-                      title: 'Class Rank',
-                      trailing: GestureDetector(
-                        onTap: () => context.go('/student/ranks'),
-                        child: const Text('View all',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: MitraColors.saffron,
-                                fontFamily: 'Mukta')),
-                      ),
-                      child: Column(
-                        children: [
-                          _RankRow(
-                              rank: '🥇',
-                              name: firstName,
-                              xp: user?.totalXp ?? 1200,
-                              isMe: true),
-                          const SizedBox(height: 8),
-                          const _RankRow(
-                              rank: '🥈',
-                              name: 'Rahul S.',
-                              xp: 980,
-                              isMe: false),
-                          const SizedBox(height: 8),
-                          const _RankRow(
-                              rank: '🥉',
-                              name: 'Priya M.',
-                              xp: 860,
-                              isMe: false),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -415,15 +313,13 @@ class HomeScreen extends ConsumerWidget {
 
 class _StatChip extends StatelessWidget {
   final String text;
-  final bool isDark; // ✨ Receives the theme status
-
+  final bool isDark;
   const _StatChip(this.text, this.isDark);
 
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          // ✨ Changes chip background based on theme
           color: isDark
               ? Colors.black.withValues(alpha: 0.2)
               : Colors.white.withValues(alpha: 0.5),
@@ -439,9 +335,7 @@ class _StatChip extends StatelessWidget {
                 fontFamily: 'SpaceMono',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isDark
-                    ? Colors.white70
-                    : Colors.black87)), // ✨ Text color adapts
+                color: isDark ? Colors.white70 : Colors.black87)),
       );
 }
 
@@ -476,13 +370,13 @@ class _Section extends StatelessWidget {
 }
 
 class _ContinueLearningCard extends StatelessWidget {
+  const _ContinueLearningCard();
+
   @override
   Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
-          // ✨ CHANGED: Solid background to translucent glass
           color: Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(MitraRadius.sm),
-          // ✨ CHANGED: Solid border to translucent glass border
           border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         ),
         child: Column(
@@ -491,8 +385,7 @@ class _ContinueLearningCard extends StatelessWidget {
             Container(
                 height: 3,
                 decoration: const BoxDecoration(
-                  color:
-                      MitraColors.saffron, // Keep the saffron highlight line!
+                  color: MitraColors.saffron,
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(MitraRadius.md),
                       topRight: Radius.circular(MitraRadius.md)),
@@ -561,6 +454,43 @@ class _ContinueLearningCard extends StatelessWidget {
       );
 }
 
+class _SubjectCard extends StatelessWidget {
+  final Subject subject;
+  const _SubjectCard({required this.subject});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: () => context.go('/student/learn'),
+        child: Container(
+          padding: const EdgeInsets.all(MitraSpacing.md),
+          decoration: BoxDecoration(
+            color: subject.color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(MitraRadius.md),
+            border: Border.all(color: MitraColors.borderLight),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(subject.emoji, style: const TextStyle(fontSize: 28)),
+              const SizedBox(height: 6),
+              Text(subject.name,
+                  style: const TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: MitraColors.textPrimary)),
+              Text(
+                  '${(subject.progress * 100).toInt()}% · ${subject.arCount} AR topics',
+                  style: const TextStyle(
+                      fontFamily: 'Mukta',
+                      fontSize: 10,
+                      color: MitraColors.textMuted)),
+            ],
+          ),
+        ),
+      );
+}
+
 class _QuickAction extends StatelessWidget {
   final String emoji;
   final String label;
@@ -576,7 +506,7 @@ class _QuickAction extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 3),
             padding: const EdgeInsets.all(MitraSpacing.md),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08), // ✨ Glass effect
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(MitraRadius.md),
               border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             ),
