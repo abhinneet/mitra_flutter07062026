@@ -113,6 +113,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Courgette
+      fonts:
+        - asset: assets/fonts/Courgette-Regular.ttf
 
   assets:
     - assets/images/

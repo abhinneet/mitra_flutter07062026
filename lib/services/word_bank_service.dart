@@ -111,7 +111,7 @@ class WordBankService {
   }
 
   List<WordData> _getSampleWords() {
-    return const [
+    return [
       WordData(
         word: 'Able',
         meaning: 'Having power, skill, or means to do something',
@@ -138,7 +138,7 @@ class WordBankService {
 
   WordData getWordOfDay() {
     if (allWords.isEmpty) {
-      return const WordData(
+      return WordData(
         word: 'Dictionary',
         meaning:
             'A book or electronic resource that lists words and their meanings',

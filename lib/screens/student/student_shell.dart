@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold_backup.dart';
+import '../../widgets/language_alphabet_background.dart';
 
 class StudentShell extends StatelessWidget {
   final Widget child;
@@ -29,7 +30,16 @@ class StudentShell extends StatelessWidget {
 
     return MitraScaffold(
       useSafeArea: false,
-      body: child,
+      body: Stack(
+        children: [
+          // Background animation - visible on ALL screens
+          const Positioned.fill(
+            child: LanguageAlphabetBackground(),
+          ),
+          // Screen content
+          child,
+        ],
+      ),
       bottomNavigationBar: Container(
         height: 72 + MediaQuery.of(context).padding.bottom,
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),

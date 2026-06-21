@@ -1,18 +1,26 @@
 // ═══════════════════════════════════════════════════════
 // SCREEN S-05: Student Home Dashboard
 // Back button handled entirely by StudentShell
+// Background animation moved to lib/widgets/language_alphabet_background.dart
 // ═══════════════════════════════════════════════════════
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
 import '../../services/api_service.dart';
 import '../../stores/offline_store.dart';
 import '../../providers/telemetry_provider.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import '../../services/word_bank_service.dart';
+import '../../services/sentence_generator_service.dart';
+import '../../theme/theme_provider.dart';
+
+// ═══════════════════════════════════════════════════════
+// MODELS
+// ═══════════════════════════════════════════════════════
 
 class Subject {
   final String emoji;
@@ -47,14 +55,17 @@ final flutterTts = FlutterTts();
 class WordData {
   final String word, meaning, usage, partOfSpeech;
   final String difficulty;
+  late final String generatedUsage;
 
-  const WordData({
+  WordData({
     required this.word,
     required this.meaning,
     required this.usage,
     required this.partOfSpeech,
     this.difficulty = 'intermediate',
-  });
+  }) {
+    generatedUsage = usage.isNotEmpty ? usage : '';
+  }
 
   factory WordData.fromJson(Map<String, dynamic> json) {
     return WordData(
@@ -75,7 +86,10 @@ class WordData {
       };
 }
 
-// ── Daily Motivation Provider ───────────────────────────
+// ═══════════════════════════════════════════════════════
+// PROVIDERS
+// ═══════════════════════════════════════════════════════
+
 final dailyMotivationProvider = FutureProvider<String>((ref) async {
   const motivations = [
     'Success is not final, failure is not fatal. It is the courage to continue that counts.',
@@ -86,12 +100,10 @@ final dailyMotivationProvider = FutureProvider<String>((ref) async {
   return motivations[DateTime.now().day % motivations.length];
 });
 
-// ── Word of the Day Provider ────────────────────────────
 final wordOfTheDayProvider = FutureProvider<WordData>((ref) async {
   return WordBankService().getWordOfDay();
 });
 
-// ── Word Search Provider ────────────────────────────────
 final wordSearchProvider =
     FutureProvider.family<List<WordData>, String>((ref, query) async {
   return WordBankService().searchWords(query);
@@ -117,6 +129,10 @@ final subjectsProvider = FutureProvider<List<Subject>>((ref) async {
   ];
 });
 
+// ═══════════════════════════════════════════════════════
+// HOME SCREEN
+// ═══════════════════════════════════════════════════════
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -126,7 +142,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _wordSearchController = TextEditingController();
-  String _selectedLanguage = 'en';
 
   @override
   void initState() {
@@ -135,12 +150,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _initTTS() async {
-    await flutterTts.setLanguage(_selectedLanguage);
+    await flutterTts.setLanguage('hi');
     await flutterTts.setSpeechRate(0.5);
   }
 
   Future<void> _speak(String text, {String? language}) async {
-    final lang = language ?? _selectedLanguage;
+    final lang = language ?? 'hi';
     await flutterTts.setLanguage(lang);
     await flutterTts.speak(text);
   }
@@ -174,7 +189,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final mainTextColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final mutedTextColor = isDark ? Colors.white70 : Colors.black54;
 
-    // ── NO PopScope here — StudentShell.BackButtonListener handles ALL back logic ──
     return SafeArea(
       child: Column(
         children: [
@@ -288,16 +302,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.only(bottom: 32),
               child: Column(
                 children: [
-                  // Continue Learning
-                  _Section(
-                    title: 'Continue Learning',
-                    trailing: const Text('See all',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: MitraColors.saffron,
-                            fontFamily: 'Mukta')),
-                    child: const _ContinueLearningCard(),
-                  ),
+                  // Thought for the Day (TOP) - WITH FALLING LEAVES
+                  const SizedBox(height: 8),
+                  ref.watch(dailyMotivationProvider).when(
+                        loading: () => const _LoadingCard(),
+                        error: (err, st) => const _ErrorCard('Failed to load'),
+                        data: (thought) => _AnimatedThoughtTile(
+                          thought: thought,
+                          onSpeak: () => _speak(thought, language: 'hi'),
+                        ),
+                      ),
+
+                  // Word of the Day - WITH 📖 RAIN
+                  const SizedBox(height: 8),
+                  ref.watch(wordOfTheDayProvider).when(
+                        loading: () => const _LoadingCard(),
+                        error: (err, st) => const _ErrorCard('Failed to load'),
+                        data: (word) => _AnimatedWordOfDayTile(
+                          word: word,
+                          wordSearchController: _wordSearchController,
+                          onSpeak: _speak,
+                        ),
+                      ),
 
                   // Subjects
                   _Section(
@@ -338,177 +364,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
 
-                  // Quick Actions
-                  _Section(
-                    title: 'Quick Actions',
-                    child: Row(
-                      children: [
-                        _QuickAction(
-                            emoji: '🥽',
-                            label: 'Open AR',
-                            onTap: () => context.go('/student/ar')),
-                        _QuickAction(
-                            emoji: '📝',
-                            label: 'Take Quiz',
-                            onTap: () => context.go('/student/quiz')),
-                        _QuickAction(
-                            emoji: '🏆',
-                            label: 'Leaderboard',
-                            onTap: () => context.go('/student/ranks')),
-                        _QuickAction(
-                            emoji: '📴',
-                            label: 'Download',
-                            onTap: () => context.go('/student/learn')),
-                      ],
-                    ),
-                  ),
-
-                  // Daily Motivation Tile
-                  const SizedBox(height: 8),
-                  _TileContainer(
-                    title: 'Daily Motivation',
-                    child: ref.watch(dailyMotivationProvider).when(
-                          loading: () => const _LoadingCard(),
-                          error: (err, st) =>
-                              const _ErrorCard('Failed to load'),
-                          data: (thought) => _MotivationCard(
-                            thought: thought,
-                            onSpeak: () => _speak(thought),
-                            onLanguageChange: (lang) {
-                              setState(() => _selectedLanguage = lang);
-                              _speak(thought, language: lang);
-                            },
-                          ),
-                        ),
-                  ),
-
-                  // Word Bank Tile
-                  const SizedBox(height: 8),
-                  _TileContainer(
-                    title: 'Word Bank',
-                    child: ref.watch(wordOfTheDayProvider).when(
-                          loading: () => const _LoadingCard(),
-                          error: (err, st) =>
-                              const _ErrorCard('Failed to load'),
-                          data: (word) => Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _WordCard(
-                                word: word,
-                                onSpeak: () => _speak(word.word),
-                              ),
-                              const SizedBox(height: 14),
-                              TextField(
-                                controller: _wordSearchController,
-                                style: const TextStyle(
-                                  fontFamily: 'Mukta',
-                                  color: MitraColors.textPrimary,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Search for a word...',
-                                  hintStyle: const TextStyle(
-                                    color: MitraColors.textMuted,
-                                  ),
-                                  prefixIcon: const Icon(
-                                    Icons.search,
-                                    color: MitraColors.saffron,
-                                  ),
-                                  filled: true,
-                                  fillColor:
-                                      Colors.white.withValues(alpha: 0.08),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.15),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.15),
-                                    ),
-                                  ),
-                                ),
-                                onChanged: (val) => setState(() {}),
-                              ),
-                              const SizedBox(height: 10),
-                              if (_wordSearchController.text.isNotEmpty)
-                                ref
-                                    .watch(wordSearchProvider(
-                                        _wordSearchController.text))
-                                    .when(
-                                      loading: () => const Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Center(
-                                          child: CircularProgressIndicator(
-                                            color: MitraColors.saffron,
-                                          ),
-                                        ),
-                                      ),
-                                      error: (err, st) => const Text(
-                                        'Search failed',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                      data: (results) => results.isEmpty
-                                          ? const Padding(
-                                              padding: EdgeInsets.all(12.0),
-                                              child: Text(
-                                                'No words found',
-                                                style: TextStyle(
-                                                  color: MitraColors.textMuted,
-                                                ),
-                                              ),
-                                            )
-                                          : Column(
-                                              children: results
-                                                  .map((w) => Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(
-                                                          top: 10.0,
-                                                        ),
-                                                        child: _WordCard(
-                                                          word: w,
-                                                          onSpeak: () =>
-                                                              _speak(w.word),
-                                                        ),
-                                                      ))
-                                                  .toList(),
-                                            ),
-                                    ),
-                            ],
-                          ),
-                        ),
-                  ),
-
-                  // Class Rank
-                  _Section(
-                    title: 'Class Rank',
-                    trailing: GestureDetector(
-                      onTap: () => context.go('/student/ranks'),
-                      child: const Text('View all',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: MitraColors.saffron,
-                              fontFamily: 'Mukta')),
-                    ),
-                    child: Column(
-                      children: [
-                        _RankRow(
-                            rank: '🥇',
-                            name: firstName,
-                            xp: user?.totalXp ?? 1200,
-                            isMe: true),
-                        const SizedBox(height: 8),
-                        const _RankRow(
-                            rank: '🥈', name: 'Rahul S.', xp: 980, isMe: false),
-                        const SizedBox(height: 8),
-                        const _RankRow(
-                            rank: '🥉', name: 'Priya M.', xp: 860, isMe: false),
-                      ],
-                    ),
+                  // Continue Learning
+                  const _Section(
+                    title: 'Continue Learning',
+                    trailing: Text('See all',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: MitraColors.saffron,
+                            fontFamily: 'Mukta')),
+                    child: _ContinueLearningCard(),
                   ),
                 ],
               ),
@@ -520,7 +384,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-// ── Sub-widgets ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// SUB-WIDGETS
+// ═══════════════════════════════════════════════════════
 
 class _StatChip extends StatelessWidget {
   final String text;
@@ -702,240 +568,40 @@ class _SubjectCard extends StatelessWidget {
       );
 }
 
-class _QuickAction extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final VoidCallback onTap;
-  const _QuickAction(
-      {required this.emoji, required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            padding: const EdgeInsets.all(MitraSpacing.md),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(MitraRadius.md),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-            ),
-            child: Column(
-              children: [
-                Text(emoji, style: const TextStyle(fontSize: 24)),
-                const SizedBox(height: 6),
-                Text(label,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontFamily: 'Mukta',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 10,
-                        color: MitraColors.textSecondary)),
-              ],
-            ),
-          ),
-        ),
-      );
-}
-
-class _RankRow extends StatelessWidget {
-  final String rank;
-  final String name;
-  final int xp;
-  final bool isMe;
-  const _RankRow(
-      {required this.rank,
-      required this.name,
-      required this.xp,
-      required this.isMe});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(MitraSpacing.sm),
-        decoration: BoxDecoration(
-          color: isMe
-              ? MitraColors.saffron.withValues(alpha: 0.15)
-              : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(MitraRadius.sm),
-          border: Border.all(
-              color: isMe
-                  ? MitraColors.saffron.withValues(alpha: 0.3)
-                  : MitraColors.border),
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-                width: 32,
-                child: Text(rank, style: const TextStyle(fontSize: 20))),
-            Expanded(
-                child: Text(name,
-                    style: const TextStyle(
-                        fontFamily: 'Mukta',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                        color: MitraColors.textPrimary))),
-            Text('$xp XP',
-                style: const TextStyle(
-                    fontFamily: 'SpaceMono',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: MitraColors.gold)),
-          ],
-        ),
-      );
-}
-
-class _TileContainer extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const _TileContainer({required this.title, required this.child});
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: MitraColors.textPrimary)),
-              const SizedBox(height: 12),
-              child,
-            ],
-          ),
-        ),
-      );
-}
-
-class _MotivationCard extends StatefulWidget {
+class _MotivationCard extends StatelessWidget {
   final String thought;
   final VoidCallback onSpeak;
-  final Function(String) onLanguageChange;
-  const _MotivationCard(
-      {required this.thought,
-      required this.onSpeak,
-      required this.onLanguageChange});
-  @override
-  State<_MotivationCard> createState() => _MotivationCardState();
-}
 
-class _MotivationCardState extends State<_MotivationCard> {
-  String _selectedLang = 'en';
-  final _languages = {
-    'en': 'English',
-    'hi': 'हिंदी',
-    'gu': 'ગુજરાતી',
-    'ta': 'தமிழ්',
-    'te': 'తెలుగు'
-  };
+  const _MotivationCard({required this.thought, required this.onSpeak});
+
   @override
   Widget build(BuildContext context) =>
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(widget.thought,
+        Text(thought,
             style: const TextStyle(
-                fontFamily: 'Mukta',
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+                fontFamily: 'Courgette',
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
                 color: MitraColors.textPrimary,
-                height: 1.6)),
+                height: 1.8,
+                letterSpacing: 0.5)),
+        const SizedBox(height: 8),
+        const Text(
+          '— Anonymous',
+          style: TextStyle(
+            fontFamily: 'Mukta',
+            fontSize: 11,
+            color: MitraColors.textMuted,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
         const SizedBox(height: 12),
-        Row(children: [
-          IconButton(
-              icon: const Icon(Icons.volume_up,
-                  color: MitraColors.saffron, size: 20),
-              onPressed: widget.onSpeak,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints()),
-          const SizedBox(width: 10),
-          Expanded(
-              child: DropdownButton<String>(
-                  value: _selectedLang,
-                  items: _languages.entries
-                      .map((e) => DropdownMenuItem(
-                          value: e.key,
-                          child: Text(e.value,
-                              style: const TextStyle(
-                                  fontFamily: 'Mukta',
-                                  fontSize: 12,
-                                  color: MitraColors.textPrimary))))
-                      .toList(),
-                  onChanged: (lang) {
-                    if (lang != null) {
-                      setState(() => _selectedLang = lang);
-                      widget.onLanguageChange(lang);
-                    }
-                  },
-                  underline: const SizedBox(),
-                  isExpanded: true)),
-        ]),
-      ]);
-}
-
-class _WordCard extends StatelessWidget {
-  final WordData word;
-  final VoidCallback onSpeak;
-  const _WordCard({required this.word, required this.onSpeak});
-  @override
-  Widget build(BuildContext context) =>
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(word.word,
-                style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: MitraColors.textPrimary)),
-            Text(word.partOfSpeech,
-                style: const TextStyle(
-                    fontFamily: 'Mukta',
-                    fontSize: 10,
-                    color: MitraColors.textMuted)),
-          ]),
-          IconButton(
-              icon: const Icon(Icons.volume_up,
-                  color: MitraColors.saffron, size: 20),
-              onPressed: onSpeak,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints()),
-        ]),
-        const SizedBox(height: 8),
-        Text('Meaning:',
-            style: const TextStyle(
-                fontFamily: 'Mukta',
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: MitraColors.saffron)),
-        const SizedBox(height: 3),
-        Text(word.meaning,
-            style: const TextStyle(
-                fontFamily: 'Mukta',
-                fontSize: 12,
-                color: MitraColors.textSecondary)),
-        const SizedBox(height: 8),
-        Text('Usage:',
-            style: const TextStyle(
-                fontFamily: 'Mukta',
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: MitraColors.saffron)),
-        const SizedBox(height: 3),
-        Text(word.usage,
-            style: const TextStyle(
-                fontFamily: 'Mukta',
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-                color: MitraColors.textSecondary)),
+        IconButton(
+            icon: const Icon(Icons.volume_up,
+                color: MitraColors.saffron, size: 22),
+            onPressed: onSpeak,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints()),
       ]);
 }
 
@@ -955,4 +621,659 @@ class _ErrorCard extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
       padding: const EdgeInsets.all(12.0),
       child: Text(message, style: TextStyle(color: Colors.red[300])));
+}
+
+// ═══════════════════════════════════════════════════════
+// ANIMATED ELEMENTS FOR TILES
+// ═══════════════════════════════════════════════════════
+
+// ── Falling Leaf Particle (🍁) ─────────────────────────
+class _FallingLeaf extends StatefulWidget {
+  final Color color;
+  final double startX;
+  final double duration;
+  final double delay;
+
+  const _FallingLeaf({
+    required this.color,
+    required this.startX,
+    required this.duration,
+    required this.delay,
+  });
+
+  @override
+  State<_FallingLeaf> createState() => _FallingLeafState();
+}
+
+class _FallingLeafState extends State<_FallingLeaf>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: Duration(milliseconds: (widget.duration * 1000).round()),
+      vsync: this,
+    );
+
+    _opacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.08), weight: 20),
+      TweenSequenceItem(tween: ConstantTween(0.08), weight: 60),
+      TweenSequenceItem(tween: Tween(begin: 0.08, end: 0.0), weight: 20),
+    ]).animate(_controller);
+
+    Future.delayed(
+      Duration(milliseconds: (widget.delay * 1000).round()),
+      () {
+        if (mounted) _controller.repeat();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final topPos = -50 + (_controller.value * 300);
+
+        return Positioned(
+          left: widget.startX * 300,
+          top: topPos,
+          child: Opacity(
+            opacity: _opacity.value,
+            child: Transform.rotate(
+              angle: _controller.value * math.pi * 4,
+              child: const Text('🍁', style: TextStyle(fontSize: 25)),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── 📖 Book Particle (Word of Day) ─────────────────────
+class _IndianCharacterParticle extends StatefulWidget {
+  final Color color;
+  final String character;
+  final double left;
+  final double top;
+  final double fontSize;
+  final double duration;
+  final double delay;
+
+  const _IndianCharacterParticle({
+    required this.color,
+    required this.character,
+    required this.left,
+    required this.top,
+    required this.fontSize,
+    required this.duration,
+    required this.delay,
+  });
+
+  @override
+  State<_IndianCharacterParticle> createState() =>
+      _IndianCharacterParticleState();
+}
+
+class _IndianCharacterParticleState extends State<_IndianCharacterParticle>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: Duration(milliseconds: (widget.duration * 1000).round()),
+      vsync: this,
+    );
+
+    _opacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.09), weight: 25),
+      TweenSequenceItem(tween: ConstantTween(0.09), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 0.09, end: 0.0), weight: 25),
+    ]).animate(_controller);
+
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.8, end: 1.1), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.1, end: 0.85), weight: 60),
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    Future.delayed(
+      Duration(milliseconds: (widget.delay * 1000).round()),
+      () {
+        if (mounted) _controller.repeat();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) => Positioned(
+        left: widget.left,
+        top: widget.top,
+        child: Opacity(
+          opacity: _opacity.value,
+          child: Transform.scale(
+            scale: _scale.value,
+            child: Text(
+              widget.character,
+              style: TextStyle(
+                fontSize: widget.fontSize,
+                color: widget.color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Helper: Scatter Positions (Golden Ratio) ────────────
+List<({double left, double top})> _scatterPositions(
+  int count,
+  double w,
+  double h,
+) {
+  const phi = 0.6180339887;
+  return List.generate(count, (i) {
+    final frac = (i * phi) % 1.0;
+    final left = frac < 0.5
+        ? 0.30 * w + (frac * 0.40 * w)
+        : 0.70 * w + ((frac - 0.5) * 0.30 * w);
+    final top = (i / count) * h;
+    return (left: left, top: top);
+  });
+}
+
+// ── Thought Tile with Falling Leaves ───────────────────
+class _AnimatedThoughtTile extends ConsumerWidget {
+  final String thought;
+  final VoidCallback onSpeak;
+
+  const _AnimatedThoughtTile({
+    required this.thought,
+    required this.onSpeak,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+    final accentColor = ThemeHelper.getActiveHighlight(theme);
+
+    const leafCount = 6;
+    const leafStartX = [0.05, 0.15, 0.35, 0.55, 0.75, 0.95];
+    const leafDuration = [9.2, 10.5, 8.8, 11.2, 9.5, 10.0];
+    const leafDelay = [0.0, 0.8, 1.6, 2.4, 3.2, 4.0];
+
+    return Stack(
+      clipBehavior: Clip.hardEdge,
+      children: [
+        for (var i = 0; i < leafCount; i++)
+          _FallingLeaf(
+            color: accentColor,
+            startX: leafStartX[i],
+            duration: leafDuration[i],
+            delay: leafDelay[i],
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  accentColor.withValues(alpha: 0.12),
+                  accentColor.withValues(alpha: 0.04),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: accentColor.withValues(alpha: 0.24)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '💭 Thought for the day',
+                  style: TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: MitraColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _MotivationCard(
+                  thought: thought,
+                  onSpeak: onSpeak,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Word of Day Tile with 📖 Rain ───────────────────────
+class _AnimatedWordOfDayTile extends ConsumerWidget {
+  final WordData word;
+  final TextEditingController wordSearchController;
+  final Function(String, {String? language}) onSpeak;
+
+  const _AnimatedWordOfDayTile({
+    required this.word,
+    required this.wordSearchController,
+    required this.onSpeak,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+    final accentColor = ThemeHelper.getActiveHighlight(theme);
+
+    const particleCount = 20;
+
+    const fontSizes = [
+      17.5,
+      22.5,
+      16.25,
+      20.0,
+      18.75,
+      15.0,
+      21.25,
+      16.875,
+      20.625,
+      17.5,
+      22.5,
+      15.625,
+      19.375,
+      16.25,
+      21.875,
+      18.125,
+      20.0,
+      16.25,
+      18.75,
+      15.0
+    ];
+
+    const durations = [
+      7.0,
+      5.5,
+      9.0,
+      6.5,
+      8.0,
+      5.0,
+      10.0,
+      7.5,
+      6.0,
+      8.5,
+      5.5,
+      9.5,
+      6.5,
+      7.0,
+      10.0,
+      5.0,
+      8.0,
+      6.0,
+      9.0,
+      7.5
+    ];
+
+    const delays = [
+      0.0,
+      1.2,
+      2.4,
+      3.6,
+      4.8,
+      0.6,
+      1.8,
+      3.0,
+      4.2,
+      5.4,
+      0.3,
+      1.5,
+      2.7,
+      3.9,
+      5.1,
+      0.9,
+      2.1,
+      3.3,
+      4.5,
+      6.0
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          const h = 260.0;
+
+          final positions = _scatterPositions(particleCount, w, h);
+
+          return Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              for (var i = 0; i < particleCount; i++)
+                _IndianCharacterParticle(
+                  character: '📖',
+                  color: accentColor,
+                  left: positions[i].left,
+                  top: positions[i].top,
+                  fontSize: fontSizes[i],
+                  duration: durations[i],
+                  delay: delays[i],
+                ),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      accentColor.withValues(alpha: 0.12),
+                      accentColor.withValues(alpha: 0.04),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border:
+                      Border.all(color: accentColor.withValues(alpha: 0.24)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'WORD OF THE DAY',
+                      style: TextStyle(
+                        fontFamily: 'Baloo2',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: MitraColors.textPrimary,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _WordOfDayContent(
+                      word: word,
+                      wordSearchController: wordSearchController,
+                      onSpeak: onSpeak,
+                      accentColor: accentColor,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Word of Day Content (word display + meaning + usage + search) ──
+class _WordOfDayContent extends StatefulWidget {
+  final WordData word;
+  final TextEditingController wordSearchController;
+  final Function(String, {String? language}) onSpeak;
+  final Color accentColor;
+
+  const _WordOfDayContent({
+    required this.word,
+    required this.wordSearchController,
+    required this.onSpeak,
+    required this.accentColor,
+  });
+
+  @override
+  State<_WordOfDayContent> createState() => _WordOfDayContentState();
+}
+
+class _WordOfDayContentState extends State<_WordOfDayContent> {
+  bool _isSearchExpanded = false;
+  final FocusNode _searchFocus = FocusNode();
+  late Future<String> _generatedUsageFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocus.addListener(_onSearchFocusChange);
+    _generatedUsageFuture = _getUsage();
+  }
+
+  Future<String> _getUsage() async {
+    if (widget.word.usage.isNotEmpty) {
+      return widget.word.usage;
+    }
+    final generated = await SentenceGeneratorService()
+        .generateSentence(widget.word.word, widget.word.partOfSpeech);
+    return generated;
+  }
+
+  void _onSearchFocusChange() {
+    setState(() => _isSearchExpanded = _searchFocus.hasFocus);
+  }
+
+  @override
+  void dispose() {
+    _searchFocus.removeListener(_onSearchFocusChange);
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Word Display
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.word.word,
+                      style: TextStyle(
+                        fontFamily: 'Baloo2',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 26,
+                        color: widget.accentColor,
+                      ),
+                    ),
+                    Text(
+                      widget.word.partOfSpeech,
+                      style: const TextStyle(
+                        fontFamily: 'Mukta',
+                        fontSize: 11,
+                        color: MitraColors.textMuted,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon:
+                    Icon(Icons.volume_up, color: widget.accentColor, size: 24),
+                onPressed: () => widget.onSpeak(widget.word.word),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Meaning
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: widget.accentColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+              border:
+                  Border.all(color: widget.accentColor.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Meaning:',
+                  style: TextStyle(
+                    fontFamily: 'Mukta',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: widget.accentColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.word.meaning,
+                  style: const TextStyle(
+                    fontFamily: 'Mukta',
+                    fontSize: 12,
+                    color: MitraColors.textPrimary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Usage Sentence
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: widget.accentColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border:
+                  Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Usage:',
+                  style: TextStyle(
+                    fontFamily: 'Mukta',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: widget.accentColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                FutureBuilder<String>(
+                  future: _generatedUsageFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text(
+                        'Generating example...',
+                        style: TextStyle(
+                          fontFamily: 'Mukta',
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: MitraColors.textMuted,
+                          height: 1.4,
+                        ),
+                      );
+                    }
+
+                    final usage = snapshot.data ?? 'No usage available';
+                    return Text(
+                      usage,
+                      style: const TextStyle(
+                        fontFamily: 'Mukta',
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: MitraColors.textPrimary,
+                        height: 1.4,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Search Bar (Zoom In/Out)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            height: _isSearchExpanded ? 52 : 40,
+            child: TextField(
+              controller: widget.wordSearchController,
+              focusNode: _searchFocus,
+              style: const TextStyle(
+                fontFamily: 'Mukta',
+                color: MitraColors.textPrimary,
+                fontSize: 13,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Search for a word...',
+                hintStyle: const TextStyle(
+                  color: MitraColors.textMuted,
+                  fontSize: 12,
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: widget.accentColor,
+                  size: 20,
+                ),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.06),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(_isSearchExpanded ? 12 : 8),
+                  borderSide: BorderSide(
+                    color: _isSearchExpanded
+                        ? widget.accentColor
+                        : Colors.white.withValues(alpha: 0.1),
+                    width: _isSearchExpanded ? 1.5 : 0.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: widget.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              onChanged: (val) => setState(() {}),
+            ),
+          ),
+        ],
+      );
 }
