@@ -1,8 +1,5 @@
 // ═══════════════════════════════════════════════════════
 // MITRA App Router — GoRouter
-// Mirrors expo-router file-based routing from Expo project
-// Routes: splash → onboarding → login → setup →
-//         student/* or teacher/*
 // ═══════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -14,7 +11,7 @@ import '../screens/auth/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/setup_screen.dart';
 import '../screens/student/student_shell.dart';
-import 'screens/student/home_screen.dart';
+import '../screens/student/home_screen.dart';
 import '../screens/student/learn_screen.dart';
 import '../screens/student/ar_tab_screen.dart';
 import '../screens/student/ranks_screen.dart';
@@ -39,25 +36,19 @@ final _teacherKey = GlobalKey<NavigatorState>();
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: _rootKey,
-    initialLocation: '/', // 🚨 Strict entry point
+    initialLocation: '/',
     redirect: (context, state) {
       final authState = ref.read(authProvider);
-
       final loggedIn = authState.isLoggedIn;
       final user = authState.user;
       final path = state.uri.path;
 
-      // 🚨 RULE 1: Always allow the Splash Screen to play its full animation
-      if (path == '/') {
-        return null;
-      }
+      if (path == '/') return null;
 
-      // 🚨 RULE 2: If not logged in, strictly lock them to onboarding/login
       if (!loggedIn && path != '/onboarding' && path != '/login') {
         return '/onboarding';
       }
 
-      // 🚨 RULE 3: If logged in but no class set (student first time), force setup
       if (loggedIn &&
           user?.isStudent == true &&
           user?.classGrade == null &&
@@ -92,7 +83,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SetupScreen(),
       ),
 
-      // ── Student shell (bottom tabs) ──────────────────
+      // ── Student Shell ────────────────────────────────
+      // Back button is handled inside StudentShell via PopScope
       ShellRoute(
         navigatorKey: _studentKey,
         builder: (context, state, child) => StudentShell(child: child),
@@ -109,7 +101,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // ── Teacher shell (bottom tabs) ──────────────────
+      // ── Teacher Shell ────────────────────────────────
       ShellRoute(
         navigatorKey: _teacherKey,
         builder: (context, state, child) => TeacherShell(child: child),

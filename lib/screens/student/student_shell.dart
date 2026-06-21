@@ -1,3 +1,5 @@
+// Student Shell — bottom tab navigation
+// Back button fully handled here via PopScope on the shell
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -22,31 +24,8 @@ class StudentShell extends StatelessWidget {
         .clamp(0, _tabs.length - 1);
   }
 
-  Future<void> _handleBack(BuildContext context) async {
-    final loc = GoRouterState.of(context).uri.path;
-
-    // 1. If GoRouter has something to pop (modal/deep screen), pop it
-    if (GoRouter.of(context).canPop()) {
-      GoRouter.of(context).pop();
-      return;
-    }
-
-    // 2. If NOT on Home tab, go to Home tab first
-    if (loc != '/student/home') {
-      context.go('/student/home');
-      return;
-    }
-
-    // 3. ON Home tab with nowhere to go — show exit dialog
-    final bool shouldExit = await _showExitDialog(context) ?? false;
-    if (shouldExit) {
-      SystemNavigator.pop();
-    }
-    // If cancelled, do nothing — stays on Home, dialog resets ✅
-  }
-
-  Future<bool?> _showExitDialog(BuildContext context) {
-    return showDialog<bool>(
+  Future<bool> _showExitDialog(BuildContext context) async {
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
@@ -92,6 +71,7 @@ class StudentShell extends StatelessWidget {
         ],
       ),
     );
+    return result ?? false;
   }
 
   @override
@@ -99,11 +79,22 @@ class StudentShell extends StatelessWidget {
     final idx = _currentIndex(context);
 
     return PopScope(
-      // canPop: false means WE handle ALL back presses — Android never exits directly
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) return;
-        await _handleBack(context);
+
+        // ✅ Read LIVE location inside the callback, not at build time
+        final currentLoc = GoRouterState.of(context).uri.path;
+        final isOnHome = currentLoc == '/student/home';
+
+        if (isOnHome) {
+          final shouldExit = await _showExitDialog(context);
+          if (shouldExit) {
+            SystemNavigator.pop();
+          }
+        } else {
+          context.go('/student/home');
+        }
       },
       child: MitraScaffold(
         useSafeArea: false,
