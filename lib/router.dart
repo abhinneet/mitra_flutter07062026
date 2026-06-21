@@ -28,14 +28,16 @@ import '../screens/ar/ar_viewer_screen.dart';
 import '../stores/auth_store.dart';
 
 // ── Shell navigator keys ───────────────────────────────
-final _rootKey = GlobalKey<NavigatorState>();
+// ✅ Exposed as public so main.dart can use rootNavigatorKey.currentContext
+// for showing dialogs from the WidgetsBindingObserver hook
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 final _studentKey = GlobalKey<NavigatorState>();
 final _teacherKey = GlobalKey<NavigatorState>();
 
 // ── Router provider ────────────────────────────────────
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    navigatorKey: _rootKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
       final authState = ref.read(authProvider);
@@ -59,32 +61,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      // ── Splash ──────────────────────────────────────
       GoRoute(
         path: '/',
         builder: (context, state) => const SplashScreen(),
       ),
-
-      // ── Onboarding ──────────────────────────────────
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
       ),
-
-      // ── Login ───────────────────────────────────────
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
       ),
-
-      // ── Setup ───────────────────────────────────────
       GoRoute(
         path: '/setup',
         builder: (context, state) => const SetupScreen(),
       ),
 
       // ── Student Shell ────────────────────────────────
-      // Back button is handled inside StudentShell via PopScope
+      // Back button handled centrally in main.dart via didPopRoute
       ShellRoute(
         navigatorKey: _studentKey,
         builder: (context, state, child) => StudentShell(child: child),

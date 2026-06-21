@@ -10,6 +10,9 @@ import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
 import '../../services/api_service.dart';
 import '../../stores/offline_store.dart';
+import '../../providers/telemetry_provider.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import '../../services/word_bank_service.dart';
 
 class Subject {
   final String emoji;
@@ -37,6 +40,63 @@ class Subject {
   }
 }
 
+// ── TTS Instance ────────────────────────────────────────
+final flutterTts = FlutterTts();
+
+// ── Word Data Model ─────────────────────────────────────
+class WordData {
+  final String word, meaning, usage, partOfSpeech;
+  final String difficulty;
+
+  const WordData({
+    required this.word,
+    required this.meaning,
+    required this.usage,
+    required this.partOfSpeech,
+    this.difficulty = 'intermediate',
+  });
+
+  factory WordData.fromJson(Map<String, dynamic> json) {
+    return WordData(
+      word: json['word'] as String? ?? '',
+      meaning: json['meaning'] as String? ?? '',
+      usage: json['usage'] as String? ?? '',
+      partOfSpeech: json['partOfSpeech'] as String? ?? '',
+      difficulty: json['difficulty'] as String? ?? 'intermediate',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'word': word,
+        'meaning': meaning,
+        'usage': usage,
+        'partOfSpeech': partOfSpeech,
+        'difficulty': difficulty,
+      };
+}
+
+// ── Daily Motivation Provider ───────────────────────────
+final dailyMotivationProvider = FutureProvider<String>((ref) async {
+  const motivations = [
+    'Success is not final, failure is not fatal. It is the courage to continue that counts.',
+    'Your education is a dress rehearsal for a life that is yours to lead.',
+    'Learning is not attainment of knowledge but acquisition of skills.',
+    'Excellence is not a destination; it is a continuous journey.',
+  ];
+  return motivations[DateTime.now().day % motivations.length];
+});
+
+// ── Word of the Day Provider ────────────────────────────
+final wordOfTheDayProvider = FutureProvider<WordData>((ref) async {
+  return WordBankService().getWordOfDay();
+});
+
+// ── Word Search Provider ────────────────────────────────
+final wordSearchProvider =
+    FutureProvider.family<List<WordData>, String>((ref, query) async {
+  return WordBankService().searchWords(query);
+});
+
 final subjectsProvider = FutureProvider<List<Subject>>((ref) async {
   final res = await CurriculumAPI.tree();
   final rawSubjects = res.data['subjects'] as List<dynamic>? ?? [];
@@ -57,8 +117,39 @@ final subjectsProvider = FutureProvider<List<Subject>>((ref) async {
   ];
 });
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final TextEditingController _wordSearchController = TextEditingController();
+  String _selectedLanguage = 'en';
+
+  @override
+  void initState() {
+    super.initState();
+    _initTTS();
+  }
+
+  Future<void> _initTTS() async {
+    await flutterTts.setLanguage(_selectedLanguage);
+    await flutterTts.setSpeechRate(0.5);
+  }
+
+  Future<void> _speak(String text, {String? language}) async {
+    final lang = language ?? _selectedLanguage;
+    await flutterTts.setLanguage(lang);
+    await flutterTts.speak(text);
+  }
+
+  @override
+  void dispose() {
+    _wordSearchController.dispose();
+    super.dispose();
+  }
 
   String _greeting() {
     final h = DateTime.now().hour;
@@ -68,7 +159,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
     final firstName = user?.firstName ?? 'Student';
     final subjectsAsync = ref.watch(subjectsProvider);
@@ -270,6 +361,126 @@ class HomeScreen extends ConsumerWidget {
                             onTap: () => context.go('/student/learn')),
                       ],
                     ),
+                  ),
+
+                  // Daily Motivation Tile
+                  const SizedBox(height: 8),
+                  _TileContainer(
+                    title: 'Daily Motivation',
+                    child: ref.watch(dailyMotivationProvider).when(
+                          loading: () => const _LoadingCard(),
+                          error: (err, st) =>
+                              const _ErrorCard('Failed to load'),
+                          data: (thought) => _MotivationCard(
+                            thought: thought,
+                            onSpeak: () => _speak(thought),
+                            onLanguageChange: (lang) {
+                              setState(() => _selectedLanguage = lang);
+                              _speak(thought, language: lang);
+                            },
+                          ),
+                        ),
+                  ),
+
+                  // Word Bank Tile
+                  const SizedBox(height: 8),
+                  _TileContainer(
+                    title: 'Word Bank',
+                    child: ref.watch(wordOfTheDayProvider).when(
+                          loading: () => const _LoadingCard(),
+                          error: (err, st) =>
+                              const _ErrorCard('Failed to load'),
+                          data: (word) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _WordCard(
+                                word: word,
+                                onSpeak: () => _speak(word.word),
+                              ),
+                              const SizedBox(height: 14),
+                              TextField(
+                                controller: _wordSearchController,
+                                style: const TextStyle(
+                                  fontFamily: 'Mukta',
+                                  color: MitraColors.textPrimary,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Search for a word...',
+                                  hintStyle: const TextStyle(
+                                    color: MitraColors.textMuted,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.search,
+                                    color: MitraColors.saffron,
+                                  ),
+                                  filled: true,
+                                  fillColor:
+                                      Colors.white.withValues(alpha: 0.08),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.15),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.15),
+                                    ),
+                                  ),
+                                ),
+                                onChanged: (val) => setState(() {}),
+                              ),
+                              const SizedBox(height: 10),
+                              if (_wordSearchController.text.isNotEmpty)
+                                ref
+                                    .watch(wordSearchProvider(
+                                        _wordSearchController.text))
+                                    .when(
+                                      loading: () => const Padding(
+                                        padding: EdgeInsets.all(16.0),
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            color: MitraColors.saffron,
+                                          ),
+                                        ),
+                                      ),
+                                      error: (err, st) => const Text(
+                                        'Search failed',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                      data: (results) => results.isEmpty
+                                          ? const Padding(
+                                              padding: EdgeInsets.all(12.0),
+                                              child: Text(
+                                                'No words found',
+                                                style: TextStyle(
+                                                  color: MitraColors.textMuted,
+                                                ),
+                                              ),
+                                            )
+                                          : Column(
+                                              children: results
+                                                  .map((w) => Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                          top: 10.0,
+                                                        ),
+                                                        child: _WordCard(
+                                                          word: w,
+                                                          onSpeak: () =>
+                                                              _speak(w.word),
+                                                        ),
+                                                      ))
+                                                  .toList(),
+                                            ),
+                                    ),
+                            ],
+                          ),
+                        ),
                   ),
 
                   // Class Rank
@@ -573,4 +784,175 @@ class _RankRow extends StatelessWidget {
           ],
         ),
       );
+}
+
+class _TileContainer extends StatelessWidget {
+  final String title;
+  final Widget child;
+  const _TileContainer({required this.title, required this.child});
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: const TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: MitraColors.textPrimary)),
+              const SizedBox(height: 12),
+              child,
+            ],
+          ),
+        ),
+      );
+}
+
+class _MotivationCard extends StatefulWidget {
+  final String thought;
+  final VoidCallback onSpeak;
+  final Function(String) onLanguageChange;
+  const _MotivationCard(
+      {required this.thought,
+      required this.onSpeak,
+      required this.onLanguageChange});
+  @override
+  State<_MotivationCard> createState() => _MotivationCardState();
+}
+
+class _MotivationCardState extends State<_MotivationCard> {
+  String _selectedLang = 'en';
+  final _languages = {
+    'en': 'English',
+    'hi': 'हिंदी',
+    'gu': 'ગુજરાતી',
+    'ta': 'தமிழ්',
+    'te': 'తెలుగు'
+  };
+  @override
+  Widget build(BuildContext context) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(widget.thought,
+            style: const TextStyle(
+                fontFamily: 'Mukta',
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: MitraColors.textPrimary,
+                height: 1.6)),
+        const SizedBox(height: 12),
+        Row(children: [
+          IconButton(
+              icon: const Icon(Icons.volume_up,
+                  color: MitraColors.saffron, size: 20),
+              onPressed: widget.onSpeak,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints()),
+          const SizedBox(width: 10),
+          Expanded(
+              child: DropdownButton<String>(
+                  value: _selectedLang,
+                  items: _languages.entries
+                      .map((e) => DropdownMenuItem(
+                          value: e.key,
+                          child: Text(e.value,
+                              style: const TextStyle(
+                                  fontFamily: 'Mukta',
+                                  fontSize: 12,
+                                  color: MitraColors.textPrimary))))
+                      .toList(),
+                  onChanged: (lang) {
+                    if (lang != null) {
+                      setState(() => _selectedLang = lang);
+                      widget.onLanguageChange(lang);
+                    }
+                  },
+                  underline: const SizedBox(),
+                  isExpanded: true)),
+        ]),
+      ]);
+}
+
+class _WordCard extends StatelessWidget {
+  final WordData word;
+  final VoidCallback onSpeak;
+  const _WordCard({required this.word, required this.onSpeak});
+  @override
+  Widget build(BuildContext context) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(word.word,
+                style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: MitraColors.textPrimary)),
+            Text(word.partOfSpeech,
+                style: const TextStyle(
+                    fontFamily: 'Mukta',
+                    fontSize: 10,
+                    color: MitraColors.textMuted)),
+          ]),
+          IconButton(
+              icon: const Icon(Icons.volume_up,
+                  color: MitraColors.saffron, size: 20),
+              onPressed: onSpeak,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints()),
+        ]),
+        const SizedBox(height: 8),
+        Text('Meaning:',
+            style: const TextStyle(
+                fontFamily: 'Mukta',
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: MitraColors.saffron)),
+        const SizedBox(height: 3),
+        Text(word.meaning,
+            style: const TextStyle(
+                fontFamily: 'Mukta',
+                fontSize: 12,
+                color: MitraColors.textSecondary)),
+        const SizedBox(height: 8),
+        Text('Usage:',
+            style: const TextStyle(
+                fontFamily: 'Mukta',
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: MitraColors.saffron)),
+        const SizedBox(height: 3),
+        Text(word.usage,
+            style: const TextStyle(
+                fontFamily: 'Mukta',
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: MitraColors.textSecondary)),
+      ]);
+}
+
+class _LoadingCard extends StatelessWidget {
+  const _LoadingCard();
+  @override
+  Widget build(BuildContext context) => Container(
+      padding: const EdgeInsets.all(20),
+      child: const Center(
+          child: CircularProgressIndicator(color: MitraColors.saffron)));
+}
+
+class _ErrorCard extends StatelessWidget {
+  final String message;
+  const _ErrorCard(this.message);
+  @override
+  Widget build(BuildContext context) => Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Text(message, style: TextStyle(color: Colors.red[300])));
 }
