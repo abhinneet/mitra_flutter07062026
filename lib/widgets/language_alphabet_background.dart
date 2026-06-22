@@ -18,21 +18,21 @@ class LanguageAlphabetBackground extends ConsumerWidget {
 
     const particleCount = 15;
     const fontSizes = [
-      36.0,
-      32.0,
-      40.0,
+      27.0,
+      24.0,
       30.0,
-      38.0,
-      34.0,
-      42.0,
-      28.0,
-      37.0,
-      33.0,
-      39.0,
-      31.0,
-      41.0,
-      35.0,
-      36.0
+      22.5,
+      28.5,
+      25.5,
+      31.5,
+      21.0,
+      27.75,
+      24.75,
+      29.25,
+      23.25,
+      30.75,
+      26.25,
+      27.0
     ];
 
     const durations = [
@@ -100,16 +100,27 @@ class LanguageAlphabetBackground extends ConsumerWidget {
 
 // ── Helper Functions ────────────────────────────────────
 const List<String> _kIndianLanguageAlphabets = [
-  'अ', // Devanagari (Hindi)
-  'অ', // Bengali
-  'અ', // Gujarati
-  'ਅ', // Gurmukhi (Punjabi)
-  'ಅ', // Kannada
-  'അ', // Malayalam
-  'ଅ', // Odia
-  'அ', // Tamil
-  'అ', // Telugu
-  'ا', // Urdu
+  'अ', // 1.  Hindi      (Devanagari)
+  'অ', // 2.  Bengali    (Bengali script)
+  'અ', // 3.  Gujarati   (Gujarati script)
+  'ਅ', // 4.  Punjabi    (Gurmukhi script)
+  'ಅ', // 5.  Kannada    (Kannada script)
+  'അ', // 6.  Malayalam  (Malayalam script)
+  'ଅ', // 7.  Odia       (Odia script)
+  'அ', // 8.  Tamil      (Tamil script)
+  'అ', // 9.  Telugu     (Telugu script)
+  'ৰ', // 11. Assamese   (Assamese script — unique letter ৰ, distinct from Bengali)
+  'ম', // 12. Marathi    (Devanagari — using ম to distinguish from Hindi अ)
+  'ञ', // 13. Nepali     (Devanagari — using ञ to distinguish from Hindi अ)
+  'ꯑ', // 14. Meitei     (Meitei Mayek script — correct)
+  'ᱚ', // 15. Santali    (Ol Chiki script — correct)
+  'ಕ', // 16. Konkani    (also written in Kannada script in Goa region)
+  'کٲ', // 17. Kashmiri   (Nastaliq — کٲ is the correct Kashmiri opener)
+  'ਡ', // 18. Dogri      (Dogri uses Takri/Devanagari — ਡ in its Gurmukhī variant)
+  'मै', // 19. Maithili   (Devanagari — मै is the distinctive opener)
+  'س', // 20. Sindhi     (Arabic script — correct)
+  'ব', // 21. Bodo       (Devanagari/Bengali — ব in Bengali-based Bodo script)
+  'ॐ', // 22. Sanskrit   (Devanagari — ॐ is iconic for Sanskrit)
 ];
 
 String _characterFor(int index) =>
@@ -123,9 +134,7 @@ List<({double left, double top})> _scatterPositions(
   const phi = 0.6180339887;
   return List.generate(count, (i) {
     final frac = (i * phi) % 1.0;
-    final left = frac < 0.5
-        ? 0.30 * w + (frac * 0.40 * w)
-        : 0.70 * w + ((frac - 0.5) * 0.30 * w);
+    final left = frac * w; // Evenly spread across full width (0 to 100%)
     final top = (i / count) * h;
     return (left: left, top: top);
   });

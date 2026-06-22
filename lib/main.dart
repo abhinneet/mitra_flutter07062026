@@ -17,7 +17,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'services/background_dictionary_loader.dart';
 import 'services/word_bank_service.dart';
-import '../../services/thought_service.dart';
+import 'services/quotes_service.dart';
 
 import 'theme/theme_provider.dart';
 import 'constants/colors.dart';
@@ -74,8 +74,8 @@ Future<void> main() async {
   debugPrint("📚 Initializing word bank...");
   await WordBankService().init();
 
-  debugPrint("💭 Initializing thoughts...");
-  await ThoughtService().init();
+  debugPrint("📜 Initializing quotes service...");
+  await QuotesService.instance.init();
 
   debugPrint("📥 Starting silent dictionary download...");
   BackgroundDictionaryLoader().downloadInBackground().then((_) {

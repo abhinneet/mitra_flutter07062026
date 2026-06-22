@@ -76,7 +76,7 @@ dependencies:
 
   # File System (expo-file-system equivalent)
   path_provider: ^2.1.3
-
+  
   # Offline / Queue
   hive: ^2.2.3
   hive_flutter: ^1.1.0
@@ -119,6 +119,8 @@ flutter:
         - asset: assets/fonts/Courgette-Regular.ttf
 
   assets:
+    - assets/data/quotes.json
+    - assets/fonts/
     - assets/images/
     - assets/icons/
     - assets/animations/
