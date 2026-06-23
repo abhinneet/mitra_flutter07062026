@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
+import '../../widgets/app_header_widget.dart';
 
 final curriculumProvider = FutureProvider<List<dynamic>>((ref) async {
   final res = await CurriculumAPI.tree();
@@ -31,31 +32,10 @@ class LearnScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            color: Colors.white.withValues(alpha: 0.05),
-            padding: const EdgeInsets.all(MitraSpacing.lg),
-            child: const Row(
-              children: [
-                Text('📚', style: TextStyle(fontSize: 24)),
-                SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Learn',
-                        style: TextStyle(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 20,
-                            color: MitraColors.textPrimary)),
-                    Text('Your curriculum, AR-enhanced',
-                        style: TextStyle(
-                            fontFamily: 'Mukta',
-                            fontSize: 12,
-                            color: MitraColors.textMuted)),
-                  ],
-                ),
-              ],
-            ),
+          LearnScreenHeader(
+            subjectName: 'All Subjects',
+            subjectEmoji: '📚',
+            onBackPressed: () => Navigator.pop(context),
           ),
           Expanded(
             child: ListView.separated(

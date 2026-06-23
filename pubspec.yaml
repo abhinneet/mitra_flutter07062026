@@ -120,6 +120,7 @@ flutter:
 
   assets:
     - assets/data/quotes.json
+    - assets/data/brain_spark_facts.json
     - assets/fonts/
     - assets/images/
     - assets/icons/

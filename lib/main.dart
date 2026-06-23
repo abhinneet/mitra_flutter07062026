@@ -15,9 +15,8 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'services/background_dictionary_loader.dart';
-import 'services/word_bank_service.dart';
 import 'services/quotes_service.dart';
+import 'services/brain_spark_service.dart';
 
 import 'theme/theme_provider.dart';
 import 'constants/colors.dart';
@@ -71,16 +70,11 @@ Future<void> main() async {
     debugPrint("⚠️ Hive initialization issue: $e");
   }
 
-  debugPrint("📚 Initializing word bank...");
-  await WordBankService().init();
-
   debugPrint("📜 Initializing quotes service...");
   await QuotesService.instance.init();
 
-  debugPrint("📥 Starting silent dictionary download...");
-  BackgroundDictionaryLoader().downloadInBackground().then((_) {
-    WordBankService().reload();
-  });
+  debugPrint("⚡ Initializing brain spark...");
+  await BrainSparkService.instance.init();
 
   debugPrint("✅ ALL SYSTEMS GO! Launching UI...");
   runApp(

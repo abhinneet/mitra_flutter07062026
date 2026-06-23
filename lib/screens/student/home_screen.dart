@@ -13,10 +13,9 @@ import '../../stores/auth_store.dart';
 import '../../services/api_service.dart';
 import '../../stores/offline_store.dart';
 import '../../providers/telemetry_provider.dart';
-import '../../services/word_bank_service.dart';
-import '../../services/sentence_generator_service.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/quotes_service.dart';
+import '../../services/brain_spark_service.dart';
 
 // ═══════════════════════════════════════════════════════
 // MODELS
@@ -102,13 +101,9 @@ final quoteProfessionProvider = FutureProvider<String>((ref) async {
   return QuotesService.instance.getQuoteOfDay().profession;
 });
 
-final wordOfTheDayProvider = FutureProvider<WordData>((ref) async {
-  return WordBankService().getWordOfDay();
-});
-
-final wordSearchProvider =
-    FutureProvider.family<List<WordData>, String>((ref, query) async {
-  return WordBankService().searchWords(query);
+// Brain Spark — synchronous, already loaded at startup
+final brainSparkProvider = Provider<BrainSparkFact>((ref) {
+  return BrainSparkService.instance.currentFact;
 });
 
 final subjectsProvider = FutureProvider<List<Subject>>((ref) async {
@@ -135,38 +130,8 @@ final subjectsProvider = FutureProvider<List<Subject>>((ref) async {
 // HOME SCREEN
 // ═══════════════════════════════════════════════════════
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-
-  @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final TextEditingController _wordSearchController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _initTTS();
-  }
-
-  Future<void> _initTTS() async {
-    await flutterTts.setLanguage('hi');
-    await flutterTts.setSpeechRate(0.5);
-  }
-
-  Future<void> _speak(String text, {String? language}) async {
-    final lang = language ?? 'hi';
-    await flutterTts.setLanguage(lang);
-    await flutterTts.speak(text);
-  }
-
-  @override
-  void dispose() {
-    _wordSearchController.dispose();
-    super.dispose();
-  }
 
   String _greeting() {
     final h = DateTime.now().hour;
@@ -176,7 +141,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final firstName = user?.firstName ?? 'Student';
     final subjectsAsync = ref.watch(subjectsProvider);
@@ -308,24 +273,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 8),
                   ref.watch(dailyMotivationProvider).when(
                         loading: () => const _LoadingCard(),
-                        error: (err, st) => const _ErrorCard('Failed to load'),
-                        data: (thought) => _ThoughtTile(
-                          thought: thought,
-                          onSpeak: () => _speak(thought, language: 'hi'),
-                        ),
+                        error: (_, __) => const _ErrorCard('Failed to load'),
+                        data: (thought) {
+                          final author =
+                              ref.watch(quoteAuthorProvider).valueOrNull ?? '';
+                          return _ThoughtTile(
+                            thought: thought,
+                            author: author,
+                          );
+                        },
                       ),
 
-                  // 📖Word of the Day
+                  // ⚡ Brain Spark
                   const SizedBox(height: 8),
-                  ref.watch(wordOfTheDayProvider).when(
-                        loading: () => const _LoadingCard(),
-                        error: (err, st) => const _ErrorCard('Failed to load'),
-                        data: (word) => _WordOfDayTile(
-                          word: word,
-                          wordSearchController: _wordSearchController,
-                          onSpeak: _speak,
-                        ),
-                      ),
+                  _BrainSparkTile(
+                    fact: ref.watch(brainSparkProvider),
+                  ),
 
                   // Subjects
                   _Section(
@@ -651,11 +614,11 @@ class _ErrorCard extends StatelessWidget {
 // ── Thought Tile ───────────────────────────────────────
 class _ThoughtTile extends ConsumerWidget {
   final String thought;
-  final VoidCallback onSpeak;
+  final String author;
 
   const _ThoughtTile({
     required this.thought,
-    required this.onSpeak,
+    required this.author,
   });
 
   @override
@@ -692,10 +655,28 @@ class _ThoughtTile extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _MotivationCard(
-              thought: thought,
-              onSpeak: onSpeak,
+            Text(
+              thought,
+              style: const TextStyle(
+                fontFamily: 'Courgette',
+                fontSize: 17,
+                fontWeight: FontWeight.w400,
+                color: MitraColors.textPrimary,
+                height: 1.7,
+                letterSpacing: 0.3,
+              ),
             ),
+            const SizedBox(height: 8),
+            if (author.isNotEmpty)
+              Text(
+                '— $author',
+                style: const TextStyle(
+                  fontFamily: 'Mukta',
+                  fontSize: 11,
+                  color: MitraColors.textMuted,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
           ],
         ),
       ),
@@ -703,370 +684,344 @@ class _ThoughtTile extends ConsumerWidget {
   }
 }
 
-// ── Word of Day Tile with 📖 Rain ───────────────────────
-class _WordOfDayTile extends ConsumerWidget {
-  final WordData word;
-  final TextEditingController wordSearchController;
-  final Function(String, {String? language}) onSpeak;
+// ═══════════════════════════════════════════════════════
+// ⚡ BRAIN SPARK TILE
+// ═══════════════════════════════════════════════════════
 
-  const _WordOfDayTile({
-    required this.word,
-    required this.wordSearchController,
-    required this.onSpeak,
+class _SparkParticle extends StatefulWidget {
+  final double left;
+  final double top;
+  final double fontSize;
+  final double duration;
+  final double delay;
+  final String symbol;
+
+  const _SparkParticle({
+    required this.left,
+    required this.top,
+    required this.fontSize,
+    required this.duration,
+    required this.delay,
+    required this.symbol,
   });
+
+  @override
+  State<_SparkParticle> createState() => _SparkParticleState();
+}
+
+class _SparkParticleState extends State<_SparkParticle>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _opacity;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      duration: Duration(milliseconds: (widget.duration * 1000).round()),
+      vsync: this,
+    );
+    _opacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.10), weight: 25),
+      TweenSequenceItem(tween: ConstantTween(0.10), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 0.10, end: 0.0), weight: 25),
+    ]).animate(_ctrl);
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.7, end: 1.2), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.2, end: 0.8), weight: 50),
+    ]).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+    Future.delayed(Duration(milliseconds: (widget.delay * 1000).round()), () {
+      if (mounted) _ctrl.repeat();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _ctrl,
+        builder: (_, __) => Positioned(
+          left: widget.left,
+          top: widget.top,
+          child: Opacity(
+            opacity: _opacity.value,
+            child: Transform.scale(
+              scale: _scale.value,
+              child: Text(widget.symbol,
+                  style: TextStyle(fontSize: widget.fontSize)),
+            ),
+          ),
+        ),
+      );
+}
+
+class _BrainSparkTile extends ConsumerWidget {
+  final BrainSparkFact fact;
+
+  const _BrainSparkTile({required this.fact});
+
+  static const _symbols = [
+    '⚡',
+    '🔬',
+    '💡',
+    '🧪',
+    '✨',
+    '🔭',
+    '🧬',
+    '⭐',
+    '💎',
+    '🌀',
+    '⚡',
+    '💡',
+    '🔬',
+    '✨',
+    '🌟',
+    '🧪',
+    '🔭',
+    '⚡',
+    '💡',
+    '✨',
+  ];
+  static const _fontSizes = [
+    14.0,
+    18.0,
+    12.0,
+    16.0,
+    13.0,
+    17.0,
+    15.0,
+    12.5,
+    14.5,
+    16.5,
+    13.5,
+    18.0,
+    12.0,
+    15.0,
+    14.0,
+    17.5,
+    13.0,
+    16.0,
+    12.5,
+    15.5,
+  ];
+  static const _durations = [
+    6.0,
+    8.0,
+    7.5,
+    5.5,
+    9.0,
+    6.5,
+    8.5,
+    7.0,
+    5.0,
+    9.5,
+    6.0,
+    7.0,
+    8.0,
+    5.5,
+    9.0,
+    6.5,
+    7.5,
+    5.0,
+    8.5,
+    6.0,
+  ];
+  static const _delays = [
+    0.0,
+    1.0,
+    2.0,
+    3.0,
+    4.0,
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    0.2,
+    1.2,
+    2.2,
+    3.2,
+    4.2,
+    0.7,
+    1.7,
+    2.7,
+    3.7,
+    4.7,
+  ];
+
+  List<({double left, double top})> _positions(double w, double h) {
+    const phi = 0.6180339887;
+    const count = 20;
+    return List.generate(count, (i) {
+      final frac = (i * phi) % 1.0;
+      final left =
+          frac < 0.5 ? frac * 0.20 * w : (0.80 + (frac - 0.5) * 0.40) * w;
+      final top = (i / count) * h;
+      return (left: left, top: top);
+    });
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeProvider);
     final accentColor = ThemeHelper.getActiveHighlight(theme);
+    final slotLabel = BrainSparkService.instance.currentSlotLabel;
+    final nextTime = BrainSparkService.instance.nextFactTime;
+    final hoursLeft = nextTime.difference(DateTime.now()).inHours;
+    final minsLeft = nextTime.difference(DateTime.now()).inMinutes % 60;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  accentColor.withValues(alpha: 0.12),
-                  accentColor.withValues(alpha: 0.04),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: accentColor.withValues(alpha: 0.24)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '📖WORD OF THE DAY',
-                  style: TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                    color: MitraColors.textPrimary,
-                    letterSpacing: 1.2,
+          final w = constraints.maxWidth;
+          const h = 200.0;
+          final positions = _positions(w, h);
+
+          return Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              for (var i = 0; i < 20; i++)
+                _SparkParticle(
+                  symbol: _symbols[i],
+                  left: positions[i].left,
+                  top: positions[i].top,
+                  fontSize: _fontSizes[i],
+                  duration: _durations[i],
+                  delay: _delays[i],
+                ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      accentColor.withValues(alpha: 0.12),
+                      accentColor.withValues(alpha: 0.04),
+                    ],
                   ),
+                  borderRadius: BorderRadius.circular(16),
+                  border:
+                      Border.all(color: accentColor.withValues(alpha: 0.24)),
                 ),
-                const SizedBox(height: 12),
-                _WordOfDayContent(
-                  word: word,
-                  wordSearchController: wordSearchController,
-                  onSpeak: onSpeak,
-                  accentColor: accentColor,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Text('⚡',
+                                style: TextStyle(
+                                    fontSize: 16, color: accentColor)),
+                            const SizedBox(width: 6),
+                            Text(
+                              'BRAIN SPARK',
+                              style: TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: accentColor,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(alpha: 0.12),
+                            borderRadius:
+                                BorderRadius.circular(MitraRadius.pill),
+                            border: Border.all(
+                                color: accentColor.withValues(alpha: 0.3)),
+                          ),
+                          child: Text(
+                            slotLabel,
+                            style: TextStyle(
+                              fontFamily: 'SpaceMono',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: accentColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Category chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(MitraRadius.pill),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.15)),
+                      ),
+                      child: Text(
+                        '${fact.emoji}  ${fact.category}',
+                        style: const TextStyle(
+                          fontFamily: 'Mukta',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: MitraColors.textMuted,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // The fact
+                    Text(
+                      fact.fact,
+                      style: const TextStyle(
+                        fontFamily: 'Mukta',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: MitraColors.textPrimary,
+                        height: 1.6,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Countdown footer
+                    Row(
+                      children: [
+                        const Icon(Icons.schedule,
+                            size: 12, color: MitraColors.textMuted),
+                        const SizedBox(width: 4),
+                        Text(
+                          hoursLeft > 0
+                              ? 'Next fact in ${hoursLeft}h ${minsLeft}m'
+                              : 'Next fact in ${minsLeft}m',
+                          style: const TextStyle(
+                            fontFamily: 'SpaceMono',
+                            fontSize: 10,
+                            color: MitraColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
     );
   }
-}
-
-// ── Word of Day Content (word display + meaning + usage + search) ──
-class _WordOfDayContent extends StatefulWidget {
-  final WordData word;
-  final TextEditingController wordSearchController;
-  final Function(String, {String? language}) onSpeak;
-  final Color accentColor;
-
-  const _WordOfDayContent({
-    required this.word,
-    required this.wordSearchController,
-    required this.onSpeak,
-    required this.accentColor,
-  });
-
-  @override
-  State<_WordOfDayContent> createState() => _WordOfDayContentState();
-}
-
-class _WordOfDayContentState extends State<_WordOfDayContent> {
-  bool _isSearchExpanded = false;
-  String _searchQuery = '';
-  List<WordData> _searchResults = [];
-  bool _isSearching = false;
-  final FocusNode _searchFocus = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    _searchFocus.addListener(_onSearchFocusChange);
-  }
-
-  void _onSearchFocusChange() {
-    setState(() => _isSearchExpanded = _searchFocus.hasFocus);
-  }
-
-  Future<void> _onSearchChanged(String query) async {
-    setState(() {
-      _searchQuery = query;
-      if (query.isEmpty) {
-        _searchResults = [];
-        _isSearching = false;
-        return;
-      }
-      _isSearching = true;
-    });
-
-    if (query.isEmpty) return;
-
-    // Debounce: wait 300ms before searching
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    // If query changed during delay, skip stale result
-    if (query != _searchQuery) return;
-
-    final results = await WordBankService().searchWords(query);
-
-    if (mounted && query == _searchQuery) {
-      setState(() {
-        _searchResults = results;
-        _isSearching = false;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _searchFocus.removeListener(_onSearchFocusChange);
-    _searchFocus.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Word Display
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.word.word,
-                      style: TextStyle(
-                        fontFamily: 'Baloo2',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 26,
-                        color: widget.accentColor,
-                      ),
-                    ),
-                    Text(
-                      widget.word.partOfSpeech,
-                      style: const TextStyle(
-                        fontFamily: 'Mukta',
-                        fontSize: 11,
-                        color: MitraColors.textMuted,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon:
-                    Icon(Icons.volume_up, color: widget.accentColor, size: 24),
-                onPressed: () => widget.onSpeak(widget.word.word),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Usage Sentence
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: widget.accentColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border:
-                  Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Usage:',
-                  style: TextStyle(
-                    fontFamily: 'Mukta',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: widget.accentColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.word.usage,
-                  style: const TextStyle(
-                    fontFamily: 'Mukta',
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                    color: MitraColors.textPrimary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Search Bar
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            height: _isSearchExpanded ? 52 : 40,
-            child: TextField(
-              controller: widget.wordSearchController,
-              focusNode: _searchFocus,
-              style: const TextStyle(
-                fontFamily: 'Mukta',
-                color: MitraColors.textPrimary,
-                fontSize: 13,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Search for a word...',
-                hintStyle: const TextStyle(
-                  color: MitraColors.textMuted,
-                  fontSize: 12,
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: widget.accentColor,
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear,
-                            color: MitraColors.textMuted, size: 16),
-                        onPressed: () {
-                          widget.wordSearchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.06),
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.1),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: widget.accentColor,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              onChanged: _onSearchChanged,
-            ),
-          ),
-
-          // Search Results
-          if (_searchQuery.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            if (_isSearching)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: widget.accentColor,
-                    ),
-                  ),
-                ),
-              )
-            else if (_searchResults.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  'No results for "$_searchQuery"',
-                  style: const TextStyle(
-                    fontFamily: 'Mukta',
-                    fontSize: 12,
-                    color: MitraColors.textMuted,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              )
-            else
-              Container(
-                constraints: const BoxConstraints(maxHeight: 220),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: widget.accentColor.withValues(alpha: 0.2)),
-                ),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  itemCount: _searchResults.length,
-                  separatorBuilder: (_, __) => Divider(
-                    height: 1,
-                    color: Colors.white.withValues(alpha: 0.06),
-                  ),
-                  itemBuilder: (context, i) {
-                    final result = _searchResults[i];
-                    return InkWell(
-                      onTap: () => widget.onSpeak(result.word),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    result.word,
-                                    style: TextStyle(
-                                      fontFamily: 'Baloo2',
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                      color: widget.accentColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    result.meaning,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontFamily: 'Mukta',
-                                      fontSize: 11,
-                                      color: MitraColors.textMuted,
-                                      height: 1.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(Icons.volume_up,
-                                size: 16, color: widget.accentColor),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-          ],
-        ],
-      );
 }

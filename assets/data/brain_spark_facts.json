@@ -1,0 +1,1961 @@
+[
+  {
+    "id": 1,
+    "fact": "Honey never spoils. Archaeologists found 3,000-year-old honey in Egyptian tombs and it was still edible.",
+    "category": "Science",
+    "emoji": "🍯"
+  },
+  {
+    "id": 2,
+    "fact": "A bolt of lightning is five times hotter than the surface of the Sun.",
+    "category": "Science",
+    "emoji": "⚡"
+  },
+  {
+    "id": 3,
+    "fact": "Octopuses have three hearts, blue blood, and nine brains — one central brain and one in each arm.",
+    "category": "Science",
+    "emoji": "🐙"
+  },
+  {
+    "id": 4,
+    "fact": "Bananas are slightly radioactive because they contain potassium-40, a naturally occurring radioactive isotope.",
+    "category": "Science",
+    "emoji": "🍌"
+  },
+  {
+    "id": 5,
+    "fact": "The human body contains enough iron to make a nail about 3 inches long.",
+    "category": "Science",
+    "emoji": "🔩"
+  },
+  {
+    "id": 6,
+    "fact": "A day on Venus is longer than a year on Venus — it rotates so slowly that it completes an orbit before finishing a spin.",
+    "category": "Space",
+    "emoji": "🪐"
+  },
+  {
+    "id": 7,
+    "fact": "Trees can communicate with each other through underground fungal networks called the 'Wood Wide Web'.",
+    "category": "Nature",
+    "emoji": "🌳"
+  },
+  {
+    "id": 8,
+    "fact": "Water can boil and freeze at the same time. It's called the 'triple point' and happens at exactly 0.01°C.",
+    "category": "Science",
+    "emoji": "💧"
+  },
+  {
+    "id": 9,
+    "fact": "A group of flamingos is called a 'flamboyance'. A group of owls is called a 'parliament'.",
+    "category": "Nature",
+    "emoji": "🦩"
+  },
+  {
+    "id": 10,
+    "fact": "The Mantis shrimp can punch with the force of a bullet and sees 16 types of colour receptors — humans only have 3.",
+    "category": "Science",
+    "emoji": "🦐"
+  },
+  {
+    "id": 11,
+    "fact": "Sharks are older than trees. Sharks have existed for about 450 million years; trees appeared about 350 million years ago.",
+    "category": "Nature",
+    "emoji": "🦈"
+  },
+  {
+    "id": 12,
+    "fact": "The footprints left on the Moon by Apollo astronauts will remain for at least 100 million years — there's no wind to erase them.",
+    "category": "Space",
+    "emoji": "🌙"
+  },
+  {
+    "id": 13,
+    "fact": "A single cloud can weigh more than a million pounds but stays aloft because its water droplets are so tiny.",
+    "category": "Science",
+    "emoji": "☁️"
+  },
+  {
+    "id": 14,
+    "fact": "Cleopatra lived closer in time to the Moon landing than to the construction of the Great Pyramid.",
+    "category": "History",
+    "emoji": "🏛️"
+  },
+  {
+    "id": 15,
+    "fact": "Wombat droppings are cube-shaped — the only animal in the world known to produce cubic faeces.",
+    "category": "Nature",
+    "emoji": "🐨"
+  },
+  {
+    "id": 16,
+    "fact": "India invented the number zero. The concept was formalised by the mathematician Brahmagupta around 628 CE.",
+    "category": "India",
+    "emoji": "🇮🇳"
+  },
+  {
+    "id": 17,
+    "fact": "The game of Chess was invented in India. It was originally called 'Chaturanga' and dates back to the 6th century.",
+    "category": "India",
+    "emoji": "♟️"
+  },
+  {
+    "id": 18,
+    "fact": "India has the largest number of post offices in the world — over 1.5 lakh post offices across the country.",
+    "category": "India",
+    "emoji": "📮"
+  },
+  {
+    "id": 19,
+    "fact": "Shampoo was invented in India. The word comes from the Hindi word 'champo' meaning to massage.",
+    "category": "India",
+    "emoji": "🚿"
+  },
+  {
+    "id": 20,
+    "fact": "The Taj Mahal changes colour throughout the day — pinkish at dawn, white in the afternoon, and golden at night.",
+    "category": "India",
+    "emoji": "🕌"
+  },
+  {
+    "id": 21,
+    "fact": "India is the world's largest producer of milk and the largest consumer of gold.",
+    "category": "India",
+    "emoji": "🥛"
+  },
+  {
+    "id": 22,
+    "fact": "The Indian Railways is one of the largest employers in the world with over 1.3 million employees.",
+    "category": "India",
+    "emoji": "🚂"
+  },
+  {
+    "id": 23,
+    "fact": "Yoga is over 5,000 years old and originated in India. Today over 300 million people practise it worldwide.",
+    "category": "India",
+    "emoji": "🧘"
+  },
+  {
+    "id": 24,
+    "fact": "India's ISRO reached Mars on its very first attempt in 2013 — the only country in history to do so.",
+    "category": "India",
+    "emoji": "🚀"
+  },
+  {
+    "id": 25,
+    "fact": "The Kumbh Mela gathering in India is so large it is visible from space — it's the world's largest human gathering.",
+    "category": "India",
+    "emoji": "🙏"
+  },
+  {
+    "id": 26,
+    "fact": "Sanskrit is considered the mother of many modern languages. It is one of the most precisely structured languages ever created.",
+    "category": "India",
+    "emoji": "📜"
+  },
+  {
+    "id": 27,
+    "fact": "India has the world's largest school — the City Montessori School in Lucknow has over 56,000 students.",
+    "category": "India",
+    "emoji": "🏫"
+  },
+  {
+    "id": 28,
+    "fact": "If you shuffle a deck of 52 cards, the exact order has almost certainly never existed before in the history of the universe.",
+    "category": "Maths",
+    "emoji": "🃏"
+  },
+  {
+    "id": 29,
+    "fact": "The number 1 is not considered a prime number, even though it has no factors other than itself.",
+    "category": "Maths",
+    "emoji": "🔢"
+  },
+  {
+    "id": 30,
+    "fact": "A Googol is the number 1 followed by 100 zeros. A Googolplex is 1 followed by a Googol of zeros — too big to write.",
+    "category": "Maths",
+    "emoji": "♾️"
+  },
+  {
+    "id": 31,
+    "fact": "If you multiply 111,111,111 by 111,111,111 you get 12,345,678,987,654,321 — a perfect mountain of digits.",
+    "category": "Maths",
+    "emoji": "🏔️"
+  },
+  {
+    "id": 32,
+    "fact": "The Fibonacci sequence (1, 1, 2, 3, 5, 8…) appears in sunflower seeds, pine cones, and even galaxies.",
+    "category": "Maths",
+    "emoji": "🌻"
+  },
+  {
+    "id": 33,
+    "fact": "There are more possible iterations of a game of chess than there are atoms in the known observable universe.",
+    "category": "Maths",
+    "emoji": "♟️"
+  },
+  {
+    "id": 34,
+    "fact": "Zero is the only number that cannot be represented in Roman numerals.",
+    "category": "Maths",
+    "emoji": "0️⃣"
+  },
+  {
+    "id": 35,
+    "fact": "Your eyes can distinguish about 10 million different colours, but your brain can only name about 30 of them.",
+    "category": "Human Body",
+    "emoji": "👁️"
+  },
+  {
+    "id": 36,
+    "fact": "The human nose can detect over 1 trillion different smells — far more than the 10,000 scientists believed for decades.",
+    "category": "Human Body",
+    "emoji": "👃"
+  },
+  {
+    "id": 37,
+    "fact": "Your bones are about 5 times stronger than steel of the same density. Bone tissue constantly rebuilds itself.",
+    "category": "Human Body",
+    "emoji": "🦴"
+  },
+  {
+    "id": 38,
+    "fact": "The human brain uses about 20% of the body's total energy even though it only makes up 2% of your body weight.",
+    "category": "Human Body",
+    "emoji": "🧠"
+  },
+  {
+    "id": 39,
+    "fact": "Your stomach gets a completely new lining every 3-4 days. The acid inside would otherwise digest the stomach itself.",
+    "category": "Human Body",
+    "emoji": "🫀"
+  },
+  {
+    "id": 40,
+    "fact": "Humans are the only animals that blush. Charles Darwin called it 'the most peculiar and most human of all expressions'.",
+    "category": "Human Body",
+    "emoji": "😊"
+  },
+  {
+    "id": 41,
+    "fact": "There are more stars in the universe than grains of sand on all of Earth's beaches combined.",
+    "category": "Space",
+    "emoji": "⭐"
+  },
+  {
+    "id": 42,
+    "fact": "If you removed all the empty space from atoms in every human, all 8 billion of us would fit in a sugar cube.",
+    "category": "Space",
+    "emoji": "🍬"
+  },
+  {
+    "id": 43,
+    "fact": "The Sun's light takes 8 minutes to reach Earth, but it takes 100,000 years to travel from the core to the surface.",
+    "category": "Space",
+    "emoji": "☀️"
+  },
+  {
+    "id": 44,
+    "fact": "Neutron stars are so dense that a teaspoonful of their material would weigh about a billion tonnes.",
+    "category": "Space",
+    "emoji": "💫"
+  },
+  {
+    "id": 45,
+    "fact": "Saturn is so light relative to its size that it would float in water — it is the least dense planet in our solar system.",
+    "category": "Space",
+    "emoji": "🪐"
+  },
+  {
+    "id": 46,
+    "fact": "There is a giant cloud of alcohol floating in the constellation Sagittarius containing enough ethanol to fill trillions of pints.",
+    "category": "Space",
+    "emoji": "🌌"
+  },
+  {
+    "id": 47,
+    "fact": "Oxford University is older than the Aztec Empire. Teaching started at Oxford around 1096; the Aztec Empire began in 1428.",
+    "category": "History",
+    "emoji": "🎓"
+  },
+  {
+    "id": 48,
+    "fact": "Napoleon was once attacked by rabbits. He ordered a rabbit hunt, but the rabbits were tame and swarmed him for food.",
+    "category": "History",
+    "emoji": "🐇"
+  },
+  {
+    "id": 49,
+    "fact": "The Great Wall of China is not visible from space with the naked eye — that's a myth. It was confirmed by Chinese astronaut Yang Liwei.",
+    "category": "History",
+    "emoji": "🧱"
+  },
+  {
+    "id": 50,
+    "fact": "Vikings never actually wore horned helmets. That image was invented by a costume designer for an 1876 opera.",
+    "category": "History",
+    "emoji": "⚔️"
+  },
+  {
+    "id": 51,
+    "fact": "The first computer bug was a real bug — a moth was found stuck in a relay of the Harvard Mark II computer in 1947.",
+    "category": "Technology",
+    "emoji": "🐛"
+  },
+  {
+    "id": 52,
+    "fact": "Email is older than the World Wide Web. The first email was sent in 1971; the web was invented in 1991.",
+    "category": "Technology",
+    "emoji": "📧"
+  },
+  {
+    "id": 53,
+    "fact": "The first mobile phone call was made in 1973. The phone weighed 1.1 kg and took 10 hours to charge for 30 minutes of talk time.",
+    "category": "Technology",
+    "emoji": "📱"
+  },
+  {
+    "id": 54,
+    "fact": "The programming language Python is named after the comedy group Monty Python, not the snake.",
+    "category": "Technology",
+    "emoji": "🐍"
+  },
+  {
+    "id": 55,
+    "fact": "Nintendo was founded in 1889 — originally as a playing card company in Kyoto, Japan.",
+    "category": "Technology",
+    "emoji": "🎮"
+  },
+  {
+    "id": 56,
+    "fact": "A single mature tree can absorb up to 22 kg of CO₂ per year and produce enough oxygen for 2 people.",
+    "category": "Environment",
+    "emoji": "🌿"
+  },
+  {
+    "id": 57,
+    "fact": "The Amazon rainforest produces about 20% of the world's oxygen and is called 'the lungs of the Earth'.",
+    "category": "Environment",
+    "emoji": "🫁"
+  },
+  {
+    "id": 58,
+    "fact": "A single lightning bolt carries enough electricity to power a 100-watt bulb for about 3 months.",
+    "category": "Science",
+    "emoji": "⚡"
+  },
+  {
+    "id": 59,
+    "fact": "Glaciers store about 69% of the world's fresh water. If they all melted, sea levels would rise by about 70 metres.",
+    "category": "Environment",
+    "emoji": "🧊"
+  },
+  {
+    "id": 60,
+    "fact": "The world's oldest living organism is a Posidonia seagrass meadow in Australia estimated to be 200,000 years old.",
+    "category": "Nature",
+    "emoji": "🌊"
+  },
+  {
+    "id": 61,
+    "fact": "Sound travels about 4 times faster through water than through air.",
+    "category": "Science",
+    "emoji": "🌊"
+  },
+  {
+    "id": 62,
+    "fact": "The loudest sound ever recorded was the 1883 eruption of Krakatoa — heard 4,800 km away in Australia.",
+    "category": "Science",
+    "emoji": "🌋"
+  },
+  {
+    "id": 63,
+    "fact": "Cats always land on their feet due to a reflex called 'aerial righting'. They can survive falls from great heights.",
+    "category": "Nature",
+    "emoji": "🐱"
+  },
+  {
+    "id": 64,
+    "fact": "Glass is technically a liquid — an extremely slow-moving amorphous solid that flows at room temperature over centuries.",
+    "category": "Science",
+    "emoji": "🪟"
+  },
+  {
+    "id": 65,
+    "fact": "A day on Mercury lasts longer than a year on Mercury because it rotates so slowly while orbiting the Sun quickly.",
+    "category": "Space",
+    "emoji": "🔭"
+  },
+  {
+    "id": 66,
+    "fact": "The tongue is not divided into sections for different tastes. The 'taste map' taught in textbooks was a mistranslation.",
+    "category": "Human Body",
+    "emoji": "👅"
+  },
+  {
+    "id": 67,
+    "fact": "A group of crows is called a 'murder'. A group of jellyfish is called a 'smack'. A group of cats is called a 'clowder'.",
+    "category": "Nature",
+    "emoji": "🐦"
+  },
+  {
+    "id": 68,
+    "fact": "The average person walks about 1,00,000 km in their lifetime — roughly 2.5 times around the Earth.",
+    "category": "Human Body",
+    "emoji": "🚶"
+  },
+  {
+    "id": 69,
+    "fact": "Butterflies taste with their feet. Sensors on their legs help them identify food and suitable plants for laying eggs.",
+    "category": "Nature",
+    "emoji": "🦋"
+  },
+  {
+    "id": 70,
+    "fact": "Cold water boils faster than hot water under certain conditions — a phenomenon known as the Mpemba Effect.",
+    "category": "Science",
+    "emoji": "🌡️"
+  },
+  {
+    "id": 71,
+    "fact": "India is home to 17% of the world's population but only has 2.4% of the world's land area.",
+    "category": "India",
+    "emoji": "🗺️"
+  },
+  {
+    "id": 72,
+    "fact": "The bindi worn on the forehead has roots in the concept of the 'third eye' — representing wisdom and intuition in Indian culture.",
+    "category": "India",
+    "emoji": "🔴"
+  },
+  {
+    "id": 73,
+    "fact": "Diamonds were first mined in India. For over 1,000 years, India was the world's only source of diamonds.",
+    "category": "India",
+    "emoji": "💎"
+  },
+  {
+    "id": 74,
+    "fact": "The Indian mathematician Aryabhata calculated the value of Pi to 4 decimal places in 499 CE — over a thousand years ago.",
+    "category": "India",
+    "emoji": "🔣"
+  },
+  {
+    "id": 75,
+    "fact": "India's 'Valley of Flowers' in Uttarakhand has over 500 species of wildflowers and is a UNESCO World Heritage Site.",
+    "category": "India",
+    "emoji": "🌸"
+  },
+  {
+    "id": 76,
+    "fact": "In a room of just 23 people, there is a 50% chance that two of them share the same birthday.",
+    "category": "Maths",
+    "emoji": "🎂"
+  },
+  {
+    "id": 77,
+    "fact": "Pi has been calculated to over 100 trillion decimal places and never repeats or ends.",
+    "category": "Maths",
+    "emoji": "🔢"
+  },
+  {
+    "id": 78,
+    "fact": "The word 'hundred' comes from the Old Norse 'hundrath' which actually meant 120, not 100.",
+    "category": "Maths",
+    "emoji": "💯"
+  },
+  {
+    "id": 79,
+    "fact": "All odd numbers have the letter 'e' in their name: onE, thrEE, fivE, sEvEn, ninE…",
+    "category": "Maths",
+    "emoji": "🔤"
+  },
+  {
+    "id": 80,
+    "fact": "A Möbius strip has only one surface and one edge. If you cut it down the middle, it stays in one piece.",
+    "category": "Maths",
+    "emoji": "♾️"
+  },
+  {
+    "id": 81,
+    "fact": "The most common letter in the English language is 'E'. The least common is 'Q'.",
+    "category": "Language",
+    "emoji": "🔤"
+  },
+  {
+    "id": 82,
+    "fact": "'Strengths' is the longest English word with only one vowel.",
+    "category": "Language",
+    "emoji": "💪"
+  },
+  {
+    "id": 83,
+    "fact": "The word 'set' has the most definitions in the English language — over 430 different meanings.",
+    "category": "Language",
+    "emoji": "📖"
+  },
+  {
+    "id": 84,
+    "fact": "There is no word in the English language that rhymes with 'orange', 'silver', 'month', or 'purple'.",
+    "category": "Language",
+    "emoji": "🟠"
+  },
+  {
+    "id": 85,
+    "fact": "The dot over the letters 'i' and 'j' is called a 'tittle'.",
+    "category": "Language",
+    "emoji": "✏️"
+  },
+  {
+    "id": 86,
+    "fact": "Your heart beats about 1,00,000 times per day and pumps about 7,570 litres of blood.",
+    "category": "Human Body",
+    "emoji": "❤️"
+  },
+  {
+    "id": 87,
+    "fact": "Humans share 60% of their DNA with bananas. We share 98.7% of our DNA with chimpanzees.",
+    "category": "Science",
+    "emoji": "🧬"
+  },
+  {
+    "id": 88,
+    "fact": "The human body replaces most of its cells every 7 to 10 years. Your bones fully renew themselves every decade.",
+    "category": "Human Body",
+    "emoji": "🦴"
+  },
+  {
+    "id": 89,
+    "fact": "Your fingerprints form in the womb and are unique to you — even identical twins have different fingerprints.",
+    "category": "Human Body",
+    "emoji": "👆"
+  },
+  {
+    "id": 90,
+    "fact": "Goosebumps are a leftover reflex from our ancestors — it made their fur stand up to appear larger and warmer.",
+    "category": "Human Body",
+    "emoji": "🥶"
+  },
+  {
+    "id": 91,
+    "fact": "Cows have best friends and become stressed when separated from them. They also have regional accents.",
+    "category": "Nature",
+    "emoji": "🐄"
+  },
+  {
+    "id": 92,
+    "fact": "The total weight of all the ants on Earth is estimated to roughly equal the total weight of all humans.",
+    "category": "Nature",
+    "emoji": "🐜"
+  },
+  {
+    "id": 93,
+    "fact": "A snail can sleep for 3 years straight during periods of drought.",
+    "category": "Nature",
+    "emoji": "🐌"
+  },
+  {
+    "id": 94,
+    "fact": "Elephants are the only animals that cannot jump. They are also the only non-human animals known to have death rituals.",
+    "category": "Nature",
+    "emoji": "🐘"
+  },
+  {
+    "id": 95,
+    "fact": "The shortest war in history lasted 38 to 45 minutes — between Britain and Zanzibar on 27 August 1896.",
+    "category": "History",
+    "emoji": "⏱️"
+  },
+  {
+    "id": 96,
+    "fact": "A group of pugs is called a 'grumble'. A group of hippos is called a 'bloat'. A group of flamingos is a 'flamboyance'.",
+    "category": "Nature",
+    "emoji": "🐾"
+  },
+  {
+    "id": 97,
+    "fact": "Hot water freezes faster than cold water under certain conditions. Scientists still debate exactly why.",
+    "category": "Science",
+    "emoji": "🧊"
+  },
+  {
+    "id": 98,
+    "fact": "The average cloud weighs about 500,000 kg — the weight of roughly 100 elephants.",
+    "category": "Science",
+    "emoji": "☁️"
+  },
+  {
+    "id": 99,
+    "fact": "Sea otters hold hands while sleeping so they don't drift apart from each other. This is called 'rafting'.",
+    "category": "Nature",
+    "emoji": "🦦"
+  },
+  {
+    "id": 100,
+    "fact": "The total length of blood vessels in a single human body, if laid end to end, would circle the Earth about 2.5 times.",
+    "category": "Human Body",
+    "emoji": "🩸"
+  },
+  { 
+    "id": 101,
+    "fact": "Strawberries are not actually berries, but bananas are. Botanically, berries develop from a single flower with one ovary.",
+    "category": "Nature",
+    "emoji": "🍓"
+  },
+  {
+    "id": 102,
+    "fact": "Scotland's national animal is the Unicorn — a mythical creature symbolizing purity, innocence, power, and independence.",
+    "category": "Geography",
+    "emoji": "🦄"
+  },
+  {
+    "id": 103,
+    "fact": "The Eiffel Tower can grow by up to 15 cm during the summer. Heat causes the iron to expand, making the tower taller.",
+    "category": "Science",
+    "emoji": "🗼"
+  },
+  {
+    "id": 104,
+    "fact": "A 'jiffy' is an actual unit of time. It is the time it takes for light to travel one centimeter in a vacuum, about 33.36 picoseconds.",
+    "category": "Maths",
+    "emoji": "⏱️"
+  },
+  {
+    "id": 105,
+    "fact": "Honeybees can recognize human faces. They use the same part of their brain that humans use for face recognition.",
+    "category": "Nature",
+    "emoji": "🐝"
+  },
+  {
+    "id": 106,
+    "fact": "There are more trees on Earth than stars in the Milky Way. Earth has about 3 trillion trees, while the Milky Way has 100-400 billion stars.",
+    "category": "Nature",
+    "emoji": "🌲"
+  },
+  {
+    "id": 107,
+    "fact": "The heart of a blue whale is so big that a small child could swim through its arteries.",
+    "category": "Nature",
+    "emoji": "🐋"
+  },
+  {
+    "id": 108,
+    "fact": "Sloths can hold their breath for up to 40 minutes underwater — longer than dolphins can hold theirs.",
+    "category": "Nature",
+    "emoji": "🦥"
+  },
+  {
+    "id": 109,
+    "fact": "A group of porcupines is called a 'prickle'. A group of hedgehogs is called an 'array'.",
+    "category": "Nature",
+    "emoji": "🦔"
+  },
+  {
+    "id": 110,
+    "fact": "Cows produce more milk when listening to relaxing music. Studies show they prefer slow, soothing tunes over fast ones.",
+    "category": "Nature",
+    "emoji": "🎵"
+  },
+  {
+    "id": 111,
+    "fact": "The national flag of Nepal is the only flag in the world that is not a rectangle or a square. It is shaped like two stacked triangles.",
+    "category": "Geography",
+    "emoji": "🇳🇵"
+  },
+  {
+    "id": 112,
+    "fact": "An ostrich's eye is bigger than its brain, making it the largest eye of any land animal.",
+    "category": "Nature",
+    "emoji": "🦩"
+  },
+  {
+    "id": 113,
+    "fact": "The shortest commercial flight in the world lasts just 57 seconds. It connects two islands in Scotland, flying 2.7 km.",
+    "category": "Geography",
+    "emoji": "✈️"
+  },
+  {
+    "id": 114,
+    "fact": "Pineapples take about two years to grow. The fruit is actually a cluster of hundreds of tiny berries fused together.",
+    "category": "Nature",
+    "emoji": "🍍"
+  },
+  {
+    "id": 115,
+    "fact": "A group of giraffes is called a 'tower' — a fitting name for the tallest animals on Earth.",
+    "category": "Nature",
+    "emoji": "🦒"
+  },
+  {
+    "id": 116,
+    "fact": "Crocodiles cannot stick their tongues out. Their tongues are attached to the roof of their mouth by a membrane.",
+    "category": "Nature",
+    "emoji": "🐊"
+  },
+  {
+    "id": 117,
+    "fact": "An apple floats in water because it is 25% air, making it less dense than water.",
+    "category": "Science",
+    "emoji": "🍎"
+  },
+  {
+    "id": 118,
+    "fact": "The human eye can see a candle flame from up to 2.4 kilometers away in complete darkness.",
+    "category": "Human Body",
+    "emoji": "🕯️"
+  },
+  {
+    "id": 119,
+    "fact": "The opposite sides of a standard dice always add up to seven.",
+    "category": "Maths",
+    "emoji": "🎲"
+  },
+  {
+    "id": 120,
+    "fact": "Earth's rotation is gradually slowing down. 4.5 billion years ago, a day on Earth was only about 6 hours long.",
+    "category": "Science",
+    "emoji": "🌍"
+  },
+  {
+    "id": 121,
+    "fact": "Mount Everest is growing by about 4 millimeters every year due to the tectonic plates pushing against each other.",
+    "category": "Geography",
+    "emoji": "🏔️"
+  },
+  {
+    "id": 122,
+    "fact": "Dolphins sleep with one eye open. Only half of their brain sleeps at a time so they can watch for predators and breathe.",
+    "category": "Nature",
+    "emoji": "🐬"
+  },
+  {
+    "id": 123,
+    "fact": "The longest English word without a standard vowel is 'rhythms'.",
+    "category": "Language",
+    "emoji": "🔤"
+  },
+  {
+    "id": 124,
+    "fact": "The Amazon River discharges more water into the ocean than the next seven largest independent rivers combined.",
+    "category": "Geography",
+    "emoji": "🌊"
+  },
+  {
+    "id": 125,
+    "fact": "Penguins propose to their mates by giving them a pebble. If the female accepts, they become partners for life.",
+    "category": "Nature",
+    "emoji": "🐧"
+  },
+  {
+    "id": 126,
+    "fact": "The Olympic gold medal is actually made mostly of silver. It must contain at least 6 grams of gold, but the rest is solid silver.",
+    "category": "Sports",
+    "emoji": "🥇"
+  },
+  {
+    "id": 127,
+    "fact": "Pluto's entire surface area is smaller than the total land area of Russia.",
+    "category": "Space",
+    "emoji": "🚀"
+  },
+  {
+    "id": 128,
+    "fact": "A flea can jump up to 200 times its own body length. If a human could do that, they could jump over the Eiffel Tower.",
+    "category": "Nature",
+    "emoji": "🦟"
+  },
+  {
+    "id": 129,
+    "fact": "The Great Barrier Reef is the largest living structure on Earth, so massive it can be seen from space.",
+    "category": "Nature",
+    "emoji": "🐠"
+  },
+  {
+    "id": 130,
+    "fact": "Neptune has the strongest winds in the solar system, reaching speeds of over 2,000 km/h.",
+    "category": "Space",
+    "emoji": "🌬️"
+  },
+  {
+    "id": 131,
+    "fact": "A group of rhinos is called a 'crash'. A group of zebras is called a 'dazzle'.",
+    "category": "Nature",
+    "emoji": "🦏"
+  },
+  {
+    "id": 132,
+    "fact": "Sloths take two weeks to digest their food. Their extremely slow metabolism helps them survive on very few calories.",
+    "category": "Nature",
+    "emoji": "🌿"
+  },
+  {
+    "id": 133,
+    "fact": "The shortest full sentence in the English language is 'Go!'",
+    "category": "Language",
+    "emoji": "🗣️"
+  },
+  {
+    "id": 134,
+    "fact": "Pineapples contain an enzyme called bromelain that digests protein. When you eat pineapple, it is literally eating you back.",
+    "category": "Science",
+    "emoji": "🍍"
+  },
+  {
+    "id": 135,
+    "fact": "Bats are the only mammals capable of true and sustained flight. 'Flying' squirrels only glide.",
+    "category": "Nature",
+    "emoji": "🦇"
+  },
+  {
+    "id": 136,
+    "fact": "A day on Mars is about 24 hours and 37 minutes, which is remarkably close to a day on Earth.",
+    "category": "Space",
+    "emoji": "🔴"
+  },
+  {
+    "id": 137,
+    "fact": "A group of lizards is called a 'lounge'. A group of ferrets is called a 'business'.",
+    "category": "Nature",
+    "emoji": "🦎"
+  },
+  {
+    "id": 138,
+    "fact": "The word 'robot' comes from the Czech word 'robota', which means forced labor or hard work.",
+    "category": "Language",
+    "emoji": "🤖"
+  },
+  {
+    "id": 139,
+    "fact": "The Milky Way and Andromeda galaxies are expected to collide in about 4.5 billion years, eventually merging into one galaxy.",
+    "category": "Space",
+    "emoji": "🌌"
+  },
+  {
+    "id": 140,
+    "fact": "Peanuts are not nuts; they are legumes, making them more closely related to beans and peas than to walnuts or almonds.",
+    "category": "Science",
+    "emoji": "🥜"
+  },
+  {
+    "id": 141,
+    "fact": "Hippopotamus milk is bright pink. It contains two pigments that give it a distinct strawberry-milk color.",
+    "category": "Nature",
+    "emoji": "🦛"
+  },
+  {
+    "id": 142,
+    "fact": "Jupiter's Great Red Spot is a giant storm that has been raging for at least 350 years and is larger than Earth.",
+    "category": "Space",
+    "emoji": "🪐"
+  },
+  {
+    "id": 143,
+    "fact": "Seahorses are the only animal species in which the male gives birth to the offspring.",
+    "category": "Nature",
+    "emoji": "🐡"
+  },
+  {
+    "id": 144,
+    "fact": "The world's smallest mammal is the bumblebee bat, which weighs less than a penny.",
+    "category": "Nature",
+    "emoji": "🦇"
+  },
+  {
+    "id": 145,
+    "fact": "The human body has enough DNA to stretch from the Sun to Pluto and back — 17 times over.",
+    "category": "Human Body",
+    "emoji": "🧬"
+  },
+  {
+    "id": 146,
+    "fact": "Venus is the only planet in our solar system that spins backwards compared to most other planets.",
+    "category": "Space",
+    "emoji": "🔄"
+  },
+  {
+    "id": 147,
+    "fact": "Rubber bands last longer when refrigerated. The cold temperature prevents the rubber from degrading quickly.",
+    "category": "Science",
+    "emoji": "🧊"
+  },
+  {
+    "id": 148,
+    "fact": "A hummingbird weighs less than a penny, yet its heart beats over 1,200 times a minute.",
+    "category": "Nature",
+    "emoji": "🐦"
+  },
+  {
+    "id": 149,
+    "fact": "'Queue' is the only English word that is pronounced the same way even if the last four letters are removed.",
+    "category": "Language",
+    "emoji": "🚶"
+  },
+  {
+    "id": 150,
+    "fact": "The Himalayas are still rising by about 1 centimeter per year because the Indian tectonic plate is pushing into Asia.",
+    "category": "Geography",
+    "emoji": "🏔️"
+  },
+  {
+    "id": 151,
+    "fact": "Croissants were actually invented in Austria, not France. They were originally called 'kipferl'.",
+    "category": "History",
+    "emoji": "🥐"
+  },
+  {
+    "id": 152,
+    "fact": "There are more than 1,500 active volcanoes on Earth, and about 50 to 70 of them erupt every year.",
+    "category": "Environment",
+    "emoji": "🌋"
+  },
+  {
+    "id": 153,
+    "fact": "A group of bears is called a 'sleuth'. A group of monkeys is called a 'barrel'.",
+    "category": "Nature",
+    "emoji": "🐻"
+  },
+  {
+    "id": 154,
+    "fact": "The word 'nerd' was first coined by Dr. Seuss in his 1950 book 'If I Ran the Zoo'.",
+    "category": "Language",
+    "emoji": "🤓"
+  },
+  {
+    "id": 155,
+    "fact": "Koala fingerprints are so similar to human fingerprints that they have confused crime scene investigators.",
+    "category": "Nature",
+    "emoji": "🐨"
+  },
+  {
+    "id": 156,
+    "fact": "There are more bacteria in your mouth than there are people on Earth.",
+    "category": "Human Body",
+    "emoji": "🦠"
+  },
+  {
+    "id": 157,
+    "fact": "An inch of rainwater is equal to about 10 inches of snow, depending on the snow's density.",
+    "category": "Science",
+    "emoji": "❄️"
+  },
+  {
+    "id": 158,
+    "fact": "A group of frogs is called an 'army'. A group of toads is called a 'knot'.",
+    "category": "Nature",
+    "emoji": "🐸"
+  },
+  {
+    "id": 159,
+    "fact": "A single strand of spaghetti is called a 'spaghetto'.",
+    "category": "Language",
+    "emoji": "🍝"
+  },
+  {
+    "id": 160,
+    "fact": "A group of kangaroos is called a 'mob'. A group of whales is called a 'pod'.",
+    "category": "Nature",
+    "emoji": "🦘"
+  },
+  {
+    "id": 161,
+    "fact": "The star Vega will become the new North Star in about 12,000 years due to Earth's wobbling axis.",
+    "category": "Space",
+    "emoji": "⭐"
+  },
+  {
+    "id": 162,
+    "fact": "The world's oldest known living tree is over 5,000 years old. It is a bristlecone pine located in California.",
+    "category": "Nature",
+    "emoji": "🌲"
+  },
+  {
+    "id": 163,
+    "fact": "The 'smell of rain' has a name: petrichor. It comes from oils released by plants and the smell of wet soil.",
+    "category": "Environment",
+    "emoji": "🌧️"
+  },
+  {
+    "id": 164,
+    "fact": "The driest place on Earth is the Atacama Desert in Chile. Some parts have had no recorded rainfall in hundreds of years.",
+    "category": "Environment",
+    "emoji": "🏜️"
+  },
+  {
+    "id": 165,
+    "fact": "The first chocolate bar was made in 1847 by Joseph Fry in England. Before that, chocolate was only consumed as a drink.",
+    "category": "History",
+    "emoji": "🍫"
+  },
+  {
+    "id": 166,
+    "fact": "A compass points north because Earth's core is made mostly of iron and nickel, creating a giant magnet.",
+    "category": "Science",
+    "emoji": "🧭"
+  },
+  {
+    "id": 167,
+    "fact": "The largest desert on Earth is Antarctica. A desert is defined by its low precipitation, not its temperature.",
+    "category": "Geography",
+    "emoji": "🧊"
+  },
+  {
+    "id": 168,
+    "fact": "A group of apes is called a 'shrewdness'. A group of ravens is called an 'unkindness'.",
+    "category": "Nature",
+    "emoji": "🦍"
+  },
+  {
+    "id": 169,
+    "fact": "The name 'Wendy' was created by J.M. Barrie for the play Peter Pan. Before that, it was rarely used as a name.",
+    "category": "Language",
+    "emoji": "🧚"
+  },
+  {
+    "id": 170,
+    "fact": "The first product to have a barcode scanned was a pack of Wrigley's Juicy Fruit gum in 1974.",
+    "category": "Technology",
+    "emoji": "📊"
+  },
+  {
+    "id": 171,
+    "fact": "The average lead pencil can draw a line 35 miles long or write roughly 45,000 words.",
+    "category": "Science",
+    "emoji": "✏️"
+  },
+  {
+    "id": 172,
+    "fact": "The word 'typewriter' can be typed using only the top row of a QWERTY keyboard.",
+    "category": "Language",
+    "emoji": "⌨️"
+  },
+  {
+    "id": 173,
+    "fact": "The Earth's core is as hot as the surface of the Sun, reaching temperatures of about 5,500°C.",
+    "category": "Science",
+    "emoji": "🌍"
+  },
+  {
+    "id": 174,
+    "fact": "A group of finches is called a 'charm'. A group of hummingbirds is also called a 'charm'.",
+    "category": "Nature",
+    "emoji": "🐦"
+  },
+  {
+    "id": 175,
+    "fact": "Cats sleep for about 70% of their lives. When they are awake, they spend a third of that time grooming themselves.",
+    "category": "Nature",
+    "emoji": "🐈"
+  },
+  {
+    "id": 176,
+    "fact": "The average person's left hand does 56% of the typing when using a keyboard.",
+    "category": "Human Body",
+    "emoji": "⌨️"
+  },
+  {
+    "id": 177,
+    "fact": "There are 293 different ways to make change for a US dollar using coins.",
+    "category": "Maths",
+    "emoji": "💵"
+  },
+  {
+    "id": 178,
+    "fact": "A group of starlings is called a 'murmuration'. They fly in massive, shifting shapes to confuse predators.",
+    "category": "Nature",
+    "emoji": "🐦"
+  },
+  {
+    "id": 179,
+    "fact": "The longest place name on Earth is in New Zealand: Taumatawhakatangihangakoauauotamateaturipukakapikimaungahoronukupokaiwhenuakitanatahu.",
+    "category": "Geography",
+    "emoji": "🇳🇿"
+  },
+  {
+    "id": 180,
+    "fact": "A group of rattlesnakes is called a 'rhumba'.",
+    "category": "Nature",
+    "emoji": "🐍"
+  },
+  {
+    "id": 181,
+    "fact": "A group of geese on the ground is called a 'gaggle', but a group of geese in the air is called a 'skein'.",
+    "category": "Nature",
+    "emoji": "🪿"
+  },
+  {
+    "id": 182,
+    "fact": "The 'ZIP' in ZIP code stands for Zone Improvement Plan.",
+    "category": "Language",
+    "emoji": "📮"
+  },
+  {
+    "id": 183,
+    "fact": "A group of trout is called a 'hover'. A group of sharks is called a 'shiver'.",
+    "category": "Nature",
+    "emoji": "🐟"
+  },
+  {
+    "id": 184,
+    "fact": "The average person falls asleep in 7 minutes.",
+    "category": "Human Body",
+    "emoji": "😴"
+  },
+  {
+    "id": 185,
+    "fact": "The term 'Artificial Intelligence' was first coined by John McCarthy in 1956 at a conference at Dartmouth College.",
+    "category": "Technology",
+    "emoji": "🤖"
+  },
+  {
+    "id": 186,
+    "fact": "The first person to reach the South Pole was Roald Amundsen in 1911. He beat Robert Falcon Scott by just a few weeks.",
+    "category": "History",
+    "emoji": "🧭"
+  },
+  {
+    "id": 187,
+    "fact": "The first Olympic Games were held in 776 BC in ancient Greece. The only event was a footrace called the 'stadion'.",
+    "category": "History",
+    "emoji": "🏟️"
+  },
+  {
+    "id": 188,
+    "fact": "The word 'salary' comes from the Latin word for salt, because Roman soldiers were sometimes paid in salt, which was highly valuable.",
+    "category": "Language",
+    "emoji": "🧂"
+  },
+  {
+    "id": 189,
+    "fact": "The first webcam was used at Cambridge University to monitor a coffee pot so people wouldn't walk down the hall for empty coffee.",
+    "category": "Technology",
+    "emoji": "☕"
+  },
+  {
+    "id": 190,
+    "fact": "The longest word in the English language is 45 letters long: pneumonoultramicroscopicsilicovolcanoconiosis. It's a type of lung disease.",
+    "category": "Language",
+    "emoji": "🌋"
+  },
+  {
+    "id": 191,
+    "fact": "A group of unicorns is called a 'blessing'.",
+    "category": "Nature",
+    "emoji": "🦄"
+  },
+  {
+    "id": 192,
+    "fact": "The 'D' in D-Day stands for 'Day'. It was a military term used to designate the day an operation was to begin.",
+    "category": "History",
+    "emoji": "📅"
+  },
+  {
+    "id": 193,
+    "fact": "A group of peacocks is called an 'ostentation'. A group of pugs is called a 'grumble'.",
+    "category": "Nature",
+    "emoji": "🦚"
+  },
+  {
+    "id": 194,
+    "fact": "The 'c' in the famous equation E=mc² stands for 'celeritas', which is Latin for swiftness or speed.",
+    "category": "Science",
+    "emoji": "💡"
+  },
+  {
+    "id": 195,
+    "fact": "The world's largest waterfall is actually underwater. The Denmark Strait cataract in the Atlantic Ocean drops 3,505 meters.",
+    "category": "Geography",
+    "emoji": "🌊"
+  },
+  {
+    "id": 196,
+    "fact": "The first CD pressed in the United States was Bruce Springsteen's 'Born in the USA'.",
+    "category": "Technology",
+    "emoji": "💿"
+  },
+  {
+    "id": 197,
+    "fact": "The word 'muscle' comes from the Latin word 'musculus', which means 'little mouse' because Romans thought flexing muscles looked like mice moving under the skin.",
+    "category": "Language",
+    "emoji": "🐭"
+  },
+  {
+    "id": 198,
+    "fact": "A group of parrots is called a 'pandemonium'.",
+    "category": "Nature",
+    "emoji": "🦜"
+  },
+  {
+    "id": 199,
+    "fact": "The first computer mouse was made of wood. It was invented by Doug Engelbart in 1964.",
+    "category": "Technology",
+    "emoji": "🖱️"
+  },
+  {
+    "id": 200,
+    "fact": "The human eye blinks an average of 4,200,000 times a year.",
+    "category": "Human Body",
+    "emoji": "👁️"
+  },
+  {
+    "id": 201,
+    "fact": "A group of rabbits is called a 'colony', while a group of hares is called a 'drove'.",
+    "category": "Nature",
+    "emoji": "🐇"
+  },
+  {
+    "id": 202,
+    "fact": "The first alarm clock could only ring at 4 AM. It was invented by Levi Hutchins in 1787 because he wanted to wake up early.",
+    "category": "Technology",
+    "emoji": "⏰"
+  },
+  {
+    "id": 203,
+    "fact": "The 'spot' on 7-Up's logo comes from its inventor, Charles Leiper Grigg, who had red eyes because he was an albino.",
+    "category": "History",
+    "emoji": "7️⃣"
+  },
+  {
+    "id": 204,
+    "fact": "A blink of an eye lasts about 300 to 400 milliseconds. You blink about 15-20 times per minute.",
+    "category": "Human Body",
+    "emoji": "👁️"
+  },
+  {
+    "id": 205,
+    "fact": "The longest hiccuping spree lasted 68 years. Charles Osborne started hiccuping in 1922 and didn't stop until 1990.",
+    "category": "Human Body",
+    "emoji": "😵"
+  },
+  {
+    "id": 206,
+    "fact": "The Infinity symbol was originally used in ancient India and Tibet as a representation of perfection and dualism.",
+    "category": "Maths",
+    "emoji": "♾️"
+  },
+  {
+    "id": 207,
+    "fact": "The human body has enough carbon to make 9,000 pencils.",
+    "category": "Human Body",
+    "emoji": "✏️"
+  },
+  {
+    "id": 208,
+    "fact": "The electric chair was invented by a dentist, Alfred P. Southwick, who saw how quickly electricity killed animals.",
+    "category": "History",
+    "emoji": "⚡"
+  },
+  {
+    "id": 209,
+    "fact": "A day on Jupiter is only about 10 hours long. Despite being the largest planet, it spins the fastest.",
+    "category": "Space",
+    "emoji": "🪐"
+  },
+  {
+    "id": 210,
+    "fact": "The average person walks the equivalent of 5 times around the Earth in their lifetime.",
+    "category": "Human Body",
+    "emoji": "🚶"
+  },
+  {
+    "id": 211,
+    "fact": "The inventor of the Pringles can, Fredric Baur, was so proud of his invention that his ashes were buried in one when he died.",
+    "category": "History",
+    "emoji": "🥔"
+  },
+  {
+    "id": 212,
+    "fact": "Tardigrades, or water bears, can survive the vacuum of space, extreme radiation, and temperatures from -272°C to 150°C.",
+    "category": "Nature",
+    "emoji": "🐻"
+  },
+  {
+    "id": 213,
+    "fact": "The speed of light is exactly 299,792,458 meters per second. Nothing in the universe travels faster.",
+    "category": "Science",
+    "emoji": "💡"
+  },
+  {
+    "id": 214,
+    "fact": "Magnets have north and south poles. If you break a magnet in half, you get two new magnets, each with its own north and south pole.",
+    "category": "Science",
+    "emoji": "🧲"
+  },
+  {
+    "id": 215,
+    "fact": "Absolute zero (-273.15°C) is the lowest possible temperature where all atomic motion stops completely.",
+    "category": "Science",
+    "emoji": "🥶"
+  },
+  {
+    "id": 216,
+    "fact": "The Leaning Tower of Pisa leans because its foundation was built on soft ground that couldn't support its weight.",
+    "category": "History",
+    "emoji": "🗼"
+  },
+  {
+    "id": 217,
+    "fact": "Helium is the only element that was discovered in space before it was found on Earth. It was found in the Sun's spectrum in 1868.",
+    "category": "Science",
+    "emoji": "🎈"
+  },
+  {
+    "id": 218,
+    "fact": "The chemical symbol for gold is 'Au', which comes from the Latin word 'aurum', meaning 'shining dawn'.",
+    "category": "Science",
+    "emoji": "🥇"
+  },
+  {
+    "id": 219,
+    "fact": "Your saliva helps break down starches into sugars before you even swallow. That's why bread tastes sweeter the longer you chew it.",
+    "category": "Human Body",
+    "emoji": "🤤"
+  },
+  {
+    "id": 220,
+    "fact": "A falling raindrop is shaped more like a hamburger bun than a teardrop due to air resistance.",
+    "category": "Science",
+    "emoji": "🌧️"
+  },
+  {
+    "id": 221,
+    "fact": "Galileo's middle finger is preserved in a museum in Florence, Italy.",
+    "category": "History",
+    "emoji": "☝️"
+  },
+  {
+    "id": 222,
+    "fact": "A yoctosecond is a trillionth of a trillionth of a second, used to measure the time it takes light to cross a proton.",
+    "category": "Science",
+    "emoji": "⏱️"
+  },
+  {
+    "id": 223,
+    "fact": "Chalk is made from the remains of tiny, ancient sea creatures called foraminifera.",
+    "category": "Science",
+    "emoji": "🧱"
+  },
+  {
+    "id": 224,
+    "fact": "Quicksand is just ordinary sand with too much water in it. It cannot suck you under completely; you will float.",
+    "category": "Science",
+    "emoji": "🏜️"
+  },
+  {
+    "id": 225,
+    "fact": "You can't taste food without saliva. Food chemicals must dissolve in saliva to reach your taste receptors.",
+    "category": "Human Body",
+    "emoji": "👅"
+  },
+  {
+    "id": 226,
+    "fact": "Cracking your knuckles does not cause arthritis. The sound is just gas bubbles popping in the joint fluid.",
+    "category": "Human Body",
+    "emoji": "🤲"
+  },
+  {
+    "id": 227,
+    "fact": "If you spin a raw egg and stop it briefly, it will keep spinning. A boiled egg will stay stopped.",
+    "category": "Science",
+    "emoji": "🥚"
+  },
+  {
+    "id": 228,
+    "fact": "A tiger's stripes are as unique as human fingerprints; no two tigers have the exact same pattern.",
+    "category": "Nature",
+    "emoji": "🐯"
+  },
+  {
+    "id": 229,
+    "fact": "Elephants are the only animals with four forward-facing knees.",
+    "category": "Nature",
+    "emoji": "🐘"
+  },
+  {
+    "id": 230,
+    "fact": "A blue whale's tongue weighs as much as an entire elephant.",
+    "category": "Nature",
+    "emoji": "🐋"
+  },
+  {
+    "id": 231,
+    "fact": "Frogs cannot swallow with their eyes open. They use their eyes to push food down their throats.",
+    "category": "Nature",
+    "emoji": "🐸"
+  },
+  {
+    "id": 232,
+    "fact": "A shrimp's heart is located in its head.",
+    "category": "Nature",
+    "emoji": "🦐"
+  },
+  {
+    "id": 233,
+    "fact": "Slugs have four noses — two for smelling and two for breathing.",
+    "category": "Nature",
+    "emoji": "🐌"
+  },
+  {
+    "id": 234,
+    "fact": "Koalas sleep up to 22 hours a day to conserve energy because their eucalyptus diet is very low in nutrients.",
+    "category": "Nature",
+    "emoji": "🐨"
+  },
+  {
+    "id": 235,
+    "fact": "A housefly hums in the key of F because its wings beat at a frequency that matches that musical note.",
+    "category": "Nature",
+    "emoji": "🪰"
+  },
+  {
+    "id": 236,
+    "fact": "Camel milk doesn't curdle, which allows it to stay fresh much longer than cow milk in the desert heat.",
+    "category": "Nature",
+    "emoji": "🐫"
+  },
+  {
+    "id": 237,
+    "fact": "Rats laugh when you tickle them, but their laugh is at a frequency humans cannot hear without special equipment.",
+    "category": "Nature",
+    "emoji": "🐀"
+  },
+  {
+    "id": 238,
+    "fact": "A group of goldfish is called a 'troubling'.",
+    "category": "Nature",
+    "emoji": "🐟"
+  },
+  {
+    "id": 239,
+    "fact": "A group of turkeys is called a 'rafter'.",
+    "category": "Nature",
+    "emoji": "🦃"
+  },
+  {
+    "id": 240,
+    "fact": "Oysters can change their gender multiple times throughout their lives, switching back and forth based on temperature.",
+    "category": "Nature",
+    "emoji": "🦪"
+  },
+  {
+    "id": 241,
+    "fact": "Armadillos always give birth to four identical babies, all of the same gender, that develop from a single egg.",
+    "category": "Nature",
+    "emoji": "🦔"
+  },
+  {
+    "id": 242,
+    "fact": "Goats have rectangular pupils that give them a 340-degree field of vision, helping them watch for predators.",
+    "category": "Nature",
+    "emoji": "🐐"
+  },
+  {
+    "id": 243,
+    "fact": "A group of vultures is called a 'committee' when resting, and a 'kettle' when flying.",
+    "category": "Nature",
+    "emoji": "🦅"
+  },
+  {
+    "id": 244,
+    "fact": "A group of cockroaches is called an 'intrusion'.",
+    "category": "Nature",
+    "emoji": "🪳"
+  },
+  {
+    "id": 245,
+    "fact": "A group of kittens is called a 'kindle'.",
+    "category": "Nature",
+    "emoji": "🐱"
+  },
+  {
+    "id": 246,
+    "fact": "A group of mice is called a 'mischief'.",
+    "category": "Nature",
+    "emoji": "🐭"
+  },
+  {
+    "id": 247,
+    "fact": "A group of penguins in the water is called a 'raft', but on land, they are called a 'waddle'.",
+    "category": "Nature",
+    "emoji": "🐧"
+  },
+  {
+    "id": 248,
+    "fact": "A group of tigers is called a 'streak'.",
+    "category": "Nature",
+    "emoji": "🐯"
+  },
+  {
+    "id": 249,
+    "fact": "A group of camels is called a 'caravan'.",
+    "category": "Nature",
+    "emoji": "🐫"
+  },
+  {
+    "id": 250,
+    "fact": "A group of cheetahs is called a 'coalition'.",
+    "category": "Nature",
+    "emoji": "🐆"
+  },
+  {
+    "id": 251,
+    "fact": "A group of foxes is called a 'skulk' or a 'leash'.",
+    "category": "Nature",
+    "emoji": "🦊"
+  },
+  {
+    "id": 252,
+    "fact": "A group of gorillas is called a 'band' or a 'troop'.",
+    "category": "Nature",
+    "emoji": "🦍"
+  },
+  {
+    "id": 253,
+    "fact": "A group of jaguars is called a 'shadow'.",
+    "category": "Nature",
+    "emoji": "🐆"
+  },
+  {
+    "id": 254,
+    "fact": "A group of leopards is called a 'leap'.",
+    "category": "Nature",
+    "emoji": "🐆"
+  },
+  {
+    "id": 255,
+    "fact": "A group of moles is called a 'labor'.",
+    "category": "Nature",
+    "emoji": "🐀"
+  },
+  {
+    "id": 256,
+    "fact": "A group of otters is called a 'romp' on land and a 'raft' in the water.",
+    "category": "Nature",
+    "emoji": "🦦"
+  },
+  {
+    "id": 257,
+    "fact": "A group of seals is called a 'harem' or a 'pod'.",
+    "category": "Nature",
+    "emoji": "🦭"
+  },
+  {
+    "id": 258,
+    "fact": "A group of skunks is called a 'stench'.",
+    "category": "Nature",
+    "emoji": "🦨"
+  },
+  {
+    "id": 259,
+    "fact": "A group of squirrels is called a 'scurry' or a 'dray'.",
+    "category": "Nature",
+    "emoji": "🐿️"
+  },
+  {
+    "id": 260,
+    "fact": "Mercury has no atmosphere, which means it has no wind or weather, just extreme heat and cold.",
+    "category": "Space",
+    "emoji": "🔭"
+  },
+  {
+    "id": 261,
+    "fact": "Mars has the tallest volcano in the solar system, Olympus Mons. It is nearly three times taller than Mount Everest.",
+    "category": "Space",
+    "emoji": "🌋"
+  },
+  {
+    "id": 262,
+    "fact": "Jupiter has 95 officially recognized moons, including Ganymede, which is larger than the planet Mercury.",
+    "category": "Space",
+    "emoji": "🪐"
+  },
+  {
+    "id": 263,
+    "fact": "Saturn's rings are mostly made of water ice and rock, ranging in size from tiny grains to houses.",
+    "category": "Space",
+    "emoji": "💍"
+  },
+  {
+    "id": 264,
+    "fact": "Uranus rotates on its side, likely because a massive object knocked it over billions of years ago.",
+    "category": "Space",
+    "emoji": "🥶"
+  },
+  {
+    "id": 265,
+    "fact": "A year on Neptune is 165 Earth years long. It completed its first full orbit since being discovered in 2011.",
+    "category": "Space",
+    "emoji": "🧊"
+  },
+  {
+    "id": 266,
+    "fact": "Mars has sunsets that are blue. The fine dust in the Martian atmosphere causes blue light to scatter forward.",
+    "category": "Space",
+    "emoji": "🌅"
+  },
+  {
+    "id": 267,
+    "fact": "The largest known star, UY Scuti, is about 1,700 times the radius of the Sun.",
+    "category": "Space",
+    "emoji": "🌟"
+  },
+  {
+    "id": 268,
+    "fact": "If two pieces of the same type of metal touch in the vacuum of space, they will permanently bond together. This is called cold welding.",
+    "category": "Space",
+    "emoji": "🛠️"
+  },
+  {
+    "id": 269,
+    "fact": "The Voyager 1 spacecraft, launched in 1977, is the farthest human-made object from Earth.",
+    "category": "Space",
+    "emoji": "🛰️"
+  },
+  {
+    "id": 270,
+    "fact": "Astronauts grow up to 5 centimeters taller in space because the spine expands without gravity compressing it.",
+    "category": "Space",
+    "emoji": "👨‍🚀"
+  },
+  {
+    "id": 271,
+    "fact": "It rains diamonds on Jupiter and Saturn. Lightning turns methane gas into soot, which hardens into diamonds as it falls.",
+    "category": "Space",
+    "emoji": "💎"
+  },
+  {
+    "id": 272,
+    "fact": "A full NASA spacesuit costs about 12 million dollars, with most of the cost going into the backpack and control module.",
+    "category": "Space",
+    "emoji": "👨‍🚀"
+  },
+  {
+    "id": 273,
+    "fact": "The first artificial satellite, Sputnik 1, was launched by the Soviet Union in 1957 and orbited Earth for 3 months.",
+    "category": "Space",
+    "emoji": "🛰️"
+  },
+  {
+    "id": 274,
+    "fact": "Halley's Comet visits Earth every 76 years and will next be visible from Earth in the year 2061.",
+    "category": "Space",
+    "emoji": "☄️"
+  },
+  {
+    "id": 275,
+    "fact": "The asteroid belt between Mars and Jupiter is mostly empty space, not a crowded field of rocks like in the movies.",
+    "category": "Space",
+    "emoji": "🪨"
+  },
+  {
+    "id": 276,
+    "fact": "The Moon has moonquakes caused by Earth's gravitational pull. They are weaker than earthquakes but can last longer.",
+    "category": "Space",
+    "emoji": "🌑"
+  },
+  {
+    "id": 277,
+    "fact": "A black hole is a place in space where gravity is so strong that nothing, not even light, can escape from it.",
+    "category": "Space",
+    "emoji": "🕳️"
+  },
+  {
+    "id": 278,
+    "fact": "One million Earths could fit inside the Sun because it is so massive.",
+    "category": "Space",
+    "emoji": "☀️"
+  },
+  {
+    "id": 279,
+    "fact": "The International Space Station orbits Earth once every 90 minutes, meaning astronauts see about 16 sunrises a day.",
+    "category": "Space",
+    "emoji": "🏗️"
+  },
+  {
+    "id": 280,
+    "fact": "Space is completely silent because there is no air for sound waves to travel through.",
+    "category": "Space",
+    "emoji": "🤫"
+  },
+  {
+    "id": 281,
+    "fact": "The Sun makes up 99.86% of the total mass of the entire solar system.",
+    "category": "Space",
+    "emoji": "🌞"
+  },
+  {
+    "id": 282,
+    "fact": "India has 22 officially recognized languages and over 19,500 dialects spoken across the country.",
+    "category": "India",
+    "emoji": "🗣️"
+  },
+  {
+    "id": 283,
+    "fact": "The Banyan tree is India's national tree. Some banyan trees can have canopies so large they look like a small forest.",
+    "category": "India",
+    "emoji": "🌳"
+  },
+  {
+    "id": 284,
+    "fact": "The game of Snakes and Ladders originated in ancient India as a moral lesson about good deeds leading to heaven and bad deeds to rebirth.",
+    "category": "India",
+    "emoji": "🎲"
+  },
+  {
+    "id": 285,
+    "fact": "In ancient India, rulers used diamonds to decorate their armor and weapons because diamonds were believed to offer protection.",
+    "category": "India",
+    "emoji": "⚔️"
+  },
+  {
+    "id": 286,
+    "fact": "India exports software to over 90 countries around the world, making it a global technology hub.",
+    "category": "India",
+    "emoji": "💻"
+  },
+  {
+    "id": 287,
+    "fact": "The world's first university was Takshashila, established in 700 BC in ancient India. Over 60 subjects were taught there.",
+    "category": "India",
+    "emoji": "🎓"
+  },
+  {
+    "id": 288,
+    "fact": "Ayurveda, the earliest school of medicine known to humans, was founded in India over 2,500 years ago.",
+    "category": "India",
+    "emoji": "🌿"
+  },
+  {
+    "id": 289,
+    "fact": "The art of navigation was born in the river Sindh over 6,000 years ago. The word 'navigation' comes from the Sanskrit word 'Navgatih'.",
+    "category": "India",
+    "emoji": "⛵"
+  },
+  {
+    "id": 290,
+    "fact": "Algebra, Trigonometry, and Calculus originated in India. The concept of trigonometry was first introduced by the Indian mathematician Aryabhata.",
+    "category": "India",
+    "emoji": "📐"
+  },
+  {
+    "id": 291,
+    "fact": "The world's highest cricket ground is in Chail, Himachal Pradesh, built in 1893 at an altitude of 2,444 meters.",
+    "category": "India",
+    "emoji": "🏏"
+  },
+  {
+    "id": 292,
+    "fact": "India has the world's largest sundial, located in Jaipur. It measures 27 meters tall and tells the time with an accuracy of 2 seconds.",
+    "category": "India",
+    "emoji": "🕰️"
+  },
+  {
+    "id": 293,
+    "fact": "Jaisalmer Fort in Rajasthan is one of the largest living forts in the world, with a quarter of the city's population living inside it.",
+    "category": "India",
+    "emoji": "🏰"
+  },
+  {
+    "id": 294,
+    "fact": "Mawsynram in Meghalaya is the wettest place on Earth, receiving an average annual rainfall of over 11,800 mm.",
+    "category": "India",
+    "emoji": "🌧️"
+  },
+  {
+    "id": 295,
+    "fact": "India's first rocket was so small and light that it was transported to the launchpad on a bicycle in 1963.",
+    "category": "India",
+    "emoji": "🚲"
+  },
+  {
+    "id": 296,
+    "fact": "Lonar Lake in Maharashtra is the only hyper-velocity impact crater in basaltic rock anywhere in the world, created by a meteor.",
+    "category": "India",
+    "emoji": "☄️"
+  },
+  {
+    "id": 297,
+    "fact": "India is the only country in the world to have an entire ocean named after it — the Indian Ocean.",
+    "category": "India",
+    "emoji": "🌊"
+  },
+  {
+    "id": 298,
+    "fact": "India is the world's largest producer of spices, growing over 70% of the world's spice varieties.",
+    "category": "India",
+    "emoji": "🌶️"
+  },
+  {
+    "id": 299,
+    "fact": "The Jaipur foot, a rubber-based prosthetic leg for below-knee amputees, was invented in India and has helped millions worldwide due to its low cost.",
+    "category": "India",
+    "emoji": "🦶"
+  },
+  {
+    "id": 300,
+    "fact": "The Khardung La pass in Ladakh is one of the highest motorable roads in the world, standing at 5,359 meters.",
+    "category": "India",
+    "emoji": "🛣️"
+  },
+  {
+    "id": 301,
+    "fact": "The only prime number that is even is 2. All other even numbers can be divided by 2, so they aren't prime.",
+    "category": "Maths",
+    "emoji": "2️⃣"
+  },
+  {
+    "id": 302,
+    "fact": "There are 360 degrees in a circle because ancient Babylonians used a base-60 number system for astronomy.",
+    "category": "Maths",
+    "emoji": "⭕"
+  },
+  {
+    "id": 303,
+    "fact": "The number 4 is the only number in English that is spelled with the same number of letters as its value.",
+    "category": "Maths",
+    "emoji": "4️⃣"
+  },
+  {
+    "id": 304,
+    "fact": "'Forty' is the only number spelled in alphabetical order. 'One' is the only one spelled in descending alphabetical order.",
+    "category": "Maths",
+    "emoji": "🔠"
+  },
+  {
+    "id": 305,
+    "fact": "A soccer ball is made up of 20 hexagons and 12 pentagons to create a perfect sphere.",
+    "category": "Maths",
+    "emoji": "⚽"
+  },
+  {
+    "id": 306,
+    "fact": "The symbol for division (÷) is called an obelus.",
+    "category": "Maths",
+    "emoji": "➗"
+  },
+  {
+    "id": 307,
+    "fact": "The symbol for percentage (%) comes from the Italian phrase 'per cento', which gradually got shortened into the modern symbol.",
+    "category": "Maths",
+    "emoji": "💹"
+  },
+  {
+    "id": 308,
+    "fact": "The word 'mathematics' comes from the Greek word 'mathema', which means learning, study, or science.",
+    "category": "Maths",
+    "emoji": "📚"
+  },
+  {
+    "id": 309,
+    "fact": "The number 9 is magical: multiply any number by 9, and the sum of the digits of the new number will always equal 9 (e.g., 9x5=45, 4+5=9).",
+    "category": "Maths",
+    "emoji": "9️⃣"
+  },
+  {
+    "id": 310,
+    "fact": "The name of the equals sign (=) was invented by Robert Recorde in 1557 because nothing is more equal than two parallel lines.",
+    "category": "Maths",
+    "emoji": "🟰"
+  },
+  {
+    "id": 311,
+    "fact": "A quintillion has 18 zeros. A decillion has 33 zeros.",
+    "category": "Maths",
+    "emoji": "🔟"
+  },
+  {
+    "id": 312,
+    "fact": "The number 7 is considered the most popular lucky number globally, possibly because there are 7 days of the week and 7 visible planets in antiquity.",
+    "category": "Maths",
+    "emoji": "7️⃣"
+  },
+  {
+    "id": 313,
+    "fact": "Your nose and ears never stop growing throughout your entire life due to gravity and cartilage changes.",
+    "category": "Human Body",
+    "emoji": "👃"
+  },
+  {
+    "id": 314,
+    "fact": "You produce about 25,000 quarts of saliva in your lifetime, enough to fill two swimming pools.",
+    "category": "Human Body",
+    "emoji": "💦"
+  },
+  {
+    "id": 315,
+    "fact": "The small intestine is about 22 feet long, while the large intestine is only about 5 feet long.",
+    "category": "Human Body",
+    "emoji": "🫁"
+  },
+  {
+    "id": 316,
+    "fact": "A sneeze travels out of your mouth at over 160 km/h, which is why covering your mouth is so important.",
+    "category": "Human Body",
+    "emoji": "🤧"
+  },
+  {
+    "id": 317,
+    "fact": "Your fingernails grow four times faster than your toenails because your hands have better blood circulation.",
+    "category": "Human Body",
+    "emoji": "💅"
+  },
+  {
+    "id": 318,
+    "fact": "You can't tickle yourself because your brain predicts the sensation and dampens the response.",
+    "category": "Human Body",
+    "emoji": "😂"
+  },
+  {
+    "id": 319,
+    "fact": "Every day, your heart pumps enough blood to fill a standard swimming pool over the course of a year.",
+    "category": "Human Body",
+    "emoji": "🏊"
+  },
+  {
+    "id": 320,
+    "fact": "The liver can regenerate itself from just 25% of its tissue, making it the only internal organ that can completely regrow.",
+    "category": "Human Body",
+    "emoji": "🫁"
+  },
+  {
+    "id": 321,
+    "fact": "You are taller in the morning than in the evening because the cartilage in your spine compresses throughout the day due to gravity.",
+    "category": "Human Body",
+    "emoji": "📏"
+  },
+  {
+    "id": 322,
+    "fact": "Human teeth are as hard as shark teeth, though ours are designed for chewing while theirs are for tearing.",
+    "category": "Human Body",
+    "emoji": "🦷"
+  },
+  {
+    "id": 323,
+    "fact": "The average person sheds about 40 pounds of skin in their lifetime, accounting for a lot of household dust.",
+    "category": "Human Body",
+    "emoji": "🧹"
+  },
+  {
+    "id": 324,
+    "fact": "The brain itself cannot feel pain, even though it processes pain signals from the rest of the body.",
+    "category": "Human Body",
+    "emoji": "🧠"
+  },
+  {
+    "id": 325,
+    "fact": "The strongest muscle in the body is the masseter, the jaw muscle, which can close the teeth with a force of up to 90 kg on the molars.",
+    "category": "Human Body",
+    "emoji": "💪"
+  },
+  {
+    "id": 326,
+    "fact": "Humans are bioluminescent and actually glow in the dark, but the light we emit is 1,000 times too weak for our eyes to see.",
+    "category": "Human Body",
+    "emoji": "💪"
+  }
+] 
+
+
+
