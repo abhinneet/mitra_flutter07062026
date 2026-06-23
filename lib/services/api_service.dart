@@ -6,6 +6,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 const _storage = FlutterSecureStorage();
 
@@ -166,8 +167,46 @@ class QuizAPI {
 }
 
 class TelemetryAPI {
+  /// Unauthenticated PostgreSQL path — fires even before login
   static Future<Response> send(Map<String, dynamic> payload) =>
       api.post('/api/analytics/telemetry', data: payload);
+
+  /// Primary Firestore path — authenticated, high-volume, processed → BigQuery
+  static Future<Response> sync(Map<String, dynamic> payload) =>
+      api.post('/api/v1/telemetry/sync', data: payload);
+}
+
+class ConsentAPI {
+  /// Check if consent is needed (backend is source of truth)
+  static Future<Response> status() async {
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+    return api.get(
+      '/api/consent/status',
+      options: Options(headers: {
+        if (token != null) 'Authorization': 'Bearer $token',
+      }),
+    );
+  }
+
+  /// Grant DPDPA consents — data_collection is mandatory
+  static Future<Response> grant(List<String> consents) async {
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+    return api.post(
+      '/api/consent/grant',
+      data: {'consents': consents},
+      options: Options(headers: {
+        if (token != null) 'Authorization': 'Bearer $token',
+      }),
+    );
+  }
+
+  /// Withdraw a specific consent or all
+  static Future<Response> withdraw(String consentType) =>
+      api.post('/api/consent/withdraw', data: {'consent_type': consentType});
+
+  /// Check parental consent for a student (minors)
+  static Future<Response> parentalStatus(String studentId) =>
+      api.get('/api/consent/parental/$studentId');
 }
 
 class AdsAPI {

@@ -16,6 +16,7 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../stores/auth_store.dart';
 import '../../models/user.dart';
 import '../../widgets/mitra_scaffold.dart';
+import '../../screens/auth/consent_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -79,9 +80,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
           ref.read(authProvider.notifier).setUser(consumerUser);
 
-          // 4. Send them home
-          _nextRoute =
+          // 4. Check consent — gate home screen behind it (DPDPA)
+          final prefs = await SharedPreferences.getInstance();
+          final bool consentGiven = prefs.getBool('consentGiven') ?? false;
+          final String homeRoute =
               data['role'] == 'teacher' ? '/teacher/home' : '/student/home';
+          _nextRoute = consentGiven ? homeRoute : '/consent?next=$homeRoute';
         } else {
           // They authenticated via OTP but never finished the setup screen
           _nextRoute = '/setup';

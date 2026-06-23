@@ -207,10 +207,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
 
       // 🚨 BUG FIX: Route to the proper Home Screen instead of the Splash Screen
-      if (_role == _Role.teacher) {
-        context.go('/teacher/home');
+      // Gate behind consent screen (DPDPA) on first login
+      final consentGiven = prefs.getBool('consentGiven') ?? false;
+      final String homeRoute =
+          _role == _Role.teacher ? '/teacher/home' : '/student/home';
+
+      if (consentGiven) {
+        context.go(homeRoute);
       } else {
-        context.go('/student/home');
+        context.go('/consent?next=$homeRoute');
       }
     } catch (e) {
       debugPrint("🚨 FIRESTORE ERROR: $e");

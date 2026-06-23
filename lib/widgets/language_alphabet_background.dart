@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/theme_provider.dart';
-import 'dart:math' as math;
 
 // ═══════════════════════════════════════════════════════
 // BACKGROUND ANIMATION - Falling Language Alphabets
@@ -9,7 +8,7 @@ import 'dart:math' as math;
 // ═══════════════════════════════════════════════════════
 
 class LanguageAlphabetBackground extends ConsumerWidget {
-  const LanguageAlphabetBackground();
+  const LanguageAlphabetBackground({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

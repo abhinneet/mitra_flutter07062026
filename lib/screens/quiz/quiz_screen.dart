@@ -4,12 +4,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
 // ✨ Added our new central Architecture Imports
 import '../../models/quiz_model.dart';
 import '../../theme/theme_provider.dart';
+import '../../stores/auth_store.dart';
 
 class QuizScreen extends ConsumerStatefulWidget {
   final String quizId;
@@ -25,6 +27,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   int? _selected;
   bool _loading = true;
   int _score = 0;
+  final DateTime _quizStartTime = DateTime.now();
 
   @override
   void initState() {
@@ -94,10 +97,28 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       });
     } else {
       final xpEarned = _score * 50;
+      final durationSeconds =
+          DateTime.now().difference(_quizStartTime).inSeconds;
+      // ── Backend: submit quiz attempt ────────────────
+      final user = ref.read(currentUserProvider);
+      unawaited(QuizAPI.submit({
+        'quiz_id': widget.quizId,
+        'student_id': user?.id ?? 'anonymous',
+        'state': user?.assignedState ?? '',
+        'class_grade': user?.classGrade ?? '',
+        'score': _score,
+        'max_score': _questions.length,
+        'questions_attempted': _questions.length,
+        'correct_answers': _score,
+        'time_taken_secs': durationSeconds,
+        'completed': true,
+        'app_language': user?.languagePreference ?? 'en',
+      }));
+
       context.go('/quiz/result', extra: {
         'score': _score,
         'total': _questions.length,
-        'xpEarned': xpEarned
+        'xpEarned': xpEarned,
       });
     }
   }

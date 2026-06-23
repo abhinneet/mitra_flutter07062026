@@ -7,12 +7,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
 import '../../services/api_service.dart';
-import '../../stores/offline_store.dart';
-import '../../providers/telemetry_provider.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/quotes_service.dart';
 import '../../services/brain_spark_service.dart';
@@ -46,9 +43,6 @@ class Subject {
     );
   }
 }
-
-// ── TTS Instance ────────────────────────────────────────
-final flutterTts = FlutterTts();
 
 // ── Word Data Model ─────────────────────────────────────
 class WordData {
@@ -531,66 +525,6 @@ class _SubjectCard extends StatelessWidget {
           ),
         ),
       );
-}
-
-class _MotivationCard extends ConsumerWidget {
-  final String thought;
-  final VoidCallback onSpeak;
-
-  const _MotivationCard({required this.thought, required this.onSpeak});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authorAsync = ref.watch(quoteAuthorProvider);
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(thought,
-          style: const TextStyle(
-              fontFamily: 'Courgette',
-              fontSize: 18,
-              fontWeight: FontWeight.w400,
-              color: MitraColors.textPrimary,
-              height: 1.8,
-              letterSpacing: 0.5)),
-      const SizedBox(height: 8),
-      authorAsync.when(
-        loading: () => const Text(
-          '— Loading...',
-          style: TextStyle(
-            fontFamily: 'Mukta',
-            fontSize: 11,
-            color: MitraColors.textMuted,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-        error: (_, __) => const Text(
-          '— Anonymous',
-          style: TextStyle(
-            fontFamily: 'Mukta',
-            fontSize: 11,
-            color: MitraColors.textMuted,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-        data: (author) => Text(
-          '— $author',
-          style: const TextStyle(
-            fontFamily: 'Mukta',
-            fontSize: 11,
-            color: MitraColors.textMuted,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      ),
-      const SizedBox(height: 12),
-      IconButton(
-          icon:
-              const Icon(Icons.volume_up, color: MitraColors.saffron, size: 22),
-          onPressed: onSpeak,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints()),
-    ]);
-  }
 }
 
 class _LoadingCard extends StatelessWidget {
