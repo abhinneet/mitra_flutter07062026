@@ -27,6 +27,7 @@ import '../screens/quiz/quiz_result_screen.dart';
 import '../screens/ar/ar_viewer_screen.dart';
 import '../stores/auth_store.dart';
 import '../screens/auth/consent_screen.dart';
+import '../screens/auth/location_screen.dart';
 
 // ── Shell navigator keys ───────────────────────────────
 // ✅ Exposed as public so main.dart can use rootNavigatorKey.currentContext
@@ -89,6 +90,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           final next = state.uri.queryParameters['next'] ?? '/student/home';
           return ConsentScreen(nextRoute: next);
         },
+      ),
+      GoRoute(
+        path: '/location',
+        builder: (context, state) => const LocationScreen(),
+      ),
+      GoRoute(
+        path: '/setup/class',
+        builder: (context, state) => const SetupScreen(classOnly: true),
       ),
 
       // ── Student Shell ────────────────────────────────

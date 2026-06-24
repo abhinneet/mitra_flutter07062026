@@ -17,21 +17,21 @@ class LanguageAlphabetBackground extends ConsumerWidget {
 
     const particleCount = 15;
     const fontSizes = [
-      27.0,
-      24.0,
-      30.0,
-      22.5,
-      28.5,
-      25.5,
+      40.5,
+      36.0,
+      45.0,
+      33.75,
+      42.75,
+      38.25,
+      47.25,
       31.5,
-      21.0,
-      27.75,
-      24.75,
-      29.25,
-      23.25,
-      30.75,
-      26.25,
-      27.0
+      41.625,
+      37.125,
+      43.875,
+      34.875,
+      46.125,
+      39.375,
+      40.5
     ];
 
     const durations = [
