@@ -171,7 +171,8 @@ class TelemetryAPI {
   static Future<Response> send(Map<String, dynamic> payload) =>
       api.post('/api/analytics/telemetry', data: payload);
 
-  /// Primary Firestore path — authenticated, high-volume, processed → BigQuery
+  /// Primary Firestore path — authenticated, processed → BigQuery
+  /// Requires valid JWT. The Dio interceptor adds the Bearer token.
   static Future<Response> sync(Map<String, dynamic> payload) =>
       api.post('/api/v1/telemetry/sync', data: payload);
 }

@@ -16,7 +16,6 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../stores/auth_store.dart';
 import '../../models/user.dart';
 import '../../widgets/mitra_scaffold.dart';
-import '../../screens/auth/consent_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -71,9 +70,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             phone: data['phone'] ?? '',
             role: data['role'] ?? 'student',
           ).copyWith(
-            classGrade:
-                data['class_grade'], // ✨ This stops GoRouter from attacking!
+            classGrade: data['class_grade'],
             assignedState: data['assigned_state'],
+            assignedDistrict: data['assigned_district'],
             avatarEmoji: data['avatar_emoji'] ?? '🎒',
             languagePreference: data['language_preference'] ?? 'en',
           );

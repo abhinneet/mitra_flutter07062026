@@ -64,6 +64,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
             ).copyWith(
               classGrade: data['class_grade'],
               assignedState: data['assigned_state'],
+              assignedDistrict: data['assigned_district'],
               avatarEmoji: data['avatar_emoji'] ?? '⚡',
               languagePreference: data['language_preference'] ?? 'en',
             );

@@ -251,6 +251,7 @@ class TelemetryService {
     required int totalQuestions,
     required int durationSeconds,
     required bool completed,
+    List<Map<String, dynamic>>? mcqResponses,
   }) async {
     final scorePct = totalQuestions > 0 ? correctAnswers / totalQuestions : 0.0;
     await _write('quiz_attempts', {
@@ -264,6 +265,30 @@ class TelemetryService {
       'passed': scorePct >= 0.6,
       'duration_seconds': durationSeconds,
       'completed': completed,
+      // Per-question breakdown → BigQuery mcq_responses column
+      if (mcqResponses != null && mcqResponses.isNotEmpty)
+        'mcq_responses': mcqResponses,
+    });
+
+    // Also write a session record for BigQuery pipeline
+    await _write('sessions', {
+      ..._context.toBaseEventJson(),
+      'event_type': 'quiz_session',
+      'quiz_id': quizId,
+      'subject': _context.subject,
+      'session_minutes': (durationSeconds / 60).ceil(),
+      'time_spent_seconds': durationSeconds,
+      'completion_percent': completed
+          ? 100
+          : totalQuestions > 0
+              ? (correctAnswers / totalQuestions * 100).round()
+              : 0,
+      'interactions_count': totalQuestions,
+      'has_ar_content': false,
+      'offline_session': false,
+      'sync_version': 'v1',
+      if (mcqResponses != null && mcqResponses.isNotEmpty)
+        'mcq_responses': mcqResponses,
     });
   }
 

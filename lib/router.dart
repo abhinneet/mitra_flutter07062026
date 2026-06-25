@@ -24,6 +24,7 @@ import '../screens/teacher/assign_screen.dart';
 import '../screens/teacher/teacher_profile_screen.dart';
 import '../screens/quiz/quiz_screen.dart';
 import '../screens/quiz/quiz_result_screen.dart';
+import '../models/quiz_model.dart';
 import '../screens/ar/ar_viewer_screen.dart';
 import '../stores/auth_store.dart';
 import '../screens/auth/consent_screen.dart';
@@ -155,6 +156,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             score: extra['score'] as int? ?? 0,
             total: extra['total'] as int? ?? 0,
             xpEarned: extra['xpEarned'] as int? ?? 0,
+            quizId: extra['quizId'] as String? ?? '',
+            questions: extra['questions'] as List<QuizQuestion>? ?? [],
+            studentAnswers: extra['studentAnswers'] as List<int?>? ?? [],
           );
         },
       ),
