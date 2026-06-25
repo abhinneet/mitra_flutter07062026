@@ -18,8 +18,9 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -173,21 +174,45 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
         desiredAccuracy: LocationAccuracy.medium,
       ).timeout(_kLocationTimeout);
 
-      // 4. Reverse geocode — also timed out
-      final placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
+      // 4. Reverse geocode via Nominatim — works on all Android devices
+      final geoUrl = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse'
+        '?lat=${position.latitude}'
+        '&lon=${position.longitude}'
+        '&format=json'
+        '&addressdetails=1',
+      );
+
+      final geoResponse = await http.get(
+        geoUrl,
+        headers: {
+          'User-Agent': 'MITRAStudentApp/1.0 (in.gov.mitra.student)',
+          'Accept-Language': 'en',
+        },
       ).timeout(_kGeocodeTimeout);
 
-      if (placemarks.isEmpty) {
+      if (geoResponse.statusCode != 200) {
         throw const _LocException('GEOCODE_EMPTY');
       }
 
-      final place = placemarks.first;
+      final geoData = jsonDecode(geoResponse.body) as Map<String, dynamic>;
+      final address = geoData['address'] as Map<String, dynamic>?;
+
+      if (address == null) {
+        throw const _LocException('GEOCODE_EMPTY');
+      }
+
+      // Nominatim fields for India:
+      // district → county / state_district / city_district / city
+      // state   → state
       final district = _sanitiseGeoField(
-        place.subAdministrativeArea ?? place.locality,
+        address['county'] as String? ??
+            address['state_district'] as String? ??
+            address['city_district'] as String? ??
+            address['city'] as String? ??
+            address['town'] as String?,
       );
-      final state = _sanitiseGeoField(place.administrativeArea);
+      final state = _sanitiseGeoField(address['state'] as String?);
 
       if (district == null || state == null) {
         throw const _LocException('GEOCODE_INCOMPLETE');
