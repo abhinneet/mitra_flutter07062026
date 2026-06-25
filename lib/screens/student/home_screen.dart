@@ -102,7 +102,11 @@ final brainSparkProvider = Provider<BrainSparkFact>((ref) {
 
 final subjectsProvider = FutureProvider<List<Subject>>((ref) async {
   final res = await CurriculumAPI.tree();
-  final rawSubjects = res.data['subjects'] as List<dynamic>? ?? [];
+  // Backend returns flat nodes array — filter to subject-type nodes only
+  final allNodes = res.data['nodes'] as List<dynamic>? ?? [];
+  final rawSubjects = allNodes
+      .where((n) => (n as Map<String, dynamic>)['node_type'] == 'subject')
+      .toList();
 
   const colors = [
     Color(0x267C5CDD),
@@ -198,7 +202,7 @@ class HomeScreen extends ConsumerWidget {
                         IconButton(
                           icon: Icon(Icons.notifications_none_rounded,
                               color: mainTextColor, size: 28),
-                          onPressed: () {},
+                          onPressed: () => context.go('/student/profile'),
                         ),
                         const SizedBox(width: 8),
                         Container(
@@ -249,6 +253,7 @@ class HomeScreen extends ConsumerWidget {
                         isDark),
                     const SizedBox(width: 8),
                     _StatChip('⭐ ${user?.totalXp ?? 0} XP', isDark),
+                    const SizedBox(width: 8),
                     const SizedBox(width: 8),
                     _StatChip('🥇 #1 in class', isDark),
                   ],
@@ -324,14 +329,20 @@ class HomeScreen extends ConsumerWidget {
                   ),
 
                   // Continue Learning
-                  const _Section(
+                  _Section(
                     title: 'Continue Learning',
-                    trailing: Text('See all',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: MitraColors.saffron,
-                            fontFamily: 'Mukta')),
-                    child: _ContinueLearningCard(),
+                    trailing: GestureDetector(
+                      onTap: () => context.go('/student/learn'),
+                      child: const Text('See all',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: MitraColors.saffron,
+                              fontFamily: 'Mukta')),
+                    ),
+                    child: GestureDetector(
+                      onTap: () => context.go('/student/learn'),
+                      child: const _ContinueLearningCard(),
+                    ),
                   ),
                 ],
               ),

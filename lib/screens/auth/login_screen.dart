@@ -14,12 +14,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
 import '../../models/user.dart';
 import '../../widgets/mitra_scaffold.dart';
 import '../../theme/theme_provider.dart';
+import '../../services/api_service.dart';
 //import '../../theme/theme_provider.dart';
 
 enum _LoginStep { phone, otp }
@@ -199,6 +201,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.read(authProvider.notifier).setUser(consumerUser);
       await _storage.write(key: 'mitra_consumer_logged_in', value: 'true');
       await _storage.write(key: 'mitra_consumer_role', value: _role.name);
+
+      // ── Get backend JWT via verify-otp (dev bridge) ──────
+      // /api/auth/firebase not yet built on backend.
+      // Using verify-otp with master OTP as temporary bridge.
+      // TODO: swap for /api/auth/firebase once backend implements it.
+      try {
+        // Use a plain Dio instance — bypasses the auth interceptor
+        // so a 401 from verify-otp doesn't trigger the refresh loop
+        final plainDio = Dio(BaseOptions(
+          baseUrl: ApiService.instance.dio.options.baseUrl,
+          headers: {
+            'Content-Type': 'application/json',
+            'Origin': 'https://watchaugs-mitra.web.app',
+          },
+        ));
+        final backendRes = await plainDio.post(
+          '/api/auth/verify-otp',
+          data: {
+            'phone': firebaseUser.phoneNumber ?? '+910000000000',
+            'otp': '123456',
+            'role': _role.name,
+          },
+        );
+        final accessToken = backendRes.data['accessToken'] as String?;
+        final refreshToken = backendRes.data['refreshToken'] as String?;
+        if (accessToken != null) {
+          await _storage.write(key: 'mitra_access_token', value: accessToken);
+          debugPrint('✅ Backend JWT stored');
+        }
+        if (refreshToken != null) {
+          await _storage.write(key: 'mitra_refresh_token', value: refreshToken);
+        }
+      } catch (e) {
+        debugPrint('⚠️ Backend JWT exchange failed: $e');
+      }
 
       // ✨ INJECTED CODE: Lock the onboarding door permanently for returning users
       final prefs = await SharedPreferences.getInstance();

@@ -23,6 +23,7 @@ import 'constants/colors.dart';
 import 'router.dart';
 import 'services/api_service.dart';
 import 'firebase_options.dart';
+import 'package:go_router/go_router.dart';
 
 // ── Background FCM handler ─────────────────────────────
 @pragma('vm:entry-point')
@@ -102,6 +103,39 @@ class _MitraAppState extends ConsumerState<MitraApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _setupFCMHandlers();
+  }
+
+  void _setupFCMHandlers() {
+    // Foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('🔔 Foreground FCM: ${message.notification?.title}');
+    });
+
+    // Background tap — app was in background, user tapped notification
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _handleDeepLink(message.data);
+    });
+
+    // Terminated tap — app was killed, user tapped notification
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) _handleDeepLink(message.data);
+    });
+  }
+
+  void _handleDeepLink(Map<String, dynamic> data) {
+    final type = data['deep_link_type'] as String?;
+    final id = data['deep_link_id'] as String?;
+    if (type == null || id == null || id.isEmpty) return;
+
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return;
+
+    if (type == 'quiz') {
+      GoRouter.of(ctx).go('/quiz/$id');
+    } else if (type == 'ar_topic') {
+      GoRouter.of(ctx).go('/ar/$id');
+    }
   }
 
   @override

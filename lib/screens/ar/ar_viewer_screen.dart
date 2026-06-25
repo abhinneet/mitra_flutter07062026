@@ -6,16 +6,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../constants/colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/telemetry_provider.dart';
 
-class ArViewerScreen extends StatefulWidget {
+class ArViewerScreen extends ConsumerStatefulWidget {
   final String topicId;
   const ArViewerScreen({super.key, required this.topicId});
   @override
-  State<ArViewerScreen> createState() => _ArViewerScreenState();
+  ConsumerState<ArViewerScreen> createState() => _ArViewerScreenState();
 }
 
-class _ArViewerScreenState extends State<ArViewerScreen>
+class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
     with SingleTickerProviderStateMixin {
+  final DateTime _arOpenedAt = DateTime.now();
   late AnimationController _scanCtrl;
   late Animation<double> _scanAnim;
   bool _arStarted = false;
@@ -32,6 +35,21 @@ class _ArViewerScreenState extends State<ArViewerScreen>
   @override
   void dispose() {
     _scanCtrl.dispose();
+    // Fire AR end telemetry
+    final durationSeconds = DateTime.now().difference(_arOpenedAt).inSeconds;
+    final telemetry = ref.read(telemetryServiceProvider);
+    if (telemetry != null) {
+      telemetry.logArEnd(
+        arId: widget.topicId,
+        topicId: widget.topicId,
+        moduleTitle: _topicName(widget.topicId),
+        durationSeconds: durationSeconds,
+        completed: _arStarted,
+        isReplay: false,
+        preModuleScore: 0.0,
+        postModuleScore: 0.0,
+      );
+    }
     super.dispose();
   }
 

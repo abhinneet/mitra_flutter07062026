@@ -164,6 +164,19 @@ class QuizAPI {
 
   static Future<Response> submit(Map<String, dynamic> payload) =>
       api.post('/api/quiz/attempts', data: payload);
+
+  // Student's own attempt history — used in profile + ranks screens
+  static Future<Response> attempts(String studentId,
+          {int page = 1, int limit = 20}) =>
+      api.get('/api/quiz/attempts', queryParameters: {
+        'student_id': studentId,
+        'page': '$page',
+        'limit': '$limit',
+      });
+
+  // Quiz-level analytics — used in ranks screen for class leaderboard
+  static Future<Response> analytics(Map<String, String> params) =>
+      api.get('/api/quiz/analytics', queryParameters: params);
 }
 
 class TelemetryAPI {

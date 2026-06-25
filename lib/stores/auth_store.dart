@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user.dart';
 import '../services/telemetry_service.dart';
 import '../providers/telemetry_provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 // ── Auth State class ───────────────────────────────────
 class AuthState {
@@ -89,6 +90,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> setUser(MitraUser user) async {
     state = state.copyWith(user: user, isLoggedIn: true, isLoading: false);
     await _initializeTelemetry();
+    _subscribeFCMTopics(user);
+  }
+
+  void _subscribeFCMTopics(MitraUser user) {
+    final state = user.assignedState?.toLowerCase().replaceAll(' ', '_') ?? '';
+    final cls = user.classGrade?.toLowerCase().replaceAll(' ', '_') ?? '';
+
+    FirebaseMessaging.instance.subscribeToTopic('mitra_all');
+    if (state.isNotEmpty) {
+      FirebaseMessaging.instance.subscribeToTopic('mitra_$state');
+      if (cls.isNotEmpty) {
+        FirebaseMessaging.instance.subscribeToTopic('mitra_${state}_$cls');
+      }
+    }
+    debugPrint('✅ FCM topics subscribed for $state / $cls');
   }
 
   Future<void> _initializeTelemetry() async {
@@ -123,6 +139,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Unsubscribe FCM topics before sign-out
+    final user = state.user;
+    if (user != null) {
+      final st = user.assignedState?.toLowerCase().replaceAll(' ', '_') ?? '';
+      final cls = user.classGrade?.toLowerCase().replaceAll(' ', '_') ?? '';
+      FirebaseMessaging.instance.unsubscribeFromTopic('mitra_all');
+      if (st.isNotEmpty) {
+        FirebaseMessaging.instance.unsubscribeFromTopic('mitra_$st');
+        if (cls.isNotEmpty) {
+          FirebaseMessaging.instance.unsubscribeFromTopic('mitra_${st}_$cls');
+        }
+      }
+    }
     await FirebaseAuth.instance.signOut();
     state = const AuthState(isLoggedIn: false, isLoading: false);
   }
