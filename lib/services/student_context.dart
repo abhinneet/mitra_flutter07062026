@@ -35,6 +35,7 @@ class StudentContext {
   final DisabilityStatus disabilityStatus;
   final MinorityStatus minorityStatus;
   final bool? isFirstGenerationLearner;
+  final MobileOwnership mobileOwnership;
 
   // Consent & Data Governance (DPDPA 2023)
   final ConsentStatus parentalConsentStatus;
@@ -72,6 +73,7 @@ class StudentContext {
     this.disabilityStatus = DisabilityStatus.unknown,
     this.minorityStatus = MinorityStatus.unknown,
     this.isFirstGenerationLearner,
+    this.mobileOwnership = MobileOwnership.unknown,
     this.parentalConsentStatus = ConsentStatus.unknown,
     this.dataRetentionConsent = ConsentStatus.unknown,
     this.consentTimestamp,
@@ -110,6 +112,7 @@ class StudentContext {
       'disability_status': disabilityStatus.wireValue,
       'minority_status': minorityStatus.wireValue,
       'first_generation_learner': isFirstGenerationLearner,
+      'mobile_ownership': mobileOwnership.wireValue,
     };
   }
 
@@ -174,9 +177,13 @@ class StudentContext {
       ageGroup: AgeGroup.fromWire(doc['age_group'] as String?),
       socioeconomicStatus:
           SocioeconomicStatus.fromWire(doc['socioeconomic_status'] as String?),
-      disabilityStatus: DisabilityStatus.fromWire(doc['disability_status'] as String?),
-      minorityStatus: MinorityStatus.fromWire(doc['minority_status'] as String?),
+      disabilityStatus:
+          DisabilityStatus.fromWire(doc['disability_status'] as String?),
+      minorityStatus:
+          MinorityStatus.fromWire(doc['minority_status'] as String?),
       isFirstGenerationLearner: doc['first_generation_learner'] as bool?,
+      mobileOwnership:
+          MobileOwnership.fromWire(doc['mobile_ownership'] as String?),
       parentalConsentStatus:
           ConsentStatus.fromWire(doc['parental_consent_status'] as String?),
       dataRetentionConsent:
@@ -200,6 +207,8 @@ class StudentContext {
     ConsentStatus? dataRetentionConsent,
     DateTime? consentTimestamp,
     String? consentVersion,
+    String? gender,
+    MobileOwnership? mobileOwnership,
   }) {
     return StudentContext(
       studentId: studentId,
@@ -212,13 +221,15 @@ class StudentContext {
       language: language,
       areaType: areaType,
       geofenceId: geofenceId,
-      gender: gender,
+      gender: gender ?? this.gender,
       ageGroup: ageGroup,
       socioeconomicStatus: socioeconomicStatus,
       disabilityStatus: disabilityStatus,
       minorityStatus: minorityStatus,
       isFirstGenerationLearner: isFirstGenerationLearner,
-      parentalConsentStatus: parentalConsentStatus ?? this.parentalConsentStatus,
+      mobileOwnership: mobileOwnership ?? this.mobileOwnership,
+      parentalConsentStatus:
+          parentalConsentStatus ?? this.parentalConsentStatus,
       dataRetentionConsent: dataRetentionConsent ?? this.dataRetentionConsent,
       consentTimestamp: consentTimestamp ?? this.consentTimestamp,
       consentVersion: consentVersion ?? this.consentVersion,

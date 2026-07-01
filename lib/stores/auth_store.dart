@@ -68,6 +68,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
               assignedDistrict: data['assigned_district'],
               avatarEmoji: data['avatar_emoji'] ?? '⚡',
               languagePreference: data['language_preference'] ?? 'en',
+              gender: data['gender'],
+              mobileBelongsTo: data['mobile_belongs_to'],
             );
 
             await setUser(realUser);

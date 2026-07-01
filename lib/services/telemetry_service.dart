@@ -155,6 +155,34 @@ class TelemetryService {
     });
   }
 
+  /// Update the in-memory demographic context (gender / mobile ownership)
+  /// captured at profile setup, so the *current* session's events carry it
+  /// immediately rather than only after the next TelemetryService.create()
+  /// reload. Mirrors [updateConnectivity] / [updateConsent].
+  void updateDemographics({String? gender, MobileOwnership? mobileOwnership}) {
+    _context = _context.copyWith(
+      gender: gender,
+      mobileOwnership: mobileOwnership,
+    );
+  }
+
+  /// Records that the student completed (or updated) the profile-setup
+  /// form, including the demographic fields collected there. Respects the
+  /// same consent gate as every other event — [StudentContext.toBaseEventJson]
+  /// only includes gender/mobile_ownership/etc. when consent is affirmative,
+  /// so this call is always safe to make regardless of consent state.
+  Future<void> logProfileSetup({
+    required bool genderProvided,
+    required bool mobileOwnershipProvided,
+  }) async {
+    await _write('profile_events', {
+      ..._context.toBaseEventJson(),
+      'event_type': 'profile_setup_complete',
+      'gender_provided': genderProvided,
+      'mobile_ownership_provided': mobileOwnershipProvided,
+    });
+  }
+
   // ─── SESSION EVENTS ─────────────────────────────────────────────────────
 
   Future<void> logSessionStart(

@@ -29,6 +29,8 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../widgets/mitra_glass_card.dart';
 import '../../widgets/mitra_scaffold_backup.dart';
 import '../../stores/auth_store.dart';
+import '../../providers/telemetry_provider.dart';
+import '../../services/telemetry_enums.dart';
 
 // ── Constants ────────────────────────────────────────────────
 
@@ -86,6 +88,10 @@ const _kAvatars = [
   '👩‍🎤',
 ];
 
+const _kGenders = ['Male', 'Female', 'Other'];
+
+const _kMobileOwners = ['Mother', 'Father', 'Self', 'Other'];
+
 const _kClasses = [
   'Class 1',
   'Class 2',
@@ -106,6 +112,8 @@ const _kClasses = [
 bool _isValidLanguage(String code) => _kLanguages.any((l) => l.code == code);
 bool _isValidAvatar(String emoji) => _kAvatars.contains(emoji);
 bool _isValidClass(String cls) => _kClasses.contains(cls);
+bool _isValidGender(String gender) => _kGenders.contains(gender);
+bool _isValidMobileOwner(String owner) => _kMobileOwners.contains(owner);
 
 String _sanitiseName(String raw) {
   final cleaned = raw.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), '').trim();
@@ -129,6 +137,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   String _lang = 'hi';
   String _avatar = '👨‍🎓';
   String _cls = '';
+  String _gender = '';
+  String _mobileBelongsTo = '';
   bool _saving = false;
   String? _error;
   int _saveOpId = 0;
@@ -139,8 +149,14 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(
-        text: ref.read(currentUserProvider)?.fullName ?? '');
+    final existingUser = ref.read(currentUserProvider);
+    _nameCtrl = TextEditingController(text: existingUser?.fullName ?? '');
+    final existingGender = existingUser?.gender ?? '';
+    if (_isValidGender(existingGender)) _gender = existingGender;
+    final existingMobileOwner = existingUser?.mobileBelongsTo ?? '';
+    if (_isValidMobileOwner(existingMobileOwner)) {
+      _mobileBelongsTo = existingMobileOwner;
+    }
     if (widget.classOnly) _step = 2;
   }
 
@@ -154,8 +170,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   bool _validateCurrentStep() => switch (_step) {
         0 => _isValidLanguage(_lang),
-        1 =>
-          _sanitiseName(_nameCtrl.text).isNotEmpty && _isValidAvatar(_avatar),
+        1 => _sanitiseName(_nameCtrl.text).isNotEmpty &&
+            _isValidAvatar(_avatar) &&
+            _isValidGender(_gender) &&
+            _isValidMobileOwner(_mobileBelongsTo),
         2 => _isValidClass(_cls),
         _ => false,
       };
@@ -191,7 +209,14 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   Future<void> _saveAndContinue() async {
     final sanitisedName = _sanitiseName(_nameCtrl.text);
-    if (sanitisedName.isEmpty || !_isValidClass(_cls)) {
+    // Gender / mobile-owner are collected during the full onboarding
+    // wizard's Profile step. classOnly mode (re-picking class for an
+    // already-onboarded user) never shows that step, so don't block that
+    // flow on fields it never asked for — but do require them for anyone
+    // going through full setup.
+    final demographicsOk = widget.classOnly ||
+        (_isValidGender(_gender) && _isValidMobileOwner(_mobileBelongsTo));
+    if (sanitisedName.isEmpty || !_isValidClass(_cls) || !demographicsOk) {
       setState(() => _error = 'Please fill all fields correctly.');
       return;
     }
@@ -206,23 +231,63 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       final user = ref.read(currentUserProvider);
       if (user == null) throw Exception('NO_USER');
 
-      await FirebaseFirestore.instanceFor(
+      final firestore = FirebaseFirestore.instanceFor(
         app: Firebase.app(),
         databaseId: '(default)',
-      ).collection('users').doc(user.id).update({
+      );
+
+      final genderValid = _isValidGender(_gender);
+      final mobileOwnerValid = _isValidMobileOwner(_mobileBelongsTo);
+
+      await firestore.collection('users').doc(user.id).update({
         'language_preference': _lang,
         'avatar_emoji': _avatar,
         'full_name': sanitisedName,
+        if (genderValid) 'gender': _gender,
+        if (mobileOwnerValid) 'mobile_belongs_to': _mobileBelongsTo,
         'class_grade': _cls,
         'class_locked_at': FieldValue.serverTimestamp(),
       }).timeout(_kFirestoreTimeout);
+
+      // Mirror the demographic fields into the `students` collection too —
+      // that's what TelemetryService/StudentContext reads its analytics
+      // dimensions from, so this is what makes gender / mobile ownership
+      // actually eligible for reporting rather than just stored on the
+      // user's profile.
+      if (genderValid || mobileOwnerValid) {
+        await firestore.collection('students').doc(user.id).set({
+          if (genderValid) 'gender': _gender,
+          if (mobileOwnerValid) 'mobile_ownership': _mobileBelongsTo,
+        }, SetOptions(merge: true)).timeout(_kFirestoreTimeout);
+      }
 
       ref.read(authProvider.notifier).updateUser(user.copyWith(
             languagePreference: _lang,
             avatarEmoji: _avatar,
             fullName: sanitisedName,
+            gender: genderValid ? _gender : null,
+            mobileBelongsTo: mobileOwnerValid ? _mobileBelongsTo : null,
             classGrade: _cls,
           ));
+
+      // Reflect the new demographics in the *current* telemetry session
+      // immediately (rather than waiting for the next TelemetryService
+      // reload), then log that profile setup was completed.
+      if (genderValid || mobileOwnerValid) {
+        final telemetry = ref.read(telemetryServiceProvider);
+        if (telemetry != null) {
+          telemetry.updateDemographics(
+            gender: genderValid ? _gender : null,
+            mobileOwnership: mobileOwnerValid
+                ? MobileOwnership.fromWire(_mobileBelongsTo)
+                : null,
+          );
+          unawaited(telemetry.logProfileSetup(
+            genderProvided: genderValid,
+            mobileOwnershipProvided: mobileOwnerValid,
+          ));
+        }
+      }
 
       final prefs =
           await SharedPreferences.getInstance().timeout(_kPrefsTimeout);
@@ -259,6 +324,16 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   void _selectClass(String cls) {
     if (_saving) return;
     setState(() => _cls = cls);
+  }
+
+  void _selectGender(String gender) {
+    if (_saving) return;
+    setState(() => _gender = gender);
+  }
+
+  void _selectMobileOwner(String owner) {
+    if (_saving) return;
+    setState(() => _mobileBelongsTo = owner);
   }
 
   // ── Build ──
@@ -314,6 +389,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                       nameController: _nameCtrl,
                       selectedAvatar: _avatar,
                       onAvatarTap: _selectAvatar,
+                      selectedGender: _gender,
+                      onGenderSelect: _selectGender,
+                      selectedMobileOwner: _mobileBelongsTo,
+                      onMobileOwnerSelect: _selectMobileOwner,
                     ),
                   2 => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,11 +557,19 @@ class _ProfileStep extends StatelessWidget {
   final TextEditingController nameController;
   final String selectedAvatar;
   final ValueChanged<String> onAvatarTap;
+  final String selectedGender;
+  final ValueChanged<String> onGenderSelect;
+  final String selectedMobileOwner;
+  final ValueChanged<String> onMobileOwnerSelect;
 
   const _ProfileStep({
     required this.nameController,
     required this.selectedAvatar,
     required this.onAvatarTap,
+    required this.selectedGender,
+    required this.onGenderSelect,
+    required this.selectedMobileOwner,
+    required this.onMobileOwnerSelect,
   });
 
   @override
@@ -545,6 +632,100 @@ class _ProfileStep extends StatelessWidget {
                   const BorderSide(color: MitraColors.saffron, width: 1.5),
             ),
           ),
+        ),
+        const SizedBox(height: MitraSpacing.lg),
+        _LabeledDropdown(
+          label: 'Gender',
+          hint: 'Select gender',
+          value: selectedGender,
+          options: _kGenders,
+          onChanged: onGenderSelect,
+        ),
+        const SizedBox(height: MitraSpacing.lg),
+        _LabeledDropdown(
+          label: 'Mobile belongs to',
+          hint: 'Select relation',
+          value: selectedMobileOwner,
+          options: _kMobileOwners,
+          onChanged: onMobileOwnerSelect,
+        ),
+      ],
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Labeled Dropdown (Gender / Mobile-belongs-to)
+// ════════════════════════════════════════════════════════════
+
+class _LabeledDropdown extends StatelessWidget {
+  final String label;
+  final String hint;
+  final String value;
+  final List<String> options;
+  final ValueChanged<String> onChanged;
+
+  const _LabeledDropdown({
+    required this.label,
+    required this.hint,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label.toUpperCase(),
+            style: const TextStyle(
+              fontFamily: 'Mukta',
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              color: Colors.white70,
+              letterSpacing: 1,
+            )),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: value.isEmpty ? null : value,
+          isExpanded: true,
+          dropdownColor: MitraColors.bgCard,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: Colors.white70),
+          style: const TextStyle(fontFamily: 'Mukta', color: Colors.white),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Colors.white54),
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.08),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(MitraRadius.sm),
+              borderSide:
+                  BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(MitraRadius.sm),
+              borderSide:
+                  BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(MitraRadius.sm),
+              borderSide:
+                  const BorderSide(color: MitraColors.saffron, width: 1.5),
+            ),
+          ),
+          items: options
+              .map((opt) => DropdownMenuItem<String>(
+                    value: opt,
+                    child: Text(opt),
+                  ))
+              .toList(),
+          onChanged: (val) {
+            if (val != null) onChanged(val);
+          },
         ),
       ],
     );

@@ -209,6 +209,26 @@ enum RiskLevel {
       );
 }
 
+/// Whose device/mobile number the student's account is registered under.
+/// Captured at profile setup and used as a DPDPA-sensitive demographic
+/// dimension (same consent gating as gender / age group / etc.).
+enum MobileOwnership {
+  mother('Mother'),
+  father('Father'),
+  self('Self'),
+  other('Other'),
+  unknown('Unknown');
+
+  final String wireValue;
+  const MobileOwnership(this.wireValue);
+
+  static MobileOwnership fromWire(String? value) =>
+      MobileOwnership.values.firstWhere(
+        (m) => m.wireValue == value,
+        orElse: () => MobileOwnership.unknown,
+      );
+}
+
 enum ConnectivityType {
   wifi('WiFi'),
   fourG('4G'),
