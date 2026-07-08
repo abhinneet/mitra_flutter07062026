@@ -1,3 +1,4 @@
+import 'dart:math'; // ✨ REQUIRED FOR RANDOM POSITIONS
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/theme_provider.dart';
@@ -16,22 +17,23 @@ class LanguageAlphabetBackground extends ConsumerWidget {
     final accentColor = ThemeHelper.getActiveHighlight(theme);
 
     const particleCount = 15;
+    // ✨ Font sizes increased by 50%
     const fontSizes = [
-      40.5,
-      36.0,
-      45.0,
-      33.75,
-      42.75,
-      38.25,
+      60.75,
+      54.0,
+      67.5,
+      50.6,
+      64.1,
+      57.4,
+      70.9,
       47.25,
-      31.5,
-      41.625,
-      37.125,
-      43.875,
-      34.875,
-      46.125,
-      39.375,
-      40.5
+      62.4,
+      55.7,
+      65.8,
+      52.3,
+      69.2,
+      59.0,
+      60.75
     ];
 
     const durations = [
@@ -130,12 +132,14 @@ List<({double left, double top})> _scatterPositions(
   double w,
   double h,
 ) {
-  const phi = 0.6180339887;
+  // ✨ Seeded random generator ensures true random scatter,
+  // but prevents them from glitching/jumping around if the screen rebuilds.
+  final random = Random(88);
   return List.generate(count, (i) {
-    final frac = (i * phi) % 1.0;
-    final left = frac * w; // Evenly spread across full width (0 to 100%)
-    final top = (i / count) * h;
-    return (left: left, top: top);
+    return (
+      left: random.nextDouble() * w,
+      top: random.nextDouble() * h,
+    );
   });
 }
 

@@ -30,18 +30,13 @@ class QuizResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = total > 0 ? (score / total * 100).toInt() : 0;
-    final passed = pct >= 60;
 
-    final emoji = pct >= 80
-        ? '🏆'
-        : pct >= 60
-            ? '👍'
-            : '💪';
-    final message = pct >= 80
-        ? 'Excellent work!'
-        : pct >= 60
-            ? 'Good job!'
-            : 'Keep practising!';
+    // ✨ Mastery Gate Logic
+    final isMastered = score == total;
+
+    final emoji = isMastered ? '🏆' : '⚠️';
+    final message =
+        isMastered ? '100% Mastery Achieved!' : 'Module Not Mastered';
 
     // Streak: consecutive correct from start
     int streak = 0;
@@ -78,7 +73,9 @@ class QuizResultScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                      color: passed ? MitraColors.emerald : MitraColors.saffron,
+                      color: isMastered
+                          ? MitraColors.emerald
+                          : MitraColors.crimson,
                       width: 6),
                 ),
                 alignment: Alignment.center,
@@ -90,9 +87,9 @@ class QuizResultScreen extends StatelessWidget {
                             fontFamily: 'Baloo2',
                             fontWeight: FontWeight.w800,
                             fontSize: 34,
-                            color: passed
+                            color: isMastered
                                 ? MitraColors.emerald
-                                : MitraColors.saffron)),
+                                : MitraColors.crimson)),
                     Text('$score/$total',
                         style: const TextStyle(
                             fontFamily: 'Mukta',
@@ -104,87 +101,134 @@ class QuizResultScreen extends StatelessWidget {
 
               const SizedBox(height: MitraSpacing.lg),
 
-              // ── Stats row: XP + Streak ─────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // XP chip
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: MitraColors.gold.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(MitraRadius.pill),
-                      border: Border.all(
-                          color: MitraColors.gold.withValues(alpha: 0.4)),
-                    ),
-                    child: Text(
-                      '+$xpEarned XP',
-                      style: const TextStyle(
-                          fontFamily: 'Baloo2',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: MitraColors.gold),
-                    ),
-                  ),
-                  if (streak > 1) ...[
-                    const SizedBox(width: 10),
-                    // Streak chip
+              // ── Stats Row ────────────────────────────────────
+              if (isMastered)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: MitraColors.saffron.withValues(alpha: 0.12),
+                        color: MitraColors.gold.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(MitraRadius.pill),
                         border: Border.all(
-                            color: MitraColors.saffron.withValues(alpha: 0.35)),
+                            color: MitraColors.gold.withValues(alpha: 0.4)),
                       ),
                       child: Text(
-                        '🔥 $streak streak',
+                        '+$xpEarned XP',
                         style: const TextStyle(
                             fontFamily: 'Baloo2',
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
-                            color: MitraColors.saffron),
+                            color: MitraColors.gold),
                       ),
                     ),
+                    if (streak > 1) ...[
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: MitraColors.saffron.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(MitraRadius.pill),
+                          border: Border.all(
+                              color:
+                                  MitraColors.saffron.withValues(alpha: 0.35)),
+                        ),
+                        child: Text(
+                          '🔥 $streak streak',
+                          style: const TextStyle(
+                              fontFamily: 'Baloo2',
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: MitraColors.saffron),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              ),
+                )
+              else
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Text(
+                    'You must score 100% to unlock the next module. Please re-watch the AR lesson and try again.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Mukta',
+                      fontSize: 14,
+                      color: MitraColors.textSecondary,
+                    ),
+                  ),
+                ),
 
               const SizedBox(height: MitraSpacing.xl),
 
-              // ── Buttons ────────────────────────────
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: GestureDetector(
-                  onTap: () => context.go('/student/home'),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                          colors: MitraColors.gradientSaffron),
-                      borderRadius: BorderRadius.circular(MitraRadius.pill),
+              // ── Conditional Buttons (The Gate) ────────────────────────────
+              if (!isMastered)
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: GestureDetector(
+                    // ✨ Forces them back to the AR Viewer
+                    onTap: () => context.go('/student/ar/$quizId'),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: MitraColors.crimson,
+                          borderRadius: BorderRadius.circular(MitraRadius.pill),
+                          boxShadow: [
+                            BoxShadow(
+                              color: MitraColors.crimson.withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            )
+                          ]),
+                      alignment: Alignment.center,
+                      child: const Text('🔄 Re-watch AR Lesson',
+                          style: TextStyle(
+                              fontFamily: 'Baloo2',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                              color: Colors.white)),
                     ),
-                    alignment: Alignment.center,
-                    child: const Text('Back to Home',
-                        style: TextStyle(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                            color: Colors.white)),
                   ),
+                )
+              else
+                Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: GestureDetector(
+                        onTap: () => context.go('/student/home'),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                                colors: MitraColors.gradientSaffron),
+                            borderRadius:
+                                BorderRadius.circular(MitraRadius.pill),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text('Back to Home',
+                              style: TextStyle(
+                                  fontFamily: 'Baloo2',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                  color: Colors.white)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () => context.go('/student/learn'),
+                      child: const Text('Next Module',
+                          style: TextStyle(
+                              fontFamily: 'Mukta',
+                              fontSize: 14,
+                              color: MitraColors.sky)),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => context.go('/student/learn'),
-                child: const Text('Try Another Quiz',
-                    style: TextStyle(
-                        fontFamily: 'Mukta',
-                        fontSize: 14,
-                        color: MitraColors.sky)),
-              ),
 
               const SizedBox(height: MitraSpacing.xl),
 

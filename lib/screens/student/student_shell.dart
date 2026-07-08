@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/mitra_scaffold_backup.dart';
+import '../../widgets/mitra_scaffold.dart';
 import '../../widgets/language_alphabet_background.dart';
 import '../../widgets/sync_status_banner.dart';
 

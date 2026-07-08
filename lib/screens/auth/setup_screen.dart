@@ -27,7 +27,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../../widgets/mitra_glass_card.dart';
-import '../../widgets/mitra_scaffold_backup.dart';
+import '../../widgets/mitra_scaffold.dart';
 import '../../stores/auth_store.dart';
 import '../../providers/telemetry_provider.dart';
 import '../../services/telemetry_enums.dart';
@@ -299,8 +299,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       if (widget.classOnly) {
         context.go(_SetupRoutes.profile);
       } else {
-        // Route through greeting, setting /location as the subsequent landing zone
-        context.go('/greeting?next=${_SetupRoutes.location}');
+        // ✨ Send directly to Location next. The Greeting should be the final step before Home!
+        context.go(_SetupRoutes.location);
       }
     } on TimeoutException {
       if (opId != _saveOpId || !mounted) return;

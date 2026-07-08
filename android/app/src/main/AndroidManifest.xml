@@ -84,6 +84,8 @@
          https://developer.android.com/training/package-visibility
          and https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT -->
     <queries>
+        <package android:name="com.google.ar.core" />
+        
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

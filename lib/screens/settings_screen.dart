@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/theme_provider.dart';
 import '../widgets/mitra_glass_card.dart';
-import '../widgets/mitra_scaffold_backup.dart';
+import '../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 
 class SettingsScreen extends ConsumerWidget {

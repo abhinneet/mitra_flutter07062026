@@ -3,8 +3,11 @@
 // Uses camera + overlays AR placeholder UI.
 // Real AR integration: swap for model_viewer_plus or unity_widget
 // ═══════════════════════════════════════════════════════
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:model_viewer_plus/model_viewer_plus.dart';
 import '../../constants/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/telemetry_provider.dart';
@@ -22,6 +25,9 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
   late AnimationController _scanCtrl;
   late Animation<double> _scanAnim;
   bool _arStarted = false;
+  bool _arCompleted = false; // ✨ Tracks if the session is finished
+  bool _show3DViewer =
+      false; // ✨ Tracks if they opted for the secondary 3D view
   // Cached in didChangeDependencies so dispose() can use it safely
   // (ref must not be read after the widget is unmounted)
   dynamic _cachedTelemetry;
@@ -52,7 +58,7 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
         topicId: widget.topicId,
         moduleTitle: _topicName(widget.topicId),
         durationSeconds: durationSeconds,
-        completed: _arStarted,
+        completed: _arStarted || _arCompleted, // ✨ Updated to check completion
         isReplay: false,
         preModuleScore: 0.0,
         postModuleScore: 0.0,
@@ -61,19 +67,53 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
     super.dispose();
   }
 
+  // ✨ THE MAGIC: Forces the OS to bypass webviews and open the AR Camera immediately
+  Future<void> _launchDirectAR() async {
+    setState(() {
+      _arStarted = true;
+      _show3DViewer = false; // Close 3D viewer if it was open
+    });
+
+    // TODO: Swap this for your Cloudflare R2 URL later: 'https://cdn.mitra.in/models/${widget.topicId}.glb'
+    const String glbUrl =
+        'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
+
+    if (Platform.isAndroid) {
+      final String intentUrl =
+          'intent://arvr.google.com/scene-viewer/1.0?file=$glbUrl&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=https://developers.google.com/ar;end;';
+      try {
+        await launchUrl(Uri.parse(intentUrl),
+            mode: LaunchMode.externalNonBrowserApplication);
+      } catch (e) {
+        debugPrint("ARCore failed to launch: $e");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Camera feed placeholder (replace with camera_preview in production)
-          Container(color: const Color(0xFF0a0a0a)),
+          // ✨ Conditionally show the 3D viewer if the secondary option is chosen
+          if (_show3DViewer)
+            const ModelViewer(
+              backgroundColor: Color(0xFF0a0a0a),
+              src: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+              alt: 'A 3D educational model',
+              autoRotate: true,
+              cameraControls: true,
+              disableZoom: false,
+            )
+          else
+            Container(color: const Color(0xFF0a0a0a)),
 
-          // AR Frame corners
-          Positioned.fill(
-            child: CustomPaint(painter: _ArCornersPainter()),
-          ),
+          // AR Frame corners (Hide if 3D viewer is active)
+          if (!_show3DViewer)
+            Positioned.fill(
+              child: CustomPaint(painter: _ArCornersPainter()),
+            ),
 
           // Scanning line
           if (!_arStarted)
@@ -162,7 +202,9 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _topicName(widget.topicId),
+                    _arCompleted
+                        ? 'AR Session Complete! 🎉'
+                        : _topicName(widget.topicId),
                     style: const TextStyle(
                         fontFamily: 'Baloo2',
                         fontWeight: FontWeight.w800,
@@ -170,36 +212,165 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
                         color: MitraColors.textPrimary),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Point your camera at your textbook page to see the 3D model appear',
+                  Text(
+                    _arCompleted
+                        ? 'Are you ready to test your knowledge?'
+                        : 'Point your camera at your textbook page to see the 3D model appear',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontFamily: 'Mukta',
                         fontSize: 13,
                         color: MitraColors.textMuted),
                   ),
                   const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () => setState(() => _arStarted = !_arStarted),
-                    child: Container(
-                      width: double.infinity,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                            colors: MitraColors.gradientSaffron),
-                        borderRadius: BorderRadius.circular(MitraRadius.pill),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _arStarted ? '⏸ Pause AR' : '▶ Start AR Scanning',
-                        style: const TextStyle(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                            color: Colors.white),
+                  if (!_arCompleted) ...[
+                    // 1. PRIMARY: Jump straight to AR Camera
+                    GestureDetector(
+                      onTap: _launchDirectAR,
+                      child: Container(
+                        width: double.infinity,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                              colors: MitraColors.gradientSaffron),
+                          borderRadius: BorderRadius.circular(MitraRadius.pill),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Text(
+                          '▶ Launch AR Camera',
+                          style: TextStyle(
+                              fontFamily: 'Baloo2',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              color: Colors.white),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+
+                    // 2. SECONDARY: View 3D Model on Screen
+                    if (!_show3DViewer)
+                      GestureDetector(
+                        onTap: () => setState(() {
+                          _arStarted = true;
+                          _show3DViewer = true;
+                        }),
+                        child: Container(
+                          width: double.infinity,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            borderRadius:
+                                BorderRadius.circular(MitraRadius.pill),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2)),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            '👀 View 3D Model on Screen',
+                            style: TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ),
+
+                    // 3. FINISH SESSION (Appears once either mode is started)
+                    if (_arStarted) ...[
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () => setState(() {
+                          _arStarted = false;
+                          _show3DViewer = false;
+                          _arCompleted = true;
+                        }),
+                        child: Container(
+                          width: double.infinity,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: MitraColors.emerald.withValues(alpha: 0.2),
+                            borderRadius:
+                                BorderRadius.circular(MitraRadius.pill),
+                            border: Border.all(
+                                color:
+                                    MitraColors.emerald.withValues(alpha: 0.5)),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            '✅ Finish Lesson',
+                            style: TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: MitraColors.emerald),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ] else ...[
+                    // COMPLETED STATE: Replay or Quiz
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _arCompleted = false;
+                                _show3DViewer = false;
+                              });
+                              _launchDirectAR(); // Replay jumps straight to AR!
+                            },
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.1),
+                                borderRadius:
+                                    BorderRadius.circular(MitraRadius.pill),
+                                border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.2)),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                '🔄 Replay AR',
+                                style: TextStyle(
+                                    fontFamily: 'Baloo2',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                    color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () =>
+                                context.push('/quiz/${widget.topicId}'),
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                    colors: MitraColors.gradientSaffron),
+                                borderRadius:
+                                    BorderRadius.circular(MitraRadius.pill),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Take Quiz →',
+                                style: TextStyle(
+                                    fontFamily: 'Baloo2',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                    color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -26,7 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
-import '../../widgets/mitra_scaffold_backup.dart';
+import '../../widgets/mitra_scaffold.dart';
 
 // ── Constants ────────────────────────────────────────────────
 
@@ -282,7 +282,8 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       // Route based on consent status
       final consentGiven = prefs.getBool(_LocKeys.consentGiven) ?? false;
       if (consentGiven) {
-        context.go(_LocRoutes.home);
+        // ✨ Route through the animated greeting screen as the grand finale before Home!
+        context.go('/greeting?next=${_LocRoutes.home}');
       } else {
         context.go('${_LocRoutes.consent}?next=${_LocRoutes.home}');
       }

@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // ✨ REQUIRED FOR HAPTIC BUZZER
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold.dart';
@@ -25,7 +26,8 @@ class QuizScreen extends ConsumerStatefulWidget {
   ConsumerState<QuizScreen> createState() => _QuizScreenState();
 }
 
-class _QuizScreenState extends ConsumerState<QuizScreen> {
+class _QuizScreenState extends ConsumerState<QuizScreen>
+    with SingleTickerProviderStateMixin {
   List<QuizQuestion> _questions = [];
   int _current = 0;
   int? _selected;
@@ -38,10 +40,35 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   final List<int?> _studentAnswers = [];
   final List<Map<String, dynamic>> _mcqResponses = [];
 
+  // ✨ Flash Animation Controllers
+  late AnimationController _flashCtrl;
+  late Animation<Color?> _flashColor;
+
   @override
   void initState() {
     super.initState();
     _loadQuiz();
+
+    _flashCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 150));
+    _flashColor = ColorTween(
+      begin: Colors.transparent,
+      end: Colors.red.withValues(alpha: 0.65),
+    ).animate(_flashCtrl);
+  }
+
+  @override
+  void dispose() {
+    _flashCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _playEmergencyFlash() async {
+    for (int i = 0; i < 3; i++) {
+      HapticFeedback.heavyImpact();
+      await _flashCtrl.forward();
+      await _flashCtrl.reverse();
+    }
   }
 
   Future<void> _loadQuiz() async {
@@ -126,6 +153,11 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         'time_ms': timeMs,
       });
     });
+
+    // ✨ Trigger flash & haptic feedback on wrong answer
+    if (!isCorrect) {
+      _playEmergencyFlash();
+    }
   }
 
   void _next() {
@@ -190,303 +222,334 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     final q = _questions[_current];
     final progress = (_current + 1) / _questions.length;
 
-    return MitraScaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Question ${_current + 1}/${_questions.length}',
-          style: const TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Colors.white),
-        ),
-        leading: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white70),
-            onPressed: () => context.pop()),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(
-            MitraSpacing.lg, 0, MitraSpacing.lg, MitraSpacing.lg),
-        child: Column(
-          children: [
-            // ── Progress bar ──────────────────────────
-            ClipRRect(
-              borderRadius: BorderRadius.circular(MitraRadius.pill),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 6,
-                backgroundColor: MitraColors.bgSurface.withValues(alpha: 0.5),
-                valueColor: AlwaysStoppedAnimation<Color>(themeHighlight),
-              ),
+    final isCorrect = _selected == q.correctAnswerIndex;
+
+    return Stack(
+      children: [
+        MitraScaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              'Question ${_current + 1}/${_questions.length}',
+              style: const TextStyle(
+                  fontFamily: 'Baloo2',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  color: Colors.white),
             ),
-
-            const SizedBox(height: 12),
-
-            // ── Question dot indicators ───────────────
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_questions.length, (i) {
-                Color dotColor;
-                if (i < _current) {
-                  // Already answered
-                  final wasCorrect =
-                      _studentAnswers[i] == _questions[i].correctAnswerIndex;
-                  dotColor =
-                      wasCorrect ? MitraColors.emerald : MitraColors.crimson;
-                } else if (i == _current) {
-                  dotColor = themeHighlight;
-                } else {
-                  dotColor = Colors.white.withValues(alpha: 0.2);
-                }
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: i == _current ? 20 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: dotColor,
-                    borderRadius: BorderRadius.circular(MitraRadius.pill),
+            leading: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white70),
+                onPressed: () => context.pop()),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(
+                MitraSpacing.lg, 0, MitraSpacing.lg, MitraSpacing.lg),
+            child: Column(
+              children: [
+                // ── Progress bar ──────────────────────────
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(MitraRadius.pill),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 6,
+                    backgroundColor:
+                        MitraColors.bgSurface.withValues(alpha: 0.5),
+                    valueColor: AlwaysStoppedAnimation<Color>(themeHighlight),
                   ),
-                );
-              }),
-            ),
+                ),
 
-            const SizedBox(height: MitraSpacing.lg),
+                const SizedBox(height: 12),
 
-            // ── Scrollable content ────────────────────
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // Question card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(MitraSpacing.xl),
+                // ── Question dot indicators ───────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_questions.length, (i) {
+                    Color dotColor;
+                    if (i < _current) {
+                      // Already answered
+                      final wasCorrect = _studentAnswers[i] ==
+                          _questions[i].correctAnswerIndex;
+                      dotColor = wasCorrect
+                          ? MitraColors.emerald
+                          : MitraColors.crimson;
+                    } else if (i == _current) {
+                      dotColor = themeHighlight;
+                    } else {
+                      dotColor = Colors.white.withValues(alpha: 0.2);
+                    }
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: i == _current ? 20 : 8,
+                      height: 8,
                       decoration: BoxDecoration(
-                        color: MitraColors.bgCard.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(MitraRadius.lg),
-                        border: Border.all(
-                            color: MitraColors.border.withValues(alpha: 0.2)),
+                        color: dotColor,
+                        borderRadius: BorderRadius.circular(MitraRadius.pill),
                       ),
-                      child: Text(
-                        q.questionText,
-                        style: const TextStyle(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: Colors.white,
-                            height: 1.4),
-                      ),
-                    ),
+                    );
+                  }),
+                ),
 
-                    const SizedBox(height: MitraSpacing.lg),
+                const SizedBox(height: MitraSpacing.lg),
 
-                    // ── Options ───────────────────────
-                    ...List.generate(q.options.length, (i) {
-                      final isSelected = _selected == i;
-                      final isCorrect = i == q.correctAnswerIndex;
-                      final showResult = _answered;
+                // ── Scrollable content ────────────────────
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // Question card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(MitraSpacing.xl),
+                          decoration: BoxDecoration(
+                            color: MitraColors.bgCard.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(MitraRadius.lg),
+                            border: Border.all(
+                                color:
+                                    MitraColors.border.withValues(alpha: 0.2)),
+                          ),
+                          child: Text(
+                            q.questionText,
+                            style: const TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                color: Colors.white,
+                                height: 1.4),
+                          ),
+                        ),
 
-                      // Determine tile color after answer reveal
-                      Color borderColor;
-                      Color bgColor;
-                      Color textColor;
-                      Color letterBg;
-                      Color letterText;
+                        const SizedBox(height: MitraSpacing.lg),
 
-                      if (!showResult) {
-                        // Pre-answer state
-                        borderColor = isSelected
-                            ? themeHighlight
-                            : MitraColors.border.withValues(alpha: 0.2);
-                        bgColor = isSelected
-                            ? themeHighlight.withValues(alpha: 0.15)
-                            : MitraColors.bgCard.withValues(alpha: 0.5);
-                        textColor = isSelected ? themeHighlight : Colors.white;
-                        letterBg =
-                            isSelected ? themeHighlight : MitraColors.bgSurface;
-                        letterText = isSelected ? Colors.black : Colors.white70;
-                      } else if (isCorrect) {
-                        // Correct answer — always green
-                        borderColor = MitraColors.emerald;
-                        bgColor = MitraColors.emerald.withValues(alpha: 0.15);
-                        textColor = MitraColors.emerald;
-                        letterBg = MitraColors.emerald;
-                        letterText = Colors.white;
-                      } else if (isSelected && !isCorrect) {
-                        // Wrong selection — red
-                        borderColor = MitraColors.crimson;
-                        bgColor = MitraColors.crimson.withValues(alpha: 0.12);
-                        textColor = MitraColors.crimson;
-                        letterBg = MitraColors.crimson;
-                        letterText = Colors.white;
-                      } else {
-                        // Other unselected options — dim out
-                        borderColor = MitraColors.border.withValues(alpha: 0.1);
-                        bgColor = MitraColors.bgCard.withValues(alpha: 0.2);
-                        textColor = Colors.white.withValues(alpha: 0.3);
-                        letterBg = Colors.white.withValues(alpha: 0.05);
-                        letterText = Colors.white.withValues(alpha: 0.3);
-                      }
+                        // ── Options ───────────────────────
+                        ...List.generate(q.options.length, (i) {
+                          final isSelected = _selected == i;
+                          final isCorrect = i == q.correctAnswerIndex;
+                          final showResult = _answered;
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: GestureDetector(
-                          onTap: () => _selectAnswer(i),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
+                          // Determine tile color after answer reveal
+                          Color borderColor;
+                          Color bgColor;
+                          Color textColor;
+                          Color letterBg;
+                          Color letterText;
+
+                          if (!showResult) {
+                            // Pre-answer state
+                            borderColor = isSelected
+                                ? themeHighlight
+                                : MitraColors.border.withValues(alpha: 0.2);
+                            bgColor = isSelected
+                                ? themeHighlight.withValues(alpha: 0.15)
+                                : MitraColors.bgCard.withValues(alpha: 0.5);
+                            textColor =
+                                isSelected ? themeHighlight : Colors.white;
+                            letterBg = isSelected
+                                ? themeHighlight
+                                : MitraColors.bgSurface;
+                            letterText =
+                                isSelected ? Colors.black : Colors.white70;
+                          } else if (isCorrect) {
+                            // Correct answer — always green
+                            borderColor = MitraColors.emerald;
+                            bgColor =
+                                MitraColors.emerald.withValues(alpha: 0.15);
+                            textColor = MitraColors.emerald;
+                            letterBg = MitraColors.emerald;
+                            letterText = Colors.white;
+                          } else if (isSelected && !isCorrect) {
+                            // Wrong selection — red
+                            borderColor = MitraColors.crimson;
+                            bgColor =
+                                MitraColors.crimson.withValues(alpha: 0.12);
+                            textColor = MitraColors.crimson;
+                            letterBg = MitraColors.crimson;
+                            letterText = Colors.white;
+                          } else {
+                            // Other unselected options — dim out
+                            borderColor =
+                                MitraColors.border.withValues(alpha: 0.1);
+                            bgColor = MitraColors.bgCard.withValues(alpha: 0.2);
+                            textColor = Colors.white.withValues(alpha: 0.3);
+                            letterBg = Colors.white.withValues(alpha: 0.05);
+                            letterText = Colors.white.withValues(alpha: 0.3);
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: GestureDetector(
+                              onTap: () => _selectAnswer(i),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 250),
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(MitraSpacing.lg),
+                                decoration: BoxDecoration(
+                                  color: bgColor,
+                                  borderRadius:
+                                      BorderRadius.circular(MitraRadius.md),
+                                  border: Border.all(
+                                      color: borderColor,
+                                      width: showResult &&
+                                              (isCorrect || isSelected)
+                                          ? 1.5
+                                          : 1),
+                                ),
+                                child: Row(children: [
+                                  // Letter badge
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 250),
+                                    width: 28,
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: letterBg,
+                                      border: Border.all(
+                                          color: borderColor.withValues(
+                                              alpha: 0.5)),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: showResult && isCorrect
+                                        ? const Icon(Icons.check,
+                                            size: 14, color: Colors.white)
+                                        : showResult && isSelected && !isCorrect
+                                            ? const Icon(Icons.close,
+                                                size: 14, color: Colors.white)
+                                            : Text(
+                                                ['A', 'B', 'C', 'D'][i],
+                                                style: TextStyle(
+                                                    fontFamily: 'SpaceMono',
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 12,
+                                                    color: letterText),
+                                              ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      q.options[i],
+                                      style: TextStyle(
+                                        fontFamily: 'Mukta',
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 15,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ),
+                                ]),
+                              ),
+                            ),
+                          );
+                        }),
+
+                        // ── Explanation card (Only shows if correct) ──────────────
+                        if (_answered &&
+                            q.explanation != null &&
+                            isCorrect) ...[
+                          const SizedBox(height: 4),
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
                             width: double.infinity,
                             padding: const EdgeInsets.all(MitraSpacing.lg),
                             decoration: BoxDecoration(
-                              color: bgColor,
+                              color: MitraColors.indigoLight
+                                  .withValues(alpha: 0.10),
                               borderRadius:
                                   BorderRadius.circular(MitraRadius.md),
                               border: Border.all(
-                                  color: borderColor,
-                                  width: showResult && (isCorrect || isSelected)
-                                      ? 1.5
-                                      : 1),
+                                  color: MitraColors.indigoLight
+                                      .withValues(alpha: 0.30)),
                             ),
-                            child: Row(children: [
-                              // Letter badge
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: letterBg,
-                                  border: Border.all(
-                                      color:
-                                          borderColor.withValues(alpha: 0.5)),
-                                ),
-                                alignment: Alignment.center,
-                                child: showResult && isCorrect
-                                    ? const Icon(Icons.check,
-                                        size: 14, color: Colors.white)
-                                    : showResult && isSelected && !isCorrect
-                                        ? const Icon(Icons.close,
-                                            size: 14, color: Colors.white)
-                                        : Text(
-                                            ['A', 'B', 'C', 'D'][i],
-                                            style: TextStyle(
-                                                fontFamily: 'SpaceMono',
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: 12,
-                                                color: letterText),
-                                          ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  q.options[i],
-                                  style: TextStyle(
-                                    fontFamily: 'Mukta',
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 15,
-                                    color: textColor,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.lightbulb_outline,
+                                    color: MitraColors.indigoLight, size: 18),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    q.explanation!,
+                                    style: const TextStyle(
+                                      fontFamily: 'Mukta',
+                                      fontSize: 13,
+                                      color: MitraColors.textSecondary,
+                                      height: 1.5,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ]),
-                          ),
-                        ),
-                      );
-                    }),
-
-                    // ── Explanation card ──────────────
-                    if (_answered && q.explanation != null) ...[
-                      const SizedBox(height: 4),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(MitraSpacing.lg),
-                        decoration: BoxDecoration(
-                          color:
-                              MitraColors.indigoLight.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(MitraRadius.md),
-                          border: Border.all(
-                              color: MitraColors.indigoLight
-                                  .withValues(alpha: 0.30)),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.lightbulb_outline,
-                                color: MitraColors.indigoLight, size: 18),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                q.explanation!,
-                                style: const TextStyle(
-                                  fontFamily: 'Mukta',
-                                  fontSize: 13,
-                                  color: MitraColors.textSecondary,
-                                  height: 1.5,
-                                ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+
+                        const SizedBox(height: MitraSpacing.lg),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ── Next / Submit button ──────────────────
+                // Only visible after answering
+                if (_answered)
+                  GestureDetector(
+                    onTap: _next,
+                    child: Container(
+                      width: double.infinity,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: themeHighlight,
+                        borderRadius: BorderRadius.circular(MitraRadius.pill),
                       ),
-                    ],
-
-                    const SizedBox(height: MitraSpacing.lg),
-                  ],
-                ),
-              ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _current < _questions.length - 1
+                            ? 'Next Question →'
+                            : 'See Results →',
+                        style: const TextStyle(
+                            fontFamily: 'Baloo2',
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: Colors.black),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: MitraColors.bgSurface.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(MitraRadius.pill),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1)),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Select an answer',
+                      style: TextStyle(
+                          fontFamily: 'Baloo2',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: Colors.white38),
+                    ),
+                  ),
+              ],
             ),
-
-            // ── Next / Submit button ──────────────────
-            // Only visible after answering
-            if (_answered)
-              GestureDetector(
-                onTap: _next,
-                child: Container(
-                  width: double.infinity,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: themeHighlight,
-                    borderRadius: BorderRadius.circular(MitraRadius.pill),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _current < _questions.length - 1
-                        ? 'Next Question →'
-                        : 'See Results →',
-                    style: const TextStyle(
-                        fontFamily: 'Baloo2',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: Colors.black),
-                  ),
-                ),
-              )
-            else
-              Container(
-                width: double.infinity,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: MitraColors.bgSurface.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(MitraRadius.pill),
-                  border:
-                      Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  'Select an answer',
-                  style: TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: Colors.white38),
-                ),
-              ),
-          ],
+          ),
         ),
-      ),
+
+        // ✨ Emergency Flash Overlay
+        IgnorePointer(
+          child: AnimatedBuilder(
+            animation: _flashCtrl,
+            builder: (context, child) {
+              return Container(
+                color: _flashColor.value,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
