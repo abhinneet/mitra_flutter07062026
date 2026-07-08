@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
+import '../../services/quiz_offline_service.dart';
 import '../../models/quiz_model.dart';
 import '../../theme/theme_provider.dart';
 import '../../providers/telemetry_provider.dart';
@@ -143,37 +144,23 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           DateTime.now().difference(_quizStartTime).inSeconds;
       final xpEarned = _score * 50;
 
-      // Backend submit (fire and forget)
+      // Recorded locally only — no network call here. A background
+      // scheduler (quiz_offline_service.dart) batches this with other
+      // attempts and sends them together, once a day.
       final user = ref.read(currentUserProvider);
-      // POST /api/quiz/attempts — PostgreSQL path (no auth required)
-      unawaited(QuizAPI.submit({
-        'quiz_id': widget.quizId,
-        'student_id': user?.id ?? 'anonymous',
-        'state': user?.assignedState ?? '',
-        'district': user?.assignedDistrict ?? '',
-        'class_grade': user?.classGrade ?? '',
-        'score': _score,
-        'max_score': _questions.length,
-        'questions_attempted': _questions.length,
-        'correct_answers': _score,
-        'time_taken_secs': durationSeconds,
-        'completed': true,
-        'app_language': user?.languagePreference ?? 'en',
-      }));
-
-      // Firestore telemetry path — per-question breakdown → BigQuery
-      final telemetry = ref.read(telemetryServiceProvider);
-      if (telemetry != null) {
-        unawaited(telemetry.logQuizSubmit(
-          quizId: widget.quizId,
-          quizTitle: widget.quizId,
-          correctAnswers: _score,
-          totalQuestions: _questions.length,
-          durationSeconds: durationSeconds,
-          completed: true,
-          mcqResponses: _mcqResponses,
-        ));
-      }
+      unawaited(QuizOfflineDb.instance.recordAttempt(
+        quizId: widget.quizId,
+        studentId: user?.id ?? 'anonymous',
+        state: user?.assignedState ?? '',
+        district: user?.assignedDistrict ?? '',
+        classGrade: user?.classGrade ?? '',
+        score: _score,
+        maxScore: _questions.length,
+        questionsAttempted: _questions.length,
+        correctAnswers: _score,
+        timeTakenSecs: durationSeconds,
+        appLanguage: user?.languagePreference ?? 'en',
+      ));
 
       context.go('/quiz/result', extra: {
         'score': _score,

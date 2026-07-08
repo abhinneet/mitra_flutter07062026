@@ -165,6 +165,11 @@ class QuizAPI {
   static Future<Response> submit(Map<String, dynamic> payload) =>
       api.post('/api/quiz/attempts', data: payload);
 
+  // Batched version — sends many attempts in one request instead of
+  // one request per quiz. Needs a matching backend endpoint (see below).
+  static Future<Response> submitBatch(List<Map<String, dynamic>> attempts) =>
+      api.post('/api/quiz/attempts/batch', data: {'attempts': attempts});
+
   // Student's own attempt history — used in profile + ranks screens
   static Future<Response> attempts(String studentId,
           {int page = 1, int limit = 20}) =>

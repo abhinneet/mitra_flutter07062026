@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
+import '../../widgets/sync_status_banner.dart';
 
 class _Tab {
   final String label, emoji, route;
@@ -31,7 +32,12 @@ class TeacherShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final idx = _idx(context);
     return MitraScaffold(
-      body: child,
+      body: Column(
+        children: [
+          const SyncStatusBanner(),
+          Expanded(child: child),
+        ],
+      ),
       bottomNavigationBar: Container(
         height: 72,
         decoration: const BoxDecoration(

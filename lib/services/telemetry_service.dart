@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'device_probe.dart';
 import 'student_context.dart';
 import 'telemetry_dead_letter_queue.dart';
+import 'telemetry_batch_buffer.dart';
 import 'telemetry_enums.dart';
 
 /// Result of [TelemetryService.initialise], so callers can react to
@@ -443,22 +444,12 @@ class TelemetryService {
   // ─── INTERNAL ────────────────────────────────────────────────────────────
 
   Future<void> _write(String collection, Map<String, dynamic> data) async {
-    try {
-      await _db
-          .collection('telemetry_sync')
-          .doc(_context.studentId)
-          .collection(collection)
-          .add(data);
-    } catch (e) {
-      // Firestore's own offline cache already handles "device offline".
-      // Reaching this catch means something else went wrong (permission
-      // denied, malformed payload, quota) and the write would otherwise
-      // be silently lost. Queue it locally for retry instead.
-      await _deadLetterQueue.enqueue(
-        collection: collection,
-        data: data,
-        errorMessage: e.toString(),
-      );
-    }
+    // Buffered locally and flushed in batches (telemetry_batch_buffer.dart)
+    // instead of writing to Firestore immediately on every single event.
+    await TelemetryBatchBuffer.instance.buffer(
+      collection: collection,
+      studentId: _context.studentId,
+      data: data,
+    );
   }
 }

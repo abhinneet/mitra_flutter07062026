@@ -22,6 +22,8 @@ import 'theme/theme_provider.dart';
 import 'constants/colors.dart';
 import 'router.dart';
 import 'services/api_service.dart';
+import 'services/quiz_offline_service.dart';
+import 'services/telemetry_batch_buffer.dart';
 import 'firebase_options.dart';
 import 'package:go_router/go_router.dart';
 
@@ -69,6 +71,13 @@ Future<void> main() async {
     await Hive.initFlutter();
   } catch (e) {
     debugPrint("⚠️ Hive initialization issue: $e");
+  }
+
+  debugPrint("📡 Starting telemetry batch scheduler...");
+  try {
+    TelemetryBatchBuffer.instance.startScheduler();
+  } catch (e) {
+    debugPrint("⚠️ Telemetry batch scheduler issue: $e");
   }
 
   debugPrint("📜 Initializing quotes service...");
@@ -260,6 +269,7 @@ class _MitraAppState extends ConsumerState<MitraApp>
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final activeTheme = ref.watch(themeProvider);
+    ref.watch(quizSyncProvider); // activates the daily quiz-sync scheduler
 
     return MaterialApp.router(
       title: 'MITRA',

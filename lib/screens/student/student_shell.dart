@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold_backup.dart';
 import '../../widgets/language_alphabet_background.dart';
+import '../../widgets/sync_status_banner.dart';
 
 class StudentShell extends StatelessWidget {
   final Widget child;
@@ -30,14 +31,21 @@ class StudentShell extends StatelessWidget {
 
     return MitraScaffold(
       useSafeArea: false,
-      body: Stack(
+      body: Column(
         children: [
-          // Background animation - visible on ALL screens
-          const Positioned.fill(
-            child: LanguageAlphabetBackground(),
+          const SyncStatusBanner(),
+          Expanded(
+            child: Stack(
+              children: [
+                // Background animation - visible on ALL screens
+                const Positioned.fill(
+                  child: LanguageAlphabetBackground(),
+                ),
+                // Screen content
+                child,
+              ],
+            ),
           ),
-          // Screen content
-          child,
         ],
       ),
       bottomNavigationBar: Container(
