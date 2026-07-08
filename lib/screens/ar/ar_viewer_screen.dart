@@ -79,13 +79,36 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
         'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
 
     if (Platform.isAndroid) {
-      final String intentUrl =
-          'intent://arvr.google.com/scene-viewer/1.0?file=$glbUrl&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=https://developers.google.com/ar;end;';
+      // ✨ CRITICAL FIX: The 3D model URL *must* be properly URL-encoded!
+      final String encodedUrl = Uri.encodeComponent(glbUrl);
+      final String title = Uri.encodeComponent('MITRA 3D Lesson');
+
+      final String arUrl =
+          'https://arvr.google.com/scene-viewer/1.0?file=$encodedUrl&mode=ar_only&title=$title';
+
       try {
-        await launchUrl(Uri.parse(intentUrl),
-            mode: LaunchMode.externalNonBrowserApplication);
+        final launched = await launchUrl(Uri.parse(arUrl),
+            mode: LaunchMode.externalApplication);
+        if (!launched) throw Exception("Intent rejected by OS");
       } catch (e) {
         debugPrint("ARCore failed to launch: $e");
+
+        // ✨ GRACEFUL FALLBACK: Switch to 3D Viewer if AR fails or isn't installed
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                  'AR Camera not supported. Opening 3D model instead.',
+                  style: TextStyle(
+                      fontFamily: 'Mukta', fontWeight: FontWeight.w600)),
+              backgroundColor: MitraColors.crimson,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+          );
+          setState(() => _show3DViewer = true);
+        }
       }
     }
   }
