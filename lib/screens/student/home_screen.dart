@@ -574,6 +574,7 @@ class _ThoughtTile extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -594,7 +595,7 @@ class _ThoughtTile extends ConsumerWidget {
               '💭 Thought for the day',
               style: TextStyle(
                 fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w700, // Explicitly Big & Bold Title
                 fontSize: 20,
                 color: MitraColors.textPrimary,
               ),
@@ -605,9 +606,9 @@ class _ThoughtTile extends ConsumerWidget {
               style: const TextStyle(
                 fontFamily: 'Courgette',
                 fontSize: 17,
-                fontWeight: FontWeight.w400,
+                fontWeight: FontWeight.w400, // Regular font weight
                 color: MitraColors.textPrimary,
-                height: 1.7,
+                height: 1.6,
                 letterSpacing: 0.3,
               ),
             ),
@@ -617,7 +618,8 @@ class _ThoughtTile extends ConsumerWidget {
                 '— $author',
                 style: const TextStyle(
                   fontFamily: 'Mukta',
-                  fontSize: 11,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400, // Regular font weight
                   color: MitraColors.textMuted,
                   fontStyle: FontStyle.italic,
                 ),
@@ -841,6 +843,7 @@ class _BrainSparkTile extends ConsumerWidget {
                   delay: _delays[i],
                 ),
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -872,7 +875,7 @@ class _BrainSparkTile extends ConsumerWidget {
                               'BRAIN SPARK',
                               style: TextStyle(
                                 fontFamily: 'Baloo2',
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w700, // Big & Bold Title
                                 fontSize: 15,
                                 color: accentColor,
                                 letterSpacing: 1.0,
@@ -920,7 +923,7 @@ class _BrainSparkTile extends ConsumerWidget {
                         style: const TextStyle(
                           fontFamily: 'Mukta',
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w400, // Regular font weight
                           color: MitraColors.textMuted,
                         ),
                       ),
@@ -934,7 +937,8 @@ class _BrainSparkTile extends ConsumerWidget {
                       style: const TextStyle(
                         fontFamily: 'Mukta',
                         fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontWeight:
+                            FontWeight.w400, // Regular font weight (not bold)
                         color: MitraColors.textPrimary,
                         height: 1.6,
                       ),
@@ -947,7 +951,7 @@ class _BrainSparkTile extends ConsumerWidget {
                       children: [
                         const Icon(Icons.schedule,
                             size: 12, color: MitraColors.textMuted),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         Text(
                           hoursLeft > 0
                               ? 'Next fact in ${hoursLeft}h ${minsLeft}m'
@@ -955,6 +959,7 @@ class _BrainSparkTile extends ConsumerWidget {
                           style: const TextStyle(
                             fontFamily: 'SpaceMono',
                             fontSize: 10,
+                            fontWeight: FontWeight.w400, // Regular font weight
                             color: MitraColors.textMuted,
                           ),
                         ),

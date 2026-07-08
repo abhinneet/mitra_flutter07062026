@@ -250,7 +250,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _role == _Role.teacher ? '/teacher/home' : '/student/home';
 
       if (consentGiven) {
-        context.go(homeRoute);
+        // Intercept home routing and pass it via the Greeting page path
+        context.go('/greeting?next=$homeRoute');
       } else {
         context.go('/consent?next=$homeRoute');
       }

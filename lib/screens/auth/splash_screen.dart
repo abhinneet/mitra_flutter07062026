@@ -84,7 +84,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           final bool consentGiven = prefs.getBool('consentGiven') ?? false;
           final String homeRoute =
               data['role'] == 'teacher' ? '/teacher/home' : '/student/home';
-          _nextRoute = consentGiven ? homeRoute : '/consent?next=$homeRoute';
+          // Route to the personalized animated greeting instead of straight to dashboard
+          _nextRoute = consentGiven
+              ? '/greeting?next=$homeRoute'
+              : '/consent?next=$homeRoute';
         } else {
           // They authenticated via OTP but never finished the setup screen
           _nextRoute = '/setup';

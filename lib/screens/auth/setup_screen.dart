@@ -296,8 +296,12 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
           _SetupKeys.classLockedAt, DateTime.now().toIso8601String());
 
       if (opId != _saveOpId || !mounted) return;
-      context
-          .go(widget.classOnly ? _SetupRoutes.profile : _SetupRoutes.location);
+      if (widget.classOnly) {
+        context.go(_SetupRoutes.profile);
+      } else {
+        // Route through greeting, setting /location as the subsequent landing zone
+        context.go('/greeting?next=${_SetupRoutes.location}');
+      }
     } on TimeoutException {
       if (opId != _saveOpId || !mounted) return;
       setState(() => _error = 'Server is taking too long. Please try again.');
