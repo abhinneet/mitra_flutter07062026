@@ -31,6 +31,7 @@ import '../../widgets/mitra_scaffold.dart';
 import '../../stores/auth_store.dart';
 import '../../providers/telemetry_provider.dart';
 import '../../services/telemetry_enums.dart';
+import '../../providers/translation_provider.dart'; // ✨ OTA TRANSLATION ENGINE
 
 // ── Constants ────────────────────────────────────────────────
 
@@ -143,8 +144,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   String? _error;
   int _saveOpId = 0;
   late final TextEditingController _nameCtrl;
-
-  static const _stepLabels = ['Language', 'Profile', 'Class'];
 
   @override
   void initState() {
@@ -378,11 +377,23 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   }
 
   Widget _buildWizardMode() {
+    // ✨ Watch translation state for the loading spinner and text translation
+    final translationState = ref.watch(translationProvider);
+    final isBusy = _saving || translationState.isDownloading;
+    final t = ref.read(translationProvider.notifier);
+
+    // Dynamically translate the progress bar labels
+    final translatedStepLabels = [
+      t.tr('step_language', 'Language'),
+      t.tr('step_profile', 'Profile'),
+      t.tr('step_class', 'Class'),
+    ];
+
     return MitraScaffold(
       body: SafeArea(
         child: Column(
           children: [
-            _StepIndicator(labels: _stepLabels, currentStep: _step),
+            _StepIndicator(labels: translatedStepLabels, currentStep: _step),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(MitraSpacing.lg),
@@ -413,8 +424,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
             if (_error != null) _ErrorStrip(message: _error!),
             _BottomBar(
               canGoBack: _step > 0,
-              canGoNext: _canGoNext,
-              loading: _saving,
+              canGoNext: _canGoNext &&
+                  !translationState
+                      .isDownloading, // ✨ Lock button if downloading
+              loading: isBusy, // ✨ Spinner activates during OTA download too
               onBack: _goBack,
               onNext: _goNext,
               isLastStep: _step == 2,
@@ -517,19 +530,22 @@ class _StepIndicator extends StatelessWidget {
 // Step 1: Language
 // ════════════════════════════════════════════════════════════
 
-class _LanguageStep extends StatelessWidget {
+class _LanguageStep extends ConsumerWidget {
+  // ✨ Upgraded to ConsumerWidget
   final String selectedCode;
   final ValueChanged<String> onSelect;
 
   const _LanguageStep({required this.selectedCode, required this.onSelect});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(translationProvider.notifier); // ✨ Translation Engine
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Select Your Language',
-            style: TextStyle(
+        Text(t.tr('select_language_title', 'Select Your Language'),
+            style: const TextStyle(
               fontFamily: 'Baloo2',
               fontWeight: FontWeight.w700,
               fontSize: 20,
@@ -972,7 +988,8 @@ class _ErrorPlaceholder extends StatelessWidget {
 // Bottom Bar
 // ════════════════════════════════════════════════════════════
 
-class _BottomBar extends StatelessWidget {
+class _BottomBar extends ConsumerWidget {
+  // ✨ Upgraded to ConsumerWidget
   final bool canGoBack;
   final bool canGoNext;
   final bool loading;
@@ -990,7 +1007,9 @@ class _BottomBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(translationProvider.notifier); // ✨ Translation Engine
+
     return Padding(
       padding: const EdgeInsets.all(MitraSpacing.lg),
       child: Row(
@@ -998,7 +1017,7 @@ class _BottomBar extends StatelessWidget {
           if (canGoBack && onBack != null)
             Expanded(
               child: _GhostButton(
-                label: '← Back',
+                label: t.tr('btn_back', '← Back'), // ✨ Translated
                 enabled: !loading,
                 onPressed: onBack!,
               ),
@@ -1011,7 +1030,9 @@ class _BottomBar extends StatelessWidget {
           Expanded(
             flex: 2,
             child: _PrimaryButton(
-              label: isLastStep ? 'Confirm Class →' : 'Continue →',
+              label: isLastStep
+                  ? t.tr('btn_confirm_class', 'Confirm Class →')
+                  : t.tr('btn_continue', 'Continue →'), // ✨ Translated
               enabled: canGoNext && !loading,
               loading: loading,
               onPressed: onNext,

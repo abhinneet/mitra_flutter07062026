@@ -24,10 +24,10 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
   final DateTime _arOpenedAt = DateTime.now();
   late AnimationController _scanCtrl;
   late Animation<double> _scanAnim;
-  bool _arStarted = false;
-  bool _arCompleted = false; // ✨ Tracks if the session is finished
+  bool _arStarted = true; // ✨ Auto-starts the session immediately
+  bool _arCompleted = false;
   bool _show3DViewer =
-      false; // ✨ Tracks if they opted for the secondary 3D view
+      true; // ✨ Defaults strictly to the 3D Model Viewer on screen
   // Cached in didChangeDependencies so dispose() can use it safely
   // (ref must not be read after the widget is unmounted)
   dynamic _cachedTelemetry;

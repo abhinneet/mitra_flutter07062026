@@ -362,6 +362,22 @@ class QuizFeedNotifier
 class LearnScreen extends ConsumerWidget {
   const LearnScreen({super.key});
 
+  // ✨ Hardcoded mapping of AR Lessons to their respective subjects
+  static const _arLessonsBySubject =
+      <String, List<({String id, String title, String topic})>>{
+    'Science': [
+      (id: 'cell-division', title: 'Cell Division 3D', topic: 'Biology'),
+      (id: 'atom-structure', title: 'Atom Structure 3D', topic: 'Chemistry'),
+    ],
+    'Geography': [
+      (id: 'solar-system', title: 'Solar System 3D', topic: 'Space'),
+      (id: 'ocean-layers', title: 'Ocean Layers 3D', topic: 'Earth'),
+    ],
+    'History': [
+      (id: 'ancient-rome', title: 'Ancient Rome 3D', topic: 'World History'),
+    ],
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final params = ref.watch(quizFilterParamsProvider);
@@ -383,9 +399,6 @@ class LearnScreen extends ConsumerWidget {
                   color: MitraColors.saffron,
                 ),
               ),
-              // FIX: Original swallowed errors with `catch (_)`.
-              // Now the UI shows a typed, user-friendly message
-              // and the error is still available for analytics.
               error: (error, _) => _ErrorState(
                 message: switch (error) {
                   LearnFailure f => f.displayMessage,
@@ -395,35 +408,41 @@ class LearnScreen extends ConsumerWidget {
                     ref.read(quizFeedProvider(params).notifier).refresh(),
               ),
               data: (quizzes) {
-                if (quizzes.isEmpty) {
+                final grouped = _groupQuizzesBySubject(quizzes);
+
+                // ✨ Inject Subjects that only have AR lessons so they still appear on screen!
+                for (final subject in _arLessonsBySubject.keys) {
+                  grouped.putIfAbsent(subject, () => []);
+                }
+
+                if (grouped.isEmpty) {
                   final user = ref.read(currentUserProvider);
                   return _EmptyState(
                     message: user?.classGrade != null
-                        ? 'No live quizzes for ${user!.classGrade} yet.'
-                        : 'No live quizzes available right now.',
+                        ? 'No live content for ${user!.classGrade} yet.'
+                        : 'No live content available right now.',
                     onRetry: () =>
                         ref.read(quizFeedProvider(params).notifier).refresh(),
                   );
                 }
 
-                final grouped = _groupQuizzesBySubject(quizzes);
-
                 return RefreshIndicator(
                   color: MitraColors.saffron,
                   backgroundColor: MitraColors.bgCard,
-                  // FIX: Original used `ref.invalidate(provider)`
-                  // without family args — either a no-op or
-                  // invalidates ALL instances. Now we target the
-                  // correct instance via the notifier.
                   onRefresh: () =>
                       ref.read(quizFeedProvider(params).notifier).refresh(),
                   child: ListView(
                     padding: const EdgeInsets.all(MitraSpacing.lg),
                     children: grouped.entries.map((entry) {
+                      final arLessonsForSubject =
+                          _arLessonsBySubject[entry.key] ?? [];
+
                       return _SubjectSection(
                         subject: entry.key,
                         quizzes: entry.value,
+                        arLessons: arLessonsForSubject,
                         onQuizTap: (id) => _navigateToQuiz(context, id),
+                        onArTap: (id) => context.push('/student/ar/$id'),
                       );
                     }).toList(),
                   ),
@@ -436,7 +455,6 @@ class LearnScreen extends ConsumerWidget {
     );
   }
 
-  /// Groups quizzes by subject, preserving insertion order.
   static Map<String, List<QuizSummary>> _groupQuizzesBySubject(
     List<QuizSummary> quizzes,
   ) {
@@ -447,56 +465,37 @@ class LearnScreen extends ConsumerWidget {
     return grouped;
   }
 
-  /// Validates the quiz ID before navigating.
-  ///
-  /// Rejects empty or suspicious IDs (e.g. path-traversal
-  /// patterns) that could route the user to an unintended
-  /// screen if the API were compromised.
   static void _navigateToQuiz(BuildContext context, String id) {
-    if (id.isEmpty) {
-      developer.log(
-        'Rejected navigation with empty quiz id',
-        name: 'LearnScreen',
-        level: 900,
-      );
-      return;
-    }
-    if (id.contains('/') || id.contains('..')) {
-      developer.log(
-        'Rejected navigation with suspicious quiz id: "$id"',
-        name: 'LearnScreen',
-        level: 900,
-      );
-      return;
-    }
-    // TODO: Track analytics event (quiz_tapped, quiz_id).
+    if (id.isEmpty) return;
+    if (id.contains('/') || id.contains('..')) return;
     context.go('/quiz/$id');
   }
 }
-
-// ═══════════════════════════════════════════════════════════
-// WIDGETS
-// ═══════════════════════════════════════════════════════════
 
 // ── Subject section ──────────────────────────────────────
 
 class _SubjectSection extends StatelessWidget {
   final String subject;
   final List<QuizSummary> quizzes;
+  final List<({String id, String title, String topic})> arLessons;
   final ValueChanged<String> onQuizTap;
+  final ValueChanged<String> onArTap;
 
   const _SubjectSection({
     required this.subject,
     required this.quizzes,
+    required this.arLessons,
     required this.onQuizTap,
+    required this.onArTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final totalItems = quizzes.length + arLessons.length;
+
     return Semantics(
       header: true,
-      label: '$subject, ${quizzes.length} quiz'
-          '${quizzes.length == 1 ? '' : 'zes'}',
+      label: '$subject, $totalItems items',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -506,8 +505,6 @@ class _SubjectSection extends StatelessWidget {
               children: [
                 Text(_emojiFor(subject), style: const TextStyle(fontSize: 20)),
                 const SizedBox(width: 8),
-                // FIX: Wrapped in Flexible so long subject
-                // names don't overflow the Row.
                 Flexible(
                   child: Text(
                     subject,
@@ -531,7 +528,7 @@ class _SubjectSection extends StatelessWidget {
                         color: MitraColors.saffron.withValues(alpha: 0.3)),
                   ),
                   child: Text(
-                    '${quizzes.length}',
+                    '$totalItems',
                     style: const TextStyle(
                       fontFamily: 'SpaceMono',
                       fontWeight: FontWeight.w700,
@@ -543,6 +540,11 @@ class _SubjectSection extends StatelessWidget {
               ],
             ),
           ),
+          // ✨ Inject AR Lessons dynamically at the top of the subject
+          ...arLessons.map(
+            (ar) => _ArTile(lesson: ar, onTap: onArTap),
+          ),
+          // Followed immediately by the quizzes
           ...quizzes.map(
             (q) => _QuizTile(quiz: q, onTap: onQuizTap),
           ),
@@ -597,6 +599,85 @@ class _QuizTile extends StatelessWidget {
                 const SizedBox(width: 8),
                 const Icon(Icons.arrow_forward_ios,
                     size: 14, color: MitraColors.textMuted),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── AR Lesson tile ───────────────────────────────────────
+
+class _ArTile extends StatelessWidget {
+  final ({String id, String title, String topic}) lesson;
+  final ValueChanged<String> onTap;
+
+  const _ArTile({required this.lesson, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '3D Lesson: ${lesson.title}',
+      child: ExcludeSemantics(
+        child: GestureDetector(
+          onTap: () => onTap(lesson.id),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: MitraSpacing.sm),
+            padding: const EdgeInsets.all(MitraSpacing.lg),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [
+                MitraColors.sky.withValues(alpha: 0.15),
+                MitraColors.sky.withValues(alpha: 0.05),
+              ]),
+              borderRadius: BorderRadius.circular(MitraRadius.md),
+              border: Border.all(color: MitraColors.sky.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: MitraColors.sky.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(MitraRadius.sm),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text('🧊', style: TextStyle(fontSize: 24)),
+                ),
+                const SizedBox(width: MitraSpacing.md),
+                Expanded(
+                  child: _QuizInfo(
+                    title: lesson.title,
+                    topic: lesson.topic,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: MitraColors.sky,
+                    borderRadius: BorderRadius.circular(MitraRadius.pill),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.view_in_ar, size: 14, color: Colors.black),
+                      SizedBox(width: 4),
+                      Text(
+                        'View 3D',
+                        style: TextStyle(
+                          fontFamily: 'Baloo2',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
