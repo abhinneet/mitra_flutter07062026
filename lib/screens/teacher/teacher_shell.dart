@@ -4,11 +4,6 @@ import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
 import '../../widgets/sync_status_banner.dart';
 
-class _Tab {
-  final String label, emoji, route;
-  const _Tab(this.label, this.emoji, this.route);
-}
-
 class TeacherShell extends StatelessWidget {
   final Widget child;
   const TeacherShell({super.key, required this.child});
@@ -84,4 +79,9 @@ class TeacherShell extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Tab {
+  final String label, emoji, route;
+  const _Tab(this.label, this.emoji, this.route);
 }

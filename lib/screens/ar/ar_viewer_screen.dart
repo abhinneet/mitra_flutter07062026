@@ -22,6 +22,9 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
   late AnimationController _scanCtrl;
   late Animation<double> _scanAnim;
   bool _arStarted = false;
+  // Cached in didChangeDependencies so dispose() can use it safely
+  // (ref must not be read after the widget is unmounted)
+  dynamic _cachedTelemetry;
 
   @override
   void initState() {
@@ -33,11 +36,16 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _cachedTelemetry = ref.read(telemetryServiceProvider);
+  }
+
+  @override
   void dispose() {
     _scanCtrl.dispose();
-    // Fire AR end telemetry
     final durationSeconds = DateTime.now().difference(_arOpenedAt).inSeconds;
-    final telemetry = ref.read(telemetryServiceProvider);
+    final telemetry = _cachedTelemetry;
     if (telemetry != null) {
       telemetry.logArEnd(
         arId: widget.topicId,
@@ -97,22 +105,13 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
               padding: const EdgeInsets.all(MitraSpacing.lg),
               child: Row(children: [
                 GestureDetector(
-                  onTap: () {
-                    // 🚨 The Safe Pop Mechanism
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go(
-                          '/'); // Failsafe: Teleport them back to the main router
-                    }
-                  },
+                  onTap: () => context.go('/student/ar'),
                   child: Container(
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
                       color: MitraColors.bgCard.withValues(alpha: 0.8),
-                      shape:
-                          BoxShape.circle, // Assuming this is what was cut off!
+                      shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.close,
