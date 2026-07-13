@@ -154,203 +154,228 @@ class HomeScreen extends ConsumerWidget {
     final mainTextColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final mutedTextColor = isDark ? Colors.white70 : Colors.black54;
 
-    return SafeArea(
-      child: Column(
-        children: [
-          // ── Header ───────────────────────────────────
-          Container(
-            decoration: BoxDecoration(
-              color: glassColor,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(28),
-                bottomRight: Radius.circular(28),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // ── Header ───────────────────────────────────
+            Container(
+              decoration: BoxDecoration(
+                color: glassColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+                border: Border(
+                  bottom: BorderSide(color: glassBorder, width: 1.5),
+                ),
               ),
-              border: Border(
-                bottom: BorderSide(color: glassBorder, width: 1.5),
-              ),
-            ),
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 36),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _greeting(),
-                          style: TextStyle(
-                              fontFamily: 'Mukta',
-                              fontSize: 15,
-                              color: mutedTextColor),
-                        ),
-                        Text(
-                          '$firstName 👋',
-                          style: TextStyle(
-                              fontFamily: 'Baloo2',
-                              fontWeight: FontWeight.w800,
-                              fontSize: 30,
-                              color: mainTextColor),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.notifications_none_rounded,
-                              color: mainTextColor, size: 28),
-                          onPressed: () => context.go('/student/profile'),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color:
-                                isDark ? const Color(0xFF0F172A) : Colors.white,
-                            border: Border.all(
-                                color: MitraColors.saffron, width: 2.5),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(user?.avatarEmoji ?? '🎒',
-                              style: const TextStyle(fontSize: 28)),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Class chip
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: MitraColors.saffron.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(MitraRadius.pill),
-                    border: Border.all(
-                        color: MitraColors.saffron.withValues(alpha: 0.4)),
-                  ),
-                  child: Text(
-                    '🏫 ${user?.classGrade ?? "Class IX"} · ${user?.assignedState ?? "India"}',
-                    style: const TextStyle(
-                        fontFamily: 'Mukta',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: MitraColors.saffron),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Stats row
-                Row(
-                  children: [
-                    _StatChip('🔥 ${user?.currentStreakDays ?? 0} day streak',
-                        isDark),
-                    const SizedBox(width: 8),
-                    _StatChip('⭐ ${user?.totalXp ?? 0} XP', isDark),
-                    const SizedBox(width: 8),
-                    const SizedBox(width: 8),
-                    _StatChip('🥇 #1 in class', isDark),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // ── Body ─────────────────────────────────────
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 32),
+              // ✨ Mathematically forces the header below the status bar
+              padding: EdgeInsets.fromLTRB(
+                  20, MediaQuery.paddingOf(context).top + 16, 20, 36),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Thought for the Day
-                  const SizedBox(height: 8),
-                  ref.watch(dailyMotivationProvider).when(
-                        loading: () => const _LoadingCard(),
-                        error: (_, __) => const _ErrorCard('Failed to load'),
-                        data: (thought) {
-                          final author =
-                              ref.watch(quoteAuthorProvider).valueOrNull ?? '';
-                          return _ThoughtTile(
-                            thought: thought,
-                            author: author,
-                          );
-                        },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _greeting(),
+                            style: TextStyle(
+                                fontFamily: 'Mukta',
+                                fontSize: 15,
+                                color: mutedTextColor),
+                          ),
+                          Text(
+                            '$firstName 👋',
+                            style: TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 30,
+                                color: mainTextColor),
+                          ),
+                        ],
                       ),
-
-                  // ⚡ Brain Spark
-                  const SizedBox(height: 8),
-                  _BrainSparkTile(
-                    fact: ref.watch(brainSparkProvider),
-                  ),
-
-                  // Subjects
-                  _Section(
-                    title: 'Subjects',
-                    child: subjectsAsync.when(
-                      loading: () => const Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: Center(
-                            child: CircularProgressIndicator(
-                                color: MitraColors.saffron)),
-                      ),
-                      error: (err, stack) => const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text('Failed to load subjects',
-                            style: TextStyle(color: MitraColors.textMuted)),
-                      ),
-                      data: (subjects) => subjects.isEmpty
-                          ? const Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Text('No subjects found.',
-                                  style:
-                                      TextStyle(color: MitraColors.textMuted)),
-                            )
-                          : GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                                childAspectRatio: 1.2,
-                              ),
-                              itemCount: subjects.length,
-                              itemBuilder: (ctx, i) =>
-                                  _SubjectCard(subject: subjects[i]),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.notifications_none_rounded,
+                                color: mainTextColor, size: 28),
+                            onPressed: () => context.go('/student/profile'),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark
+                                  ? const Color(0xFF0F172A)
+                                  : Colors.white,
+                              border: Border.all(
+                                  color: MitraColors.saffron, width: 2.5),
                             ),
-                    ),
+                            alignment: Alignment.center,
+                            child: Text(user?.avatarEmoji ?? '🎒',
+                                style: const TextStyle(fontSize: 28)),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 20),
 
-                  // Continue Learning
-                  _Section(
-                    title: 'Continue Learning',
-                    trailing: GestureDetector(
-                      onTap: () => context.go('/student/learn'),
-                      child: const Text('See all',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: MitraColors.saffron,
-                              fontFamily: 'Mukta')),
+                  // Class chip
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: MitraColors.saffron.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(MitraRadius.pill),
+                      border: Border.all(
+                          color: MitraColors.saffron.withValues(alpha: 0.4)),
                     ),
-                    child: GestureDetector(
-                      onTap: () => context.go('/student/learn'),
-                      child: const _ContinueLearningCard(),
+                    child: Text(
+                      '🏫 ${user?.classGrade ?? "Class IX"} · ${user?.assignedState ?? "India"}',
+                      style: const TextStyle(
+                          fontFamily: 'Mukta',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: MitraColors.saffron),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // ✨ NEW: Grouped Stats Row + Massive Achievement Tag
+                  Builder(builder: (context) {
+                    final totalXp = (user?.totalXp ?? 0).toInt();
+
+                    // Calculate the live tier based on XP
+                    final currentTier = _galacticTiers.firstWhere(
+                      (t) => totalXp >= t.minXp && totalXp < t.maxXp,
+                      orElse: () => _galacticTiers.last,
+                    );
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _StatChip('⭐ $totalXp XP', isDark),
+                        const SizedBox(width: 8),
+                        _StatChip('🔥 ${user?.currentStreakDays ?? 0} Streak',
+                            isDark),
+                        const SizedBox(width: 16),
+
+                        // The dynamic tag
+                        _GlowingAchievementText(
+                          title: currentTier.title,
+                          color: currentTier.glowColor,
+                        ),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
+
+            // ── Body ─────────────────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                // ✨ Auto-calculates the bottom glass bar thickness
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.paddingOf(context).bottom + 32),
+                child: Column(
+                  children: [
+                    // Thought for the Day
+                    const SizedBox(height: 8),
+                    ref.watch(dailyMotivationProvider).when(
+                          loading: () => const _LoadingCard(),
+                          error: (_, __) => const _ErrorCard('Failed to load'),
+                          data: (thought) {
+                            final author =
+                                ref.watch(quoteAuthorProvider).valueOrNull ??
+                                    '';
+                            return _ThoughtTile(
+                              thought: thought,
+                              author: author,
+                            );
+                          },
+                        ),
+
+                    // ⚡ Brain Spark
+                    const SizedBox(height: 8),
+                    _BrainSparkTile(
+                      fact: ref.watch(brainSparkProvider),
+                    ),
+
+                    // Subjects
+                    _Section(
+                      title: 'Subjects',
+                      child: subjectsAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Center(
+                              child: CircularProgressIndicator(
+                                  color: MitraColors.saffron)),
+                        ),
+                        error: (err, stack) => const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text('Failed to load subjects',
+                              style: TextStyle(color: MitraColors.textMuted)),
+                        ),
+                        data: (subjects) => subjects.isEmpty
+                            ? const Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Text('No subjects found.',
+                                    style: TextStyle(
+                                        color: MitraColors.textMuted)),
+                              )
+                            : GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                  childAspectRatio: 1.2,
+                                ),
+                                itemCount: subjects.length,
+                                itemBuilder: (ctx, i) =>
+                                    _SubjectCard(subject: subjects[i]),
+                              ),
+                      ),
+                    ),
+
+                    // Continue Learning
+                    _Section(
+                      title: 'Continue Learning',
+                      trailing: GestureDetector(
+                        onTap: () => context.go('/student/learn'),
+                        child: const Text('See all',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: MitraColors.saffron,
+                                fontFamily: 'Mukta')),
+                      ),
+                      child: GestureDetector(
+                        onTap: () => context.go('/student/learn'),
+                        child: const _ContinueLearningCard(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ), // ✨ FIX: This closes the SafeArea we added
+    ); // ✨ FIX: This closes the Scaffold we added
   }
 }
 
@@ -972,6 +997,84 @@ class _BrainSparkTile extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+// ═══════════════════════════════════════════════════════
+// NEW: DYNAMIC ACHIEVEMENT CLASSES
+// ═══════════════════════════════════════════════════════
+
+class AchievementTier {
+  final String title;
+  final int minXp;
+  final int maxXp;
+  final Color glowColor;
+
+  const AchievementTier(this.title, this.minXp, this.maxXp, this.glowColor);
+}
+
+const List<AchievementTier> _galacticTiers = [
+  AchievementTier('Jigyasu', 0, 500, Color(0xFFCD7F32)),
+  AchievementTier('Anveshak', 500, 2000, Color(0xFF94A3B8)),
+  AchievementTier('Vidwan', 2000, 5000, Color(0xFFF59E0B)),
+  AchievementTier('Acharya', 5000, 10000, Color(0xFF8B5CF6)),
+  AchievementTier('Gyani', 10000, 999999, Color(0xFFFFD700)),
+];
+
+class _GlowingAchievementText extends StatefulWidget {
+  final String title;
+  final Color color;
+
+  const _GlowingAchievementText({required this.title, required this.color});
+
+  @override
+  State<_GlowingAchievementText> createState() =>
+      _GlowingAchievementTextState();
+}
+
+class _GlowingAchievementTextState extends State<_GlowingAchievementText>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _glowController;
+  late Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    // 1.5 second breathing cycle
+    _glowController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1500))
+      ..repeat(reverse: true);
+    _pulse = Tween<double>(begin: 0.4, end: 1.0).animate(
+        CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _glowController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        return Text(
+          widget.title,
+          style: TextStyle(
+            fontFamily: 'Baloo2',
+            fontWeight: FontWeight.w800,
+            fontSize: 24, // ✨ Exactly double the 12pt text of the _StatChip
+            color: widget.color, // ✨ Automatically matches active tier color
+            shadows: [
+              Shadow(
+                color: widget.color.withValues(alpha: _pulse.value * 0.8),
+                blurRadius: 15 * _pulse.value, // ✨ Breathing dynamic glow
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

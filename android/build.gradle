@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════
 
 buildscript {
-    ext.kotlin_version = '2.0.0'
+    ext.kotlin_version = '2.2.20'
     repositories {
         google()
         mavenCentral()
@@ -25,13 +25,32 @@ allprojects {
 }
 
 rootProject.buildDir = "../build"
+
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    // ✨ FIX 1: Prevent "Different Roots" Windows Crash
+    // Keeps third-party plugin builds on their native drives (C:) instead of forcing them to D:
+    if (project.name == "app") {
+        project.buildDir = "${rootProject.buildDir}/${project.name}"
+    } else {
+        project.buildDir = "${project.projectDir}/build"
+    }
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
+}
+
+// ✨ FIX 2: Crash-Proof Namespace Injection
+subprojects {
+    project.plugins.withId("com.android.library") {
+        project.android {
+            if (namespace == null) {
+                namespace project.group
+            }
+        }
+    }
 }

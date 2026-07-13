@@ -56,78 +56,88 @@ class RanksScreen extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
 
     // ── NO PopScope — StudentShell.BackButtonListener handles ALL back logic ──
-    return SafeArea(
-      child: Column(
-        children: [
-          Container(
-            color: Colors.white.withValues(alpha: 0.05),
-            padding: const EdgeInsets.all(MitraSpacing.lg),
-            child: const Row(children: [
-              Text('🏆', style: TextStyle(fontSize: 24)),
-              SizedBox(width: 10),
-              Text('Leaderboard',
-                  style: TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 20,
-                      color: MitraColors.textPrimary)),
-            ]),
-          ),
-          Expanded(
-            child: ListView.separated(
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Container(
+              color: Colors.white.withValues(alpha: 0.05),
               padding: const EdgeInsets.all(MitraSpacing.lg),
-              itemCount: _leaders.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (ctx, i) {
-                final l = _leaders[i];
-                final isMe = l['me'] as bool;
-                return Container(
-                  padding: const EdgeInsets.all(MitraSpacing.md),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? MitraColors.saffron.withValues(alpha: 0.15)
-                        : Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(MitraRadius.md),
-                    border: Border.all(
-                        color: isMe
-                            ? MitraColors.saffron.withValues(alpha: 0.3)
-                            : Colors.white.withValues(alpha: 0.15)),
-                  ),
-                  child: Row(children: [
-                    Text(l['emoji'] as String,
-                        style: const TextStyle(fontSize: 24)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                          Text(
-                              isMe
-                                  ? (user?.firstName ?? 'You')
-                                  : l['name'] as String,
-                              style: const TextStyle(
-                                  fontFamily: 'Baloo2',
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15,
-                                  color: MitraColors.textPrimary)),
-                          Text('🔥 ${l['streak']} day streak',
-                              style: const TextStyle(
-                                  fontFamily: 'Mukta',
-                                  fontSize: 12,
-                                  color: MitraColors.textMuted)),
-                        ])),
-                    Text('${l['xp']} XP',
-                        style: const TextStyle(
-                            fontFamily: 'SpaceMono',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            color: MitraColors.gold)),
-                  ]),
-                );
-              },
+              child: const Row(children: [
+                Text('🏆', style: TextStyle(fontSize: 24)),
+                SizedBox(width: 10),
+                Text('Leaderboard',
+                    style: TextStyle(
+                        fontFamily: 'Baloo2',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 20,
+                        color: MitraColors.textPrimary)),
+              ]),
             ),
-          ),
-        ],
+            Expanded(
+              child: ListView.separated(
+                // ✨ Auto-calculates the bottom glass bar thickness
+                padding: EdgeInsets.fromLTRB(
+                  MitraSpacing.lg,
+                  MitraSpacing.lg,
+                  MitraSpacing.lg,
+                  MediaQuery.paddingOf(context).bottom + MitraSpacing.lg,
+                ),
+                itemCount: _leaders.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (ctx, i) {
+                  final l = _leaders[i];
+                  final isMe = l['me'] as bool;
+                  return Container(
+                    padding: const EdgeInsets.all(MitraSpacing.md),
+                    decoration: BoxDecoration(
+                      color: isMe
+                          ? MitraColors.saffron.withValues(alpha: 0.15)
+                          : Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(MitraRadius.md),
+                      border: Border.all(
+                          color: isMe
+                              ? MitraColors.saffron.withValues(alpha: 0.3)
+                              : Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: Row(children: [
+                      Text(l['emoji'] as String,
+                          style: const TextStyle(fontSize: 24)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text(
+                                isMe
+                                    ? (user?.firstName ?? 'You')
+                                    : l['name'] as String,
+                                style: const TextStyle(
+                                    fontFamily: 'Baloo2',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                    color: MitraColors.textPrimary)),
+                            Text('🔥 ${l['streak']} day streak',
+                                style: const TextStyle(
+                                    fontFamily: 'Mukta',
+                                    fontSize: 12,
+                                    color: MitraColors.textMuted)),
+                          ])),
+                      Text('${l['xp']} XP',
+                          style: const TextStyle(
+                              fontFamily: 'SpaceMono',
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: MitraColors.gold)),
+                    ]),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

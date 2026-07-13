@@ -7,6 +7,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:isar/isar.dart'; // ✨ Added for Piggyback Sync
+import '../models/achievement_models.dart'; // ✨ Added for Piggyback Sync
 
 const _storage = FlutterSecureStorage();
 
@@ -193,6 +195,38 @@ class TelemetryAPI {
   /// Requires valid JWT. The Dio interceptor adds the Bearer token.
   static Future<Response> sync(Map<String, dynamic> payload) =>
       api.post('/api/v1/telemetry/sync', data: payload);
+
+  // ✨ 3. The Piggyback Payload Generator
+  // Your background offline-sync service can call this to inject the
+  // student's current XP and Badge state into the master JSON payload
+  // before calling TelemetryAPI.sync() above.
+  static Future<Map<String, dynamic>> buildPiggybackSyncPayload(
+      Isar isar) async {
+    // ✨ FIX: Explicitly target the collections by type to bypass pluralization errors
+    final profileCollection = isar.collection<StudentProfile>();
+    final topicCollection = isar.collection<TopicProgress>();
+
+    final profile =
+        await profileCollection.where().findFirst() ?? StudentProfile();
+    final allTopics = await topicCollection.where().findAll();
+
+    return {
+      "achievement_sync": {
+        "total_xp":
+            profile.totalXp.toInt(), // ✨ FIX: Enforce safe integer types
+        "current_tier": profile.currentTier,
+        "unlocked_badges": profile.unlockedBadges,
+      },
+      "completed_summary_ledger": allTopics
+          .map((t) => {
+                "topic_id": t.topicId,
+                "ar_completed": t.hasViewedAr,
+                "quiz_completed": t.hasPassedQuiz,
+                "synergy_achieved": t.synergyApplied
+              })
+          .toList()
+    };
+  }
 }
 
 class ConsentAPI {

@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mitra_student/screens/student/achievements_screen.dart';
 
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/onboarding_screen.dart';
@@ -13,8 +14,6 @@ import '../screens/auth/setup_screen.dart';
 import '../screens/student/student_shell.dart';
 import '../screens/student/home_screen.dart';
 import '../screens/student/learn_screen.dart';
-import '../screens/student/ar_tab_screen.dart';
-import '../screens/student/ranks_screen.dart';
 import '../screens/student/student_profile_screen.dart';
 import '../screens/teacher/teacher_shell.dart';
 import '../screens/teacher/teacher_home_screen.dart';
@@ -119,9 +118,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/student/home', builder: (c, s) => const HomeScreen()),
           GoRoute(
               path: '/student/learn', builder: (c, s) => const LearnScreen()),
-          GoRoute(path: '/student/ar', builder: (c, s) => const ArTabScreen()),
+          // ✨ Deleted the dead AR tab route
           GoRoute(
-              path: '/student/ranks', builder: (c, s) => const RanksScreen()),
+              path: '/student/achievements',
+              builder: (c, s) => const AchievementsScreen()),
           GoRoute(
               path: '/student/profile',
               builder: (c, s) => const StudentProfileScreen()),
@@ -174,7 +174,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ── AR Viewer (full screen modal) ────────────────
       GoRoute(
-        path: '/ar/:topicId',
+        // ✨ Updated the path to match exactly what the Learn Screen is asking for!
+        path: '/student/ar/:topicId',
         builder: (context, state) => ArViewerScreen(
           topicId: state.pathParameters['topicId'] ?? '',
         ),

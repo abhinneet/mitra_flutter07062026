@@ -11,6 +11,7 @@ import 'package:model_viewer_plus/model_viewer_plus.dart';
 import '../../constants/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/telemetry_provider.dart';
+import '../../services/achievement_engine.dart'; // ✨ Added Engine Import
 
 class ArViewerScreen extends ConsumerStatefulWidget {
   final String topicId;
@@ -31,6 +32,7 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
   // Cached in didChangeDependencies so dispose() can use it safely
   // (ref must not be read after the widget is unmounted)
   dynamic _cachedTelemetry;
+  dynamic _cachedAchievementEngine; // ✨ Added Achievement Cache
 
   @override
   void initState() {
@@ -45,12 +47,20 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _cachedTelemetry = ref.read(telemetryServiceProvider);
+    // ✨ Cache the achievement engine before the widget unmounts
+    _cachedAchievementEngine = ref.read(achievementEngineProvider);
   }
 
   @override
   void dispose() {
     _scanCtrl.dispose();
     final durationSeconds = DateTime.now().difference(_arOpenedAt).inSeconds;
+
+    // ✨ 1. Evaluate AR Achievements locally!
+    if (durationSeconds >= 60) {
+      _cachedAchievementEngine?.recordArView(widget.topicId);
+    }
+
     final telemetry = _cachedTelemetry;
     if (telemetry != null) {
       telemetry.logArEnd(
@@ -168,7 +178,8 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
               padding: const EdgeInsets.all(MitraSpacing.lg),
               child: Row(children: [
                 GestureDetector(
-                  onTap: () => context.go('/student/ar'),
+                  // ✨ Simply pop back to the Learn screen curriculum tree!
+                  onTap: () => context.pop(),
                   child: Container(
                     width: 40,
                     height: 40,

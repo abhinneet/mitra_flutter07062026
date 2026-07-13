@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold.dart';
+import '../../widgets/language_alphabet_background.dart';
 import '../../constants/colors.dart';
 import '../../models/quiz_model.dart';
 
@@ -48,345 +49,359 @@ class QuizResultScreen extends StatelessWidget {
       }
     }
 
-    return MitraScaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(MitraSpacing.xl),
-          child: Column(
-            children: [
-              // ── Score summary ──────────────────────
-              Text(emoji, style: const TextStyle(fontSize: 72)),
-              const SizedBox(height: MitraSpacing.sm),
-              Text(message,
-                  style: const TextStyle(
-                      fontFamily: 'Baloo2',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 26,
-                      color: MitraColors.textPrimary)),
+    // Quiz result screen lives outside StudentShell — no shared background layer.
+    // Wrap in a Stack so LanguageAlphabetBackground shows behind MitraScaffold.
+    return Stack(
+      children: [
+        const Positioned.fill(child: LanguageAlphabetBackground()),
+        MitraScaffold(
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(MitraSpacing.xl),
+              child: Column(
+                children: [
+                  // ── Score summary ──────────────────────
+                  Text(emoji, style: const TextStyle(fontSize: 72)),
+                  const SizedBox(height: MitraSpacing.sm),
+                  Text(message,
+                      style: const TextStyle(
+                          fontFamily: 'Baloo2',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 26,
+                          color: MitraColors.textPrimary)),
 
-              const SizedBox(height: MitraSpacing.xl),
+                  const SizedBox(height: MitraSpacing.xl),
 
-              // Score ring
-              Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                      color: isMastered
-                          ? MitraColors.emerald
-                          : MitraColors.crimson,
-                      width: 6),
-                ),
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('$pct%',
-                        style: TextStyle(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 34,
-                            color: isMastered
-                                ? MitraColors.emerald
-                                : MitraColors.crimson)),
-                    Text('$score/$total',
-                        style: const TextStyle(
-                            fontFamily: 'Mukta',
-                            fontSize: 13,
-                            color: MitraColors.textMuted)),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: MitraSpacing.lg),
-
-              // ── Stats Row ────────────────────────────────────
-              if (isMastered)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: MitraColors.gold.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(MitraRadius.pill),
-                        border: Border.all(
-                            color: MitraColors.gold.withValues(alpha: 0.4)),
-                      ),
-                      child: Text(
-                        '+$xpEarned XP',
-                        style: const TextStyle(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                            color: MitraColors.gold),
-                      ),
+                  // Score ring
+                  Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: isMastered
+                              ? MitraColors.emerald
+                              : MitraColors.crimson,
+                          width: 6),
                     ),
-                    if (streak > 1) ...[
-                      const SizedBox(width: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: MitraColors.saffron.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(MitraRadius.pill),
-                          border: Border.all(
-                              color:
-                                  MitraColors.saffron.withValues(alpha: 0.35)),
-                        ),
-                        child: Text(
-                          '🔥 $streak streak',
-                          style: const TextStyle(
-                              fontFamily: 'Baloo2',
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                              color: MitraColors.saffron),
-                        ),
-                      ),
-                    ],
-                  ],
-                )
-              else
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Text(
-                    'You must score 100% to unlock the next module. Please re-watch the AR lesson and try again.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Mukta',
-                      fontSize: 14,
-                      color: MitraColors.textSecondary,
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('$pct%',
+                            style: TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 34,
+                                color: isMastered
+                                    ? MitraColors.emerald
+                                    : MitraColors.crimson)),
+                        Text('$score/$total',
+                            style: const TextStyle(
+                                fontFamily: 'Mukta',
+                                fontSize: 13,
+                                color: MitraColors.textMuted)),
+                      ],
                     ),
                   ),
-                ),
 
-              const SizedBox(height: MitraSpacing.xl),
+                  const SizedBox(height: MitraSpacing.lg),
 
-              // ── Conditional Buttons (The Gate) ────────────────────────────
-              if (!isMastered)
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: GestureDetector(
-                    // ✨ Forces them back to the AR Viewer
-                    onTap: () => context.go('/student/ar/$quizId'),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: MitraColors.crimson,
-                          borderRadius: BorderRadius.circular(MitraRadius.pill),
-                          boxShadow: [
-                            BoxShadow(
-                              color: MitraColors.crimson.withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            )
-                          ]),
-                      alignment: Alignment.center,
-                      child: const Text('🔄 Re-watch AR Lesson',
-                          style: TextStyle(
-                              fontFamily: 'Baloo2',
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              color: Colors.white)),
-                    ),
-                  ),
-                )
-              else
-                Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: GestureDetector(
-                        onTap: () => context.go('/student/home'),
-                        child: Container(
+                  // ── Stats Row ────────────────────────────────────
+                  if (isMastered)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                                colors: MitraColors.gradientSaffron),
+                            color: MitraColors.gold.withValues(alpha: 0.15),
                             borderRadius:
                                 BorderRadius.circular(MitraRadius.pill),
+                            border: Border.all(
+                                color: MitraColors.gold.withValues(alpha: 0.4)),
                           ),
-                          alignment: Alignment.center,
-                          child: const Text('Back to Home',
-                              style: TextStyle(
+                          child: Text(
+                            '+$xpEarned XP',
+                            style: const TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                                color: MitraColors.gold),
+                          ),
+                        ),
+                        if (streak > 1) ...[
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color:
+                                  MitraColors.saffron.withValues(alpha: 0.12),
+                              borderRadius:
+                                  BorderRadius.circular(MitraRadius.pill),
+                              border: Border.all(
+                                  color: MitraColors.saffron
+                                      .withValues(alpha: 0.35)),
+                            ),
+                            child: Text(
+                              '🔥 $streak streak',
+                              style: const TextStyle(
                                   fontFamily: 'Baloo2',
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
-                                  color: Colors.white)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      onPressed: () => context.go('/student/learn'),
-                      child: const Text('Next Module',
-                          style: TextStyle(
-                              fontFamily: 'Mukta',
-                              fontSize: 14,
-                              color: MitraColors.sky)),
-                    ),
-                  ],
-                ),
-
-              const SizedBox(height: MitraSpacing.xl),
-
-              // ── Question Review ────────────────────
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Review Answers',
-                  style: const TextStyle(
-                    fontFamily: 'Baloo2',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                    color: MitraColors.textPrimary,
-                  ),
-                ),
-              ),
-              const SizedBox(height: MitraSpacing.md),
-
-              ...List.generate(questions.length, (i) {
-                final q = questions[i];
-                final studentAns = studentAnswers[i];
-                final isCorrect = studentAns == q.correctAnswerIndex;
-
-                return Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(MitraSpacing.lg),
-                  decoration: BoxDecoration(
-                    color: isCorrect
-                        ? MitraColors.emerald.withValues(alpha: 0.07)
-                        : MitraColors.crimson.withValues(alpha: 0.07),
-                    borderRadius: BorderRadius.circular(MitraRadius.md),
-                    border: Border.all(
-                      color: isCorrect
-                          ? MitraColors.emerald.withValues(alpha: 0.25)
-                          : MitraColors.crimson.withValues(alpha: 0.25),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Q number + result badge
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: isCorrect
-                                  ? MitraColors.emerald.withValues(alpha: 0.15)
-                                  : MitraColors.crimson.withValues(alpha: 0.15),
-                              borderRadius:
-                                  BorderRadius.circular(MitraRadius.pill),
-                            ),
-                            child: Text(
-                              'Q${i + 1}',
-                              style: TextStyle(
-                                fontFamily: 'SpaceMono',
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: isCorrect
-                                    ? MitraColors.emerald
-                                    : MitraColors.crimson,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            isCorrect
-                                ? Icons.check_circle_outline
-                                : Icons.cancel_outlined,
-                            color: isCorrect
-                                ? MitraColors.emerald
-                                : MitraColors.crimson,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            isCorrect ? 'Correct' : 'Incorrect',
-                            style: TextStyle(
-                              fontFamily: 'Mukta',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isCorrect
-                                  ? MitraColors.emerald
-                                  : MitraColors.crimson,
+                                  color: MitraColors.saffron),
                             ),
                           ),
                         ],
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      // Question text
-                      Text(
-                        q.questionText,
-                        style: const TextStyle(
+                      ],
+                    )
+                  else
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Text(
+                        'You must score 100% to unlock the next module. Please re-watch the AR lesson and try again.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
                           fontFamily: 'Mukta',
-                          fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: MitraColors.textPrimary,
-                          height: 1.4,
+                          color: MitraColors.textSecondary,
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 8),
+                  const SizedBox(height: MitraSpacing.xl),
 
-                      // Correct answer
-                      _ReviewAnswerRow(
-                        label: 'Correct',
-                        answer: q.options[q.correctAnswerIndex],
-                        color: MitraColors.emerald,
+                  // ── Conditional Buttons (The Gate) ────────────────────────────
+                  if (!isMastered)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: GestureDetector(
+                        // ✨ Forces them back to the AR Viewer
+                        onTap: () => context.go('/student/ar/$quizId'),
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: MitraColors.crimson,
+                              borderRadius:
+                                  BorderRadius.circular(MitraRadius.pill),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitraColors.crimson
+                                      .withValues(alpha: 0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                )
+                              ]),
+                          alignment: Alignment.center,
+                          child: const Text('🔄 Re-watch AR Lesson',
+                              style: TextStyle(
+                                  fontFamily: 'Baloo2',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 18,
+                                  color: Colors.white)),
+                        ),
                       ),
-
-                      // Student's wrong answer (only if wrong)
-                      if (!isCorrect && studentAns != null) ...[
-                        const SizedBox(height: 4),
-                        _ReviewAnswerRow(
-                          label: 'Your answer',
-                          answer: q.options[studentAns],
-                          color: MitraColors.crimson,
+                    )
+                  else
+                    Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: GestureDetector(
+                            onTap: () => context.go('/student/home'),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                    colors: MitraColors.gradientSaffron),
+                                borderRadius:
+                                    BorderRadius.circular(MitraRadius.pill),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text('Back to Home',
+                                  style: TextStyle(
+                                      fontFamily: 'Baloo2',
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                      color: Colors.white)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextButton(
+                          onPressed: () => context.go('/student/learn'),
+                          child: const Text('Next Module',
+                              style: TextStyle(
+                                  fontFamily: 'Mukta',
+                                  fontSize: 14,
+                                  color: MitraColors.sky)),
                         ),
                       ],
+                    ),
 
-                      // Explanation
-                      if (q.explanation != null) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.lightbulb_outline,
-                                color: MitraColors.indigoLight, size: 14),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                q.explanation!,
-                                style: const TextStyle(
-                                  fontFamily: 'Mukta',
-                                  fontSize: 12,
-                                  color: MitraColors.textMuted,
-                                  height: 1.4,
+                  const SizedBox(height: MitraSpacing.xl),
+
+                  // ── Question Review ────────────────────
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Review Answers',
+                      style: const TextStyle(
+                        fontFamily: 'Baloo2',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        color: MitraColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: MitraSpacing.md),
+
+                  ...List.generate(questions.length, (i) {
+                    final q = questions[i];
+                    final studentAns = studentAnswers[i];
+                    final isCorrect = studentAns == q.correctAnswerIndex;
+
+                    return Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(MitraSpacing.lg),
+                      decoration: BoxDecoration(
+                        color: isCorrect
+                            ? MitraColors.emerald.withValues(alpha: 0.07)
+                            : MitraColors.crimson.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(MitraRadius.md),
+                        border: Border.all(
+                          color: isCorrect
+                              ? MitraColors.emerald.withValues(alpha: 0.25)
+                              : MitraColors.crimson.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Q number + result badge
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: isCorrect
+                                      ? MitraColors.emerald
+                                          .withValues(alpha: 0.15)
+                                      : MitraColors.crimson
+                                          .withValues(alpha: 0.15),
+                                  borderRadius:
+                                      BorderRadius.circular(MitraRadius.pill),
+                                ),
+                                child: Text(
+                                  'Q${i + 1}',
+                                  style: TextStyle(
+                                    fontFamily: 'SpaceMono',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: isCorrect
+                                        ? MitraColors.emerald
+                                        : MitraColors.crimson,
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                isCorrect
+                                    ? Icons.check_circle_outline
+                                    : Icons.cancel_outlined,
+                                color: isCorrect
+                                    ? MitraColors.emerald
+                                    : MitraColors.crimson,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isCorrect ? 'Correct' : 'Incorrect',
+                                style: TextStyle(
+                                  fontFamily: 'Mukta',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isCorrect
+                                      ? MitraColors.emerald
+                                      : MitraColors.crimson,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // Question text
+                          Text(
+                            q.questionText,
+                            style: const TextStyle(
+                              fontFamily: 'Mukta',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: MitraColors.textPrimary,
+                              height: 1.4,
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // Correct answer
+                          _ReviewAnswerRow(
+                            label: 'Correct',
+                            answer: q.options[q.correctAnswerIndex],
+                            color: MitraColors.emerald,
+                          ),
+
+                          // Student's wrong answer (only if wrong)
+                          if (!isCorrect && studentAns != null) ...[
+                            const SizedBox(height: 4),
+                            _ReviewAnswerRow(
+                              label: 'Your answer',
+                              answer: q.options[studentAns],
+                              color: MitraColors.crimson,
                             ),
                           ],
-                        ),
-                      ],
-                    ],
-                  ),
-                );
-              }),
 
-              const SizedBox(height: MitraSpacing.lg),
-            ],
+                          // Explanation
+                          if (q.explanation != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.lightbulb_outline,
+                                    color: MitraColors.indigoLight, size: 14),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    q.explanation!,
+                                    style: const TextStyle(
+                                      fontFamily: 'Mukta',
+                                      fontSize: 12,
+                                      color: MitraColors.textMuted,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: MitraSpacing.lg),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        ), // closes MitraScaffold
+      ],
+    ); // closes Stack
   }
 }
 

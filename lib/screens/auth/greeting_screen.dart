@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../stores/auth_store.dart';
 import '../../widgets/mitra_scaffold.dart';
 import '../../constants/colors.dart';
+import 'package:lottie/lottie.dart'; // ✨ Added Lottie Engine
 
 class GreetingScreen extends ConsumerStatefulWidget {
   final String nextRoute;
@@ -105,64 +106,86 @@ class _GreetingScreenState extends ConsumerState<GreetingScreen>
     final double baseFontSize = screenWidth > 600 ? 26.0 : 20.0;
 
     return MitraScaffold(
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          String typedName = _displayName.substring(0, _nameTyping.value);
+      // ✨ 1. Force the Stack to fill the entire screen
+      body: SizedBox.expand(
+        child: Stack(
+          children: [
+            // 1. The sweeping text animation
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                String typedName = _displayName.substring(0, _nameTyping.value);
 
-          return Align(
-            alignment: _exitAlignment.value,
-            child: FractionallySizedBox(
-              widthFactor: 0.85,
-              child: FadeTransition(
-                opacity: _exitFade,
-                child: ScaleTransition(
-                  scale: _exitScale,
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Namaste Text (Regular Font Weight / Zoom-In Pop Entrance)
-                      FadeTransition(
-                        opacity: _namasteFade,
-                        child: ScaleTransition(
-                          scale: _namasteScale,
-                          child: Text(
-                            'NAMASTE 🙏🏽',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'Mukta',
-                              fontSize: baseFontSize,
-                              fontWeight:
-                                  FontWeight.w400, // Regular font weight
-                              color: Colors.white70,
-                              letterSpacing: 1.5,
+                return Align(
+                  alignment: _exitAlignment.value,
+                  child: FractionallySizedBox(
+                    widthFactor: 0.85,
+                    child: FadeTransition(
+                      opacity: _exitFade,
+                      child: ScaleTransition(
+                        scale: _exitScale,
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Namaste Text (Regular Font Weight / Zoom-In Pop Entrance)
+                            FadeTransition(
+                              opacity: _namasteFade,
+                              child: ScaleTransition(
+                                scale: _namasteScale,
+                                child: Text(
+                                  'NAMASTE 🙏🏽',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'Mukta',
+                                    fontSize: baseFontSize,
+                                    fontWeight:
+                                        FontWeight.w400, // Regular font weight
+                                    color: Colors.white70,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 6),
+                            // Dynamic Character Typed Name Display (Bold & 2x Base Scale)
+                            Text(
+                              typedName,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Baloo2',
+                                fontSize: baseFontSize *
+                                    2.0, // 2x base height constraint
+                                fontWeight: FontWeight.w800,
+                                color: MitraColors.textPrimary,
+                                height: 1.1,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      // Dynamic Character Typed Name Display (Bold & 2x Base Scale)
-                      Text(
-                        typedName,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'Baloo2',
-                          fontSize:
-                              baseFontSize * 2.0, // 2x base height constraint
-                          fontWeight: FontWeight.w800,
-                          color: MitraColors.textPrimary,
-                          height: 1.1,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                );
+              },
+            ),
+
+            // ✨ 2. The waving hands animation anchored directly to the bottom
+            Positioned(
+              bottom: 0, // Sticks exactly to the bottom edge of the screen
+              left:
+                  0, // Setting both left and right to 0 centers the asset horizontally
+              right: 0,
+              child: Lottie.asset(
+                'assets/lotties/waving_hands.json',
+                repeat: false,
+                width: 312.5, // ✨ Increased size by 25% (250 * 1.25)
+                fit: BoxFit.contain,
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

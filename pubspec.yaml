@@ -62,7 +62,7 @@ dependencies:
   shimmer: ^3.0.0
 
   # Animation
-  lottie: ^3.1.2
+  lottie: ^3.5.1
   animate_do: ^3.3.4
 
   # Safe Area (react-native-safe-area-context equivalent)
@@ -75,7 +75,7 @@ dependencies:
   package_info_plus: ^8.0.0
 
   # File System (expo-file-system equivalent)
-  path_provider: ^2.1.3
+  path_provider: ^2.1.6
   
   # Offline / Queue
   hive: ^2.2.3
@@ -100,24 +100,27 @@ dependencies:
   geocoding: ^4.0.0
   uuid: ^4.5.3
   model_viewer_plus: ^1.8.0
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  build_runner: ^2.4.9
+  build_runner: ^2.4.13
   riverpod_generator: any
   hive_generator: any
   json_serializable: ^6.8.0
   flutter_launcher_icons: ^0.14.4
   flutter_tts: ^4.2.5
+  isar_generator: ^3.1.0+1
 
 flutter:
   uses-material-design: true
   fonts:
     - family: Courgette
       fonts:
-        - asset: assets/fonts/Courgette-Regular.ttf
+        - asset: assets/fonts/Courgette-Regular.ttf 
 
   assets:
     - assets/data/quotes.json
@@ -126,6 +129,8 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/
+    - assets/lotties/
+    - assets/locales/
     - .env
 
 flutter_launcher_icons:

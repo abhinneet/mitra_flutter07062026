@@ -39,7 +39,7 @@ import 'package:go_router/go_router.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
 import '../../stores/auth_store.dart';
-import '../../widgets/app_header_widget.dart';
+import '../../providers/translation_provider.dart'; // ✨ Added for language filtering
 
 // ═══════════════════════════════════════════════════════════
 // DOMAIN: Failures
@@ -107,6 +107,7 @@ class QuizSummary {
   final int questionCount;
   final double avgScore;
   final QuizStatus status;
+  final String languageTag; // ✨ Added language tag
 
   const QuizSummary({
     required this.id,
@@ -116,6 +117,7 @@ class QuizSummary {
     required this.questionCount,
     required this.avgScore,
     required this.status,
+    required this.languageTag,
   });
 
   /// Parses a single quiz map from the API response.
@@ -140,6 +142,8 @@ class QuizSummary {
       questionCount: (m['question_count'] as int?)?.clamp(0, 9999) ?? 0,
       avgScore: ((m['avg_score'] as num?)?.toDouble() ?? 0.0).clamp(0.0, 100.0),
       status: _parseQuizStatus(m['status'] as String?),
+      // ✨ Safely pulls the tag, defaults to 'all' for legacy/un-tagged dashboard content
+      languageTag: m['language_tag'] as String? ?? 'all',
     );
   }
 
@@ -363,18 +367,50 @@ class LearnScreen extends ConsumerWidget {
   const LearnScreen({super.key});
 
   // ✨ Hardcoded mapping of AR Lessons to their respective subjects
-  static const _arLessonsBySubject =
-      <String, List<({String id, String title, String topic})>>{
+  static const _arLessonsBySubject = <String,
+      List<({String id, String title, String topic, String languageTag})>>{
     'Science': [
-      (id: 'cell-division', title: 'Cell Division 3D', topic: 'Biology'),
-      (id: 'atom-structure', title: 'Atom Structure 3D', topic: 'Chemistry'),
+      // 'all' means it has no text/audio, safe for everyone
+      (
+        id: 'cell-division',
+        title: 'Cell Division 3D',
+        topic: 'Biology',
+        languageTag: 'all'
+      ),
+      (
+        id: 'atom-structure-en',
+        title: 'Atom Structure (English Audio)',
+        topic: 'Chemistry',
+        languageTag: 'en'
+      ),
+      (
+        id: 'atom-structure-hi',
+        title: 'Atom Structure (Hindi Audio)',
+        topic: 'Chemistry',
+        languageTag: 'hi'
+      ),
     ],
     'Geography': [
-      (id: 'solar-system', title: 'Solar System 3D', topic: 'Space'),
-      (id: 'ocean-layers', title: 'Ocean Layers 3D', topic: 'Earth'),
+      (
+        id: 'solar-system',
+        title: 'Solar System 3D',
+        topic: 'Space',
+        languageTag: 'all'
+      ),
+      (
+        id: 'ocean-layers',
+        title: 'Ocean Layers 3D',
+        topic: 'Earth',
+        languageTag: 'all'
+      ),
     ],
     'History': [
-      (id: 'ancient-rome', title: 'Ancient Rome 3D', topic: 'World History'),
+      (
+        id: 'ancient-rome',
+        title: 'Ancient Rome 3D',
+        topic: 'World History',
+        languageTag: 'all'
+      ),
     ],
   };
 
@@ -383,74 +419,121 @@ class LearnScreen extends ConsumerWidget {
     final params = ref.watch(quizFilterParamsProvider);
     final quizAsync = ref.watch(quizFeedProvider(params));
 
-    return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          LearnScreenHeader(
-            subjectName: 'All Subjects',
-            subjectEmoji: '📚',
-            onBackPressed: () => context.go('/student/home'),
-          ),
-          Expanded(
-            child: quizAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  color: MitraColors.saffron,
-                ),
-              ),
-              error: (error, _) => _ErrorState(
-                message: switch (error) {
-                  LearnFailure f => f.displayMessage,
-                  _ => 'Something went wrong. Please try again.',
-                },
-                onRetry: () =>
-                    ref.read(quizFeedProvider(params).notifier).refresh(),
-              ),
-              data: (quizzes) {
-                final grouped = _groupQuizzesBySubject(quizzes);
+    // ✨ 1. Grab the active language from the provider
+    final currentLang = ref.watch(translationProvider).langCode;
 
-                // ✨ Inject Subjects that only have AR lessons so they still appear on screen!
-                for (final subject in _arLessonsBySubject.keys) {
-                  grouped.putIfAbsent(subject, () => []);
-                }
-
-                if (grouped.isEmpty) {
-                  final user = ref.read(currentUserProvider);
-                  return _EmptyState(
-                    message: user?.classGrade != null
-                        ? 'No live content for ${user!.classGrade} yet.'
-                        : 'No live content available right now.',
-                    onRetry: () =>
-                        ref.read(quizFeedProvider(params).notifier).refresh(),
-                  );
-                }
-
-                return RefreshIndicator(
-                  color: MitraColors.saffron,
-                  backgroundColor: MitraColors.bgCard,
-                  onRefresh: () =>
-                      ref.read(quizFeedProvider(params).notifier).refresh(),
-                  child: ListView(
-                    padding: const EdgeInsets.all(MitraSpacing.lg),
-                    children: grouped.entries.map((entry) {
-                      final arLessonsForSubject =
-                          _arLessonsBySubject[entry.key] ?? [];
-
-                      return _SubjectSection(
-                        subject: entry.key,
-                        quizzes: entry.value,
-                        arLessons: arLessonsForSubject,
-                        onQuizTap: (id) => _navigateToQuiz(context, id),
-                        onArTap: (id) => context.push('/student/ar/$id'),
-                      );
-                    }).toList(),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✨ Bypassing LearnScreenHeader to completely remove the back button requirement
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: Row(
+                children: [
+                  const Text('📚', style: TextStyle(fontSize: 28)),
+                  const SizedBox(width: 12),
+                  Text(
+                    'All Subjects',
+                    style: TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: quizAsync.when(
+                loading: () => const Center(
+                  child: CircularProgressIndicator(
+                    color: MitraColors.saffron,
+                  ),
+                ),
+                error: (error, _) => _ErrorState(
+                  message: switch (error) {
+                    LearnFailure f => f.displayMessage,
+                    _ => 'Something went wrong. Please try again.',
+                  },
+                  onRetry: () =>
+                      ref.read(quizFeedProvider(params).notifier).refresh(),
+                ),
+                data: (quizzes) {
+                  // ✨ 2. Filter the quizzes BEFORE grouping them
+                  final filteredQuizzes = quizzes.where((q) {
+                    return q.languageTag == currentLang ||
+                        q.languageTag == 'all';
+                  }).toList();
+
+                  final grouped = _groupQuizzesBySubject(filteredQuizzes);
+
+                  // ✨ Inject Subjects that only have AR lessons so they still appear on screen!
+                  for (final subject in _arLessonsBySubject.keys) {
+                    grouped.putIfAbsent(subject, () => []);
+                  }
+
+                  if (grouped.isEmpty) {
+                    final user = ref.read(currentUserProvider);
+                    return _EmptyState(
+                      message: user?.classGrade != null
+                          ? 'No live content for ${user!.classGrade} yet.'
+                          : 'No live content available right now.',
+                      onRetry: () =>
+                          ref.read(quizFeedProvider(params).notifier).refresh(),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    color: MitraColors.saffron,
+                    backgroundColor: MitraColors.bgCard,
+                    onRefresh: () =>
+                        ref.read(quizFeedProvider(params).notifier).refresh(),
+                    child: ListView(
+                      // ✨ Auto-calculates the bottom glass bar thickness
+                      padding: EdgeInsets.fromLTRB(
+                        MitraSpacing.lg,
+                        MitraSpacing.lg,
+                        MitraSpacing.lg,
+                        MediaQuery.paddingOf(context).bottom + MitraSpacing.lg,
+                      ),
+                      children: grouped.entries.map((entry) {
+                        final arLessonsForSubject =
+                            _arLessonsBySubject[entry.key] ?? [];
+
+                        // ✨ 3. Filter the AR lessons array for this specific subject
+                        final filteredArLessons =
+                            arLessonsForSubject.where((ar) {
+                          return ar.languageTag == currentLang ||
+                              ar.languageTag == 'all';
+                        }).toList();
+
+                        // ✨ 4. If filtering empties BOTH lists, do not render an empty subject block
+                        if (entry.value.isEmpty && filteredArLessons.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return _SubjectSection(
+                          subject: entry.key,
+                          quizzes: entry.value,
+                          arLessons:
+                              filteredArLessons, // Passed the filtered list!
+                          onQuizTap: (id) => _navigateToQuiz(context, id),
+                          // ✨ Cleaned up the route to launch as a standalone screen
+                          onArTap: (id) => context.push('/ar/$id'),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -477,7 +560,9 @@ class LearnScreen extends ConsumerWidget {
 class _SubjectSection extends StatelessWidget {
   final String subject;
   final List<QuizSummary> quizzes;
-  final List<({String id, String title, String topic})> arLessons;
+  // ✨ Updated to accept the new languageTag parameter
+  final List<({String id, String title, String topic, String languageTag})>
+      arLessons;
   final ValueChanged<String> onQuizTap;
   final ValueChanged<String> onArTap;
 
@@ -611,7 +696,8 @@ class _QuizTile extends StatelessWidget {
 // ── AR Lesson tile ───────────────────────────────────────
 
 class _ArTile extends StatelessWidget {
-  final ({String id, String title, String topic}) lesson;
+  // ✨ Updated to accept the new languageTag parameter
+  final ({String id, String title, String topic, String languageTag}) lesson;
   final ValueChanged<String> onTap;
 
   const _ArTile({required this.lesson, required this.onTap});

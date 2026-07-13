@@ -1,22 +1,19 @@
+import 'dart:ui'; // ✨ Required for the ImageFilter.blur glass effect
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✨ Riverpod
 import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold.dart';
 import '../../widgets/language_alphabet_background.dart';
 import '../../widgets/sync_status_banner.dart';
-import '../../providers/translation_provider.dart'; // ✨ Translation Engine
 
-class StudentShell extends ConsumerWidget {
-  // ✨ Upgraded to ConsumerWidget
+class StudentShell extends StatelessWidget {
   final Widget child;
   const StudentShell({super.key, required this.child});
 
   static const _tabs = [
-    _Tab(label: 'Home', emoji: '匠', route: '/student/home'),
-    _Tab(label: 'Learn', emoji: '答', route: '/student/learn'),
-    // ✨ AR tab removed!
-    _Tab(label: 'Ranks', emoji: '醇', route: '/student/ranks'),
-    _Tab(label: 'Profile', emoji: '側', route: '/student/profile'),
+    _Tab(label: 'Home', emoji: '🏨', route: '/student/home'),
+    _Tab(label: 'Learn', emoji: '🧠', route: '/student/learn'),
+    _Tab(label: 'Achievements', emoji: '🏆', route: '/student/achievements'),
+    _Tab(label: 'Profile', emoji: '👥', route: '/student/profile'),
   ];
 
   int _currentIndex(BuildContext context) {
@@ -27,78 +24,90 @@ class StudentShell extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // ✨ Added WidgetRef
+  Widget build(BuildContext context) {
     final idx = _currentIndex(context);
-
-    // ✨ Listen to the translation state so the bottom bar rebuilds on language change
-    ref.watch(translationProvider);
-    final t = ref.read(translationProvider.notifier);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final barHeight = 65.0 + bottomPadding;
 
     return MitraScaffold(
       useSafeArea: false,
-      body: Column(
+      body: Stack(
         children: [
-          const SyncStatusBanner(),
-          Expanded(
-            child: Stack(
-              children: [
-                const Positioned.fill(child: LanguageAlphabetBackground()),
-                child,
-              ],
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        height: 85 +
-            MediaQuery.of(context)
-                .padding
-                .bottom, // ✨ Height increased to fit larger text
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.3),
-          border: Border(
-              top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(_tabs.length, (i) {
-            final focused = i == idx;
-            return GestureDetector(
-              onTap: () => context.go(_tabs[i].route),
-              behavior: HitTestBehavior.opaque,
-              child: SizedBox(
-                width: 80, // ✨ Width increased to prevent text wrapping
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          // --- LAYER 1: Main Content ---
+          Column(
+            children: [
+              const SyncStatusBanner(),
+              Expanded(
+                child: Stack(
                   children: [
-                    Text(_tabs[i].emoji, style: const TextStyle(fontSize: 33)),
-                    const SizedBox(height: 4),
-                    // ✨ Apply the translator here! The warning will instantly disappear.
-                    Text(
-                        t.tr('tab_${_tabs[i].label.toLowerCase()}',
-                            _tabs[i].label),
-                        style: TextStyle(
-                          fontFamily: 'Mukta',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                          color: focused ? Colors.white : Colors.white60,
-                        )),
-                    if (focused)
-                      Container(
-                        width: 4,
-                        height: 4,
-                        margin: const EdgeInsets.only(top: 2),
-                        decoration: const BoxDecoration(
-                            color: Colors.white, shape: BoxShape.circle),
+                    const Positioned.fill(child: LanguageAlphabetBackground()),
+
+                    // ✨ THE SCROLL FIX: This injects padding into the child screens.
+                    // ListViews will automatically add this exact amount of empty space
+                    // at the bottom of their scroll, preventing the glass bar from hiding content!
+                    MediaQuery(
+                      data: MediaQuery.of(context).copyWith(
+                        padding: EdgeInsets.only(bottom: barHeight),
                       ),
+                      child: child,
+                    ),
                   ],
                 ),
               ),
-            );
-          }),
-        ),
+            ],
+          ),
+
+          // --- LAYER 2: True Glassmorphism Navigation Bar ---
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: ClipRRect(
+              // ClipRRect is required so the blur doesn't bleed up the screen
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                    sigmaX: 15.0,
+                    sigmaY: 15.0), // ✨ Beautiful frosted glass blur
+                child: Container(
+                  height: barHeight,
+                  padding: EdgeInsets.only(bottom: bottomPadding),
+                  decoration: BoxDecoration(
+                    // ✨ Uses your exact Theme background color, but makes it 60% transparent
+                    color: Theme.of(context)
+                        .scaffoldBackgroundColor
+                        .withValues(alpha: 0.6),
+                    border: Border(
+                        top: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.1))),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: List.generate(_tabs.length, (i) {
+                      final focused = i == idx;
+                      return GestureDetector(
+                        onTap: () => context.go(_tabs[i].route),
+                        behavior: HitTestBehavior.opaque,
+                        child: SizedBox(
+                          width: 80,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // ✨ Clean, icon-only layout. Sizes and fades smoothly.
+                              Opacity(
+                                opacity: focused ? 1.0 : 0.4,
+                                child: Text(_tabs[i].emoji,
+                                    style:
+                                        TextStyle(fontSize: focused ? 34 : 28)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

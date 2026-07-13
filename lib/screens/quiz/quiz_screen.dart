@@ -10,6 +10,7 @@ import 'package:flutter/services.dart'; // ✨ REQUIRED FOR HAPTIC BUZZER
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/mitra_scaffold.dart';
+import '../../widgets/language_alphabet_background.dart';
 import '../../constants/colors.dart';
 import '../../services/api_service.dart';
 import '../../services/quiz_offline_service.dart';
@@ -17,6 +18,7 @@ import '../../models/quiz_model.dart';
 import '../../theme/theme_provider.dart';
 import '../../providers/telemetry_provider.dart';
 import '../../stores/auth_store.dart';
+import '../../services/achievement_engine.dart'; // ✨ Added Engine Import
 
 class QuizScreen extends ConsumerStatefulWidget {
   final String quizId;
@@ -194,6 +196,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
         appLanguage: user?.languagePreference ?? 'en',
       ));
 
+      // ✨ 2. Evaluate Quiz Achievements locally!
+      final percentageScore = (_score / _questions.length) * 100;
+      final isPerfect = _score == _questions.length;
+
+      if (percentageScore >= 60.0) {
+        unawaited(ref.read(achievementEngineProvider).recordQuizPass(
+              widget.quizId,
+              perfectScore: isPerfect,
+            ));
+      }
+
       context.go('/quiz/result', extra: {
         'score': _score,
         'total': _questions.length,
@@ -211,10 +224,16 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
     final themeHighlight = ThemeHelper.getActiveHighlight(activeTheme);
 
     if (_loading) {
+      // Use a Stack so the background animation shows during loading too.
       return Scaffold(
-        backgroundColor: MitraColors.bgDeep,
-        body: Center(
-          child: CircularProgressIndicator(color: themeHighlight),
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: LanguageAlphabetBackground()),
+            Center(
+              child: CircularProgressIndicator(color: themeHighlight),
+            ),
+          ],
         ),
       );
     }
@@ -224,8 +243,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
 
     final isCorrect = _selected == q.correctAnswerIndex;
 
+    // Quiz screens live outside StudentShell so they don't inherit its
+    // LanguageAlphabetBackground. We add it here as the first Stack layer
+    // so the background animation is consistent with the rest of the app.
     return Stack(
       children: [
+        const Positioned.fill(child: LanguageAlphabetBackground()),
         MitraScaffold(
           appBar: AppBar(
             backgroundColor: Colors.transparent,

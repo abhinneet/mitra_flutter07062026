@@ -379,7 +379,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   Widget _buildWizardMode() {
     // ✨ Watch translation state for the loading spinner and text translation
     final translationState = ref.watch(translationProvider);
-    final isBusy = _saving || translationState.isDownloading;
+    final isBusy = _saving || translationState.isLoading;
     final t = ref.read(translationProvider.notifier);
 
     // Dynamically translate the progress bar labels
@@ -425,9 +425,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
             _BottomBar(
               canGoBack: _step > 0,
               canGoNext: _canGoNext &&
-                  !translationState
-                      .isDownloading, // ✨ Lock button if downloading
-              loading: isBusy, // ✨ Spinner activates during OTA download too
+                  !translationState.isLoading, // ✨ Lock button if loading
+              loading: isBusy,
               onBack: _goBack,
               onNext: _goNext,
               isLastStep: _step == 2,

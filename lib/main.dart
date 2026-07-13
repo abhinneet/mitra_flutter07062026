@@ -20,6 +20,12 @@ import 'services/telemetry_batch_buffer.dart';
 import 'back_button_dispatcher.dart';
 import 'firebase_options.dart';
 
+// ✨ GAMIFICATION & ISAR IMPORTS
+import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'models/achievement_models.dart';
+import 'services/achievement_engine.dart';
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -60,6 +66,18 @@ Future<void> main() async {
     debugPrint('⚠️ Hive: $e');
   }
 
+  // ✨ INITIALIZE THE ISAR XP DATABASE ✨
+  late Isar isar;
+  try {
+    final dir = await getApplicationDocumentsDirectory();
+    isar = await Isar.open(
+      [StudentProfileSchema, TopicProgressSchema],
+      directory: dir.path,
+    );
+  } catch (e) {
+    debugPrint('⚠️ Isar Gamification DB Error: $e');
+  }
+
   try {
     TelemetryBatchBuffer.instance.startScheduler();
   } catch (e) {
@@ -70,7 +88,11 @@ Future<void> main() async {
   await BrainSparkService.instance.init();
 
   runApp(ProviderScope(
-    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(prefs),
+      // ✨ Pass the active DB into the Riverpod UI stream
+      isarProvider.overrideWithValue(isar),
+    ],
     child: const MitraApp(),
   ));
 }
@@ -143,6 +165,17 @@ class _MitraAppState extends ConsumerState<MitraApp> {
       color: MitraColors.saffron,
       theme: ThemeHelper.getThemeData(activeTheme),
       routerConfig: router,
+
+      // ✨ FIX: THIS STOPS EVERY SCREEN FROM HIDING BEHIND THE STATUS BAR ✨
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: SafeArea(
+            bottom: false, // Keeps the bottom nav bar edge-to-edge
+            child: child!,
+          ),
+        );
+      },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
