@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart'; // ✨ NEW: Cache Manager
 import '../../constants/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/telemetry_provider.dart';
@@ -29,6 +30,7 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
   bool _arCompleted = false;
   bool _show3DViewer =
       true; // ✨ Defaults strictly to the 3D Model Viewer on screen
+  String? _cachedModelPath; // ✨ NEW: Holds the local file path
   // Cached in didChangeDependencies so dispose() can use it safely
   // (ref must not be read after the widget is unmounted)
   dynamic _cachedTelemetry;
@@ -41,6 +43,27 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
         AnimationController(vsync: this, duration: const Duration(seconds: 2))
           ..repeat(reverse: true);
     _scanAnim = Tween<double>(begin: 0, end: 1).animate(_scanCtrl);
+
+    _cache3DModel(); // ✨ NEW: Trigger the download immediately
+  }
+
+  // ✨ NEW: Downloads the model to the phone permanently
+  Future<void> _cache3DModel() async {
+    const String glbUrl =
+        'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
+
+    try {
+      // Downloads once, then reads from local phone storage forever
+      final file = await DefaultCacheManager().getSingleFile(glbUrl);
+      if (mounted) {
+        setState(() => _cachedModelPath = 'file://${file.path}');
+      }
+    } catch (e) {
+      // Fallback to streaming over the network if local storage fails
+      if (mounted) {
+        setState(() => _cachedModelPath = glbUrl);
+      }
+    }
   }
 
   @override
@@ -131,14 +154,27 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
         children: [
           // ✨ Conditionally show the 3D viewer if the secondary option is chosen
           if (_show3DViewer)
-            const ModelViewer(
-              backgroundColor: Color(0xFF0a0a0a),
-              src: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
-              alt: 'A 3D educational model',
-              autoRotate: true,
-              cameraControls: true,
-              disableZoom: false,
-            )
+            _cachedModelPath == null
+                ? const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: MitraColors.saffron),
+                        SizedBox(height: 16),
+                        Text('Downloading 3D Lesson...',
+                            style: TextStyle(color: MitraColors.textMuted)),
+                      ],
+                    ),
+                  )
+                : ModelViewer(
+                    backgroundColor: const Color(0xFF0a0a0a),
+                    src:
+                        _cachedModelPath!, // ✨ Loads instantly from the phone's hard drive!
+                    alt: 'A 3D educational model',
+                    autoRotate: true,
+                    cameraControls: true,
+                    disableZoom: false,
+                  )
           else
             Container(color: const Color(0xFF0a0a0a)),
 

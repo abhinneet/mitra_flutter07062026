@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "com.android.tools.build:gradle:8.3.1"
+        classpath "com.android.tools.build:gradle:8.7.3"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // Google services plugin for Firebase
         classpath "com.google.gms:google-services:4.4.1"
@@ -51,6 +51,18 @@ subprojects {
             if (namespace == null) {
                 namespace project.group
             }
+        }
+    }
+}
+
+// ✨ FIX 3: Disable incremental compilation to fix C:/D: drive root mismatch on Windows
+// ✨ FIX 4: Override Kotlin language version for old plugins (e.g. sentry_flutter 7.x)
+subprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            incremental = false
+            languageVersion = "1.9"
+            apiVersion = "1.9"
         }
     }
 }

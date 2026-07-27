@@ -152,13 +152,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ── Quiz (full screen modal) ─────────────────────
       GoRoute(
-        path: '/quiz/:quizId',
-        builder: (context, state) => QuizScreen(
-          quizId: state.pathParameters['quizId'] ?? '',
-        ),
-      ),
-      GoRoute(
-        path: '/quiz/result',
+        path:
+            '/quiz-result', // ✨ FIX: Changed path to completely avoid :quizId collision
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
           return QuizResultScreen(
@@ -170,6 +165,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             studentAnswers: extra['studentAnswers'] as List<int?>? ?? [],
           );
         },
+      ),
+      GoRoute(
+        path:
+            '/quiz/:quizId', // ✨ FIX: Dynamic route placed beneath the static result route
+        builder: (context, state) => QuizScreen(
+          quizId: state.pathParameters['quizId'] ?? '',
+        ),
       ),
 
       // ── AR Viewer (full screen modal) ────────────────

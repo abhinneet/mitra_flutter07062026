@@ -16,7 +16,7 @@ import '../../services/api_service.dart';
 import '../../services/quiz_offline_service.dart';
 import '../../models/quiz_model.dart';
 import '../../theme/theme_provider.dart';
-import '../../providers/telemetry_provider.dart';
+//import '../../providers/telemetry_provider.dart';
 import '../../stores/auth_store.dart';
 import '../../services/achievement_engine.dart'; // ✨ Added Engine Import
 
@@ -36,6 +36,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
   bool _loading = true;
   int _score = 0;
   bool _answered = false;
+  bool _canAdvance = false; // ✨ NEW: Locks the next button to enforce reading
   DateTime _quizStartTime = DateTime.now();
   DateTime _questionStartTime = DateTime.now();
 
@@ -146,6 +147,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
     setState(() {
       _selected = idx;
       _answered = true;
+      _canAdvance =
+          !isCorrect; // ✨ Instantly advance on wrong, lock on correct!
       _studentAnswers[_current] = idx;
       if (isCorrect) _score++;
       _mcqResponses.add({
@@ -156,8 +159,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
       });
     });
 
-    // ✨ Trigger flash & haptic feedback on wrong answer
-    if (!isCorrect) {
+    if (isCorrect) {
+      // ✨ Forces the student to read the dynamic explanation before advancing
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _canAdvance = true;
+          });
+        }
+      });
+    } else {
+      // ✨ Trigger flash & haptic feedback on wrong answer
       _playEmergencyFlash();
     }
   }
@@ -207,7 +219,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
             ));
       }
 
-      context.go('/quiz/result', extra: {
+      // ✨ FIX: Push to the newly defined, collision-free route
+      context.push('/quiz-result', extra: {
         'score': _score,
         'total': _questions.length,
         'xpEarned': xpEarned,
@@ -318,221 +331,291 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
 
                 // ── Scrollable content ────────────────────
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        // Question card
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(MitraSpacing.xl),
-                          decoration: BoxDecoration(
-                            color: MitraColors.bgCard.withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(MitraRadius.lg),
-                            border: Border.all(
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
+                            // Question card
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(MitraSpacing.xl),
+                              decoration: BoxDecoration(
                                 color:
-                                    MitraColors.border.withValues(alpha: 0.2)),
-                          ),
-                          child: Text(
-                            q.questionText,
-                            style: const TextStyle(
-                                fontFamily: 'Baloo2',
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
-                                color: Colors.white,
-                                height: 1.4),
-                          ),
-                        ),
+                                    MitraColors.bgCard.withValues(alpha: 0.8),
+                                borderRadius:
+                                    BorderRadius.circular(MitraRadius.lg),
+                                border: Border.all(
+                                    color: MitraColors.border
+                                        .withValues(alpha: 0.2)),
+                              ),
+                              child: Text(
+                                q.questionText,
+                                style: const TextStyle(
+                                    fontFamily: 'Baloo2',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                    height: 1.4),
+                              ),
+                            ),
 
-                        const SizedBox(height: MitraSpacing.lg),
+                            const SizedBox(height: MitraSpacing.lg),
 
-                        // ── Options ───────────────────────
-                        ...List.generate(q.options.length, (i) {
-                          final isSelected = _selected == i;
-                          final isCorrect = i == q.correctAnswerIndex;
-                          final showResult = _answered;
+                            // ── Options ───────────────────────
+                            ...List.generate(q.options.length, (i) {
+                              final isSelected = _selected == i;
+                              final isCorrect = i == q.correctAnswerIndex;
+                              final showResult = _answered;
 
-                          // Determine tile color after answer reveal
-                          Color borderColor;
-                          Color bgColor;
-                          Color textColor;
-                          Color letterBg;
-                          Color letterText;
+                              Color borderColor;
+                              Color bgColor;
+                              Color textColor;
+                              Color letterBg;
+                              Color letterText;
 
-                          if (!showResult) {
-                            // Pre-answer state
-                            borderColor = isSelected
-                                ? themeHighlight
-                                : MitraColors.border.withValues(alpha: 0.2);
-                            bgColor = isSelected
-                                ? themeHighlight.withValues(alpha: 0.15)
-                                : MitraColors.bgCard.withValues(alpha: 0.5);
-                            textColor =
-                                isSelected ? themeHighlight : Colors.white;
-                            letterBg = isSelected
-                                ? themeHighlight
-                                : MitraColors.bgSurface;
-                            letterText =
-                                isSelected ? Colors.black : Colors.white70;
-                          } else if (isCorrect) {
-                            // Correct answer — always green
-                            borderColor = MitraColors.emerald;
-                            bgColor =
-                                MitraColors.emerald.withValues(alpha: 0.15);
-                            textColor = MitraColors.emerald;
-                            letterBg = MitraColors.emerald;
-                            letterText = Colors.white;
-                          } else if (isSelected && !isCorrect) {
-                            // Wrong selection — red
-                            borderColor = MitraColors.crimson;
-                            bgColor =
-                                MitraColors.crimson.withValues(alpha: 0.12);
-                            textColor = MitraColors.crimson;
-                            letterBg = MitraColors.crimson;
-                            letterText = Colors.white;
-                          } else {
-                            // Other unselected options — dim out
-                            borderColor =
-                                MitraColors.border.withValues(alpha: 0.1);
-                            bgColor = MitraColors.bgCard.withValues(alpha: 0.2);
-                            textColor = Colors.white.withValues(alpha: 0.3);
-                            letterBg = Colors.white.withValues(alpha: 0.05);
-                            letterText = Colors.white.withValues(alpha: 0.3);
-                          }
+                              if (!showResult) {
+                                borderColor = isSelected
+                                    ? themeHighlight
+                                    : MitraColors.border.withValues(alpha: 0.2);
+                                bgColor = isSelected
+                                    ? themeHighlight.withValues(alpha: 0.15)
+                                    : MitraColors.bgCard.withValues(alpha: 0.5);
+                                textColor =
+                                    isSelected ? themeHighlight : Colors.white;
+                                letterBg = isSelected
+                                    ? themeHighlight
+                                    : MitraColors.bgSurface;
+                                letterText =
+                                    isSelected ? Colors.black : Colors.white70;
+                              } else if (isSelected && isCorrect) {
+                                borderColor = MitraColors.emerald;
+                                bgColor =
+                                    MitraColors.emerald.withValues(alpha: 0.15);
+                                textColor = MitraColors.emerald;
+                                letterBg = MitraColors.emerald;
+                                letterText = Colors.white;
+                              } else if (isSelected && !isCorrect) {
+                                borderColor = MitraColors.crimson;
+                                bgColor =
+                                    MitraColors.crimson.withValues(alpha: 0.12);
+                                textColor = MitraColors.crimson;
+                                letterBg = MitraColors.crimson;
+                                letterText = Colors.white;
+                              } else {
+                                borderColor =
+                                    MitraColors.border.withValues(alpha: 0.1);
+                                bgColor =
+                                    MitraColors.bgCard.withValues(alpha: 0.2);
+                                textColor = Colors.white.withValues(alpha: 0.3);
+                                letterBg = Colors.white.withValues(alpha: 0.05);
+                                letterText =
+                                    Colors.white.withValues(alpha: 0.3);
+                              }
 
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: GestureDetector(
-                              onTap: () => _selectAnswer(i),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(MitraSpacing.lg),
-                                decoration: BoxDecoration(
-                                  color: bgColor,
-                                  borderRadius:
-                                      BorderRadius.circular(MitraRadius.md),
-                                  border: Border.all(
-                                      color: borderColor,
-                                      width: showResult &&
-                                              (isCorrect || isSelected)
-                                          ? 1.5
-                                          : 1),
-                                ),
-                                child: Row(children: [
-                                  // Letter badge
-                                  AnimatedContainer(
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: GestureDetector(
+                                  onTap: () => _selectAnswer(i),
+                                  child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 250),
-                                    width: 28,
-                                    height: 28,
+                                    width: double.infinity,
+                                    padding:
+                                        const EdgeInsets.all(MitraSpacing.lg),
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: letterBg,
+                                      color: bgColor,
+                                      borderRadius:
+                                          BorderRadius.circular(MitraRadius.md),
                                       border: Border.all(
-                                          color: borderColor.withValues(
-                                              alpha: 0.5)),
+                                          color: borderColor,
+                                          width: showResult &&
+                                                  (isCorrect || isSelected)
+                                              ? 1.5
+                                              : 1),
                                     ),
-                                    alignment: Alignment.center,
-                                    child: showResult && isCorrect
-                                        ? const Icon(Icons.check,
-                                            size: 14, color: Colors.white)
-                                        : showResult && isSelected && !isCorrect
-                                            ? const Icon(Icons.close,
+                                    child: Row(children: [
+                                      AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 250),
+                                        width: 28,
+                                        height: 28,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: letterBg,
+                                          border: Border.all(
+                                              color: borderColor.withValues(
+                                                  alpha: 0.5)),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: showResult &&
+                                                isSelected &&
+                                                isCorrect
+                                            ? const Icon(Icons.check,
                                                 size: 14, color: Colors.white)
-                                            : Text(
-                                                ['A', 'B', 'C', 'D'][i],
-                                                style: TextStyle(
-                                                    fontFamily: 'SpaceMono',
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 12,
-                                                    color: letterText),
-                                              ),
+                                            : showResult &&
+                                                    isSelected &&
+                                                    !isCorrect
+                                                ? const Icon(Icons.close,
+                                                    size: 14,
+                                                    color: Colors.white)
+                                                : Text(
+                                                    ['A', 'B', 'C', 'D'][i],
+                                                    style: TextStyle(
+                                                        fontFamily: 'SpaceMono',
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        fontSize: 12,
+                                                        color: letterText),
+                                                  ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          q.options[i],
+                                          style: TextStyle(
+                                            fontFamily: 'Mukta',
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 15,
+                                            color: textColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ]),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      q.options[i],
-                                      style: TextStyle(
-                                        fontFamily: 'Mukta',
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 15,
-                                        color: textColor,
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+
+                      // ✨ NEW: Dynamic Centered Pop-up Area
+                      if (_answered)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                            child: isCorrect
+                                ? Container(
+                                    width: double.infinity,
+                                    padding:
+                                        const EdgeInsets.all(MitraSpacing.xl),
+                                    decoration: BoxDecoration(
+                                      color: MitraColors.emerald
+                                          .withValues(alpha: 0.10),
+                                      borderRadius:
+                                          BorderRadius.circular(MitraRadius.lg),
+                                      border: Border.all(
+                                          color: MitraColors.emerald
+                                              .withValues(alpha: 0.30),
+                                          width: 2),
+                                    ),
+                                    // FittedBox scales the huge font down beautifully if space is tight!
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.center,
+                                      child: SizedBox(
+                                        width: 350,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.check_circle,
+                                                color: MitraColors.emerald,
+                                                size: 64),
+                                            const SizedBox(height: 16),
+                                            if (q.explanation != null)
+                                              Text(
+                                                q.explanation!,
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontFamily: 'Mukta',
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: MitraColors.emerald,
+                                                  height: 1.3,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    width: double.infinity,
+                                    padding:
+                                        const EdgeInsets.all(MitraSpacing.xl),
+                                    decoration: BoxDecoration(
+                                      color: MitraColors.crimson
+                                          .withValues(alpha: 0.10),
+                                      borderRadius:
+                                          BorderRadius.circular(MitraRadius.lg),
+                                      border: Border.all(
+                                          color: MitraColors.crimson
+                                              .withValues(alpha: 0.30),
+                                          width: 2),
+                                    ),
+                                    child: const FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.center,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text('⚠️',
+                                              style: TextStyle(fontSize: 80)),
+                                          SizedBox(height: 16),
+                                          Text(
+                                            'WRONG ANSWER!',
+                                            style: TextStyle(
+                                              fontFamily: 'Baloo2',
+                                              fontSize: 42,
+                                              fontWeight: FontWeight.w900,
+                                              color: MitraColors.crimson,
+                                              letterSpacing: 1.5,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                ]),
-                              ),
-                            ),
-                          );
-                        }),
-
-                        // ── Explanation card (Only shows if correct) ──────────────
-                        if (_answered &&
-                            q.explanation != null &&
-                            isCorrect) ...[
-                          const SizedBox(height: 4),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(MitraSpacing.lg),
-                            decoration: BoxDecoration(
-                              color: MitraColors.indigoLight
-                                  .withValues(alpha: 0.10),
-                              borderRadius:
-                                  BorderRadius.circular(MitraRadius.md),
-                              border: Border.all(
-                                  color: MitraColors.indigoLight
-                                      .withValues(alpha: 0.30)),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.lightbulb_outline,
-                                    color: MitraColors.indigoLight, size: 18),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    q.explanation!,
-                                    style: const TextStyle(
-                                      fontFamily: 'Mukta',
-                                      fontSize: 13,
-                                      color: MitraColors.textSecondary,
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
-                        ],
-
-                        const SizedBox(height: MitraSpacing.lg),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
                 ),
 
+                const SizedBox(height: MitraSpacing.md),
+
                 // ── Next / Submit button ──────────────────
-                // Only visible after answering
                 if (_answered)
                   GestureDetector(
-                    onTap: _next,
-                    child: Container(
+                    onTap: _canAdvance ? _next : null,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
                       width: double.infinity,
                       height: 52,
                       decoration: BoxDecoration(
-                        color: themeHighlight,
+                        color: _canAdvance
+                            ? themeHighlight
+                            : MitraColors.bgSurface.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(MitraRadius.pill),
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        _current < _questions.length - 1
-                            ? 'Next Question →'
-                            : 'See Results →',
-                        style: const TextStyle(
+                        _canAdvance
+                            ? (_current < _questions.length - 1
+                                ? 'Next Question →'
+                                : 'See Results →')
+                            : 'Read explanation to continue...',
+                        style: TextStyle(
                             fontFamily: 'Baloo2',
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
-                            color: Colors.black),
+                            color: _canAdvance ? Colors.black : Colors.white54),
                       ),
                     ),
                   )
@@ -556,10 +639,10 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                           color: Colors.white38),
                     ),
                   ),
-              ],
-            ),
-          ),
-        ),
+              ], // ✨ FIX: Closes the Column children
+            ), // ✨ FIX: Closes the Column
+          ), // ✨ FIX: Closes the Padding
+        ), // ✨ FIX: Closes the MitraScaffold
 
         // ✨ Emergency Flash Overlay
         IgnorePointer(

@@ -9,6 +9,7 @@ import '../../widgets/mitra_scaffold.dart';
 import '../../widgets/language_alphabet_background.dart';
 import '../../constants/colors.dart';
 import '../../models/quiz_model.dart';
+import 'package:lottie/lottie.dart';
 
 class QuizResultScreen extends StatelessWidget {
   final int score;
@@ -400,6 +401,20 @@ class QuizResultScreen extends StatelessWidget {
             ),
           ),
         ), // closes MitraScaffold
+
+        // ✨ LOTTIE CONFETTI BLAST (Only fires on 100% Mastery)
+        if (isMastered)
+          Positioned.fill(
+            child: IgnorePointer(
+              // Ensures the animation doesn't block screen taps
+              child: Lottie.asset(
+                'assets/animations/Confetti.json', // ✨ Using your local file
+                fit: BoxFit
+                    .cover, // Stretches to the edges so the cannons hit the corners
+                repeat: false, // Ensures it only blasts once!
+              ),
+            ),
+          ),
       ],
     ); // closes Stack
   }

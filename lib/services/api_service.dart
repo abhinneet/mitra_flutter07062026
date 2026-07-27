@@ -9,6 +9,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:isar/isar.dart'; // ✨ Added for Piggyback Sync
 import '../models/achievement_models.dart'; // ✨ Added for Piggyback Sync
+import 'package:go_router/go_router.dart';
+import '../router.dart';
+import 'dart:convert';
+import 'dart:io';
 
 const _storage = FlutterSecureStorage();
 
@@ -34,13 +38,34 @@ class ApiService {
       },
     ));
 
-    // ── Request interceptor: attach JWT ──────────────
+    // ── Request interceptor: attach JWT & Compress Payload ──────────────
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final token = await _storage.read(key: 'mitra_access_token');
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
+
+        // ✨ BANDWIDTH FIX: Gzip outgoing batches
+        // Only compress POST/PUT requests with payloads larger than 1KB
+        if ((options.method == 'POST' || options.method == 'PUT') &&
+            options.data != null) {
+          try {
+            final jsonString = jsonEncode(options.data);
+            final bytes = utf8.encode(jsonString);
+
+            if (bytes.length > 1024) {
+              final compressedBytes = gzip.encode(bytes);
+              options.data = compressedBytes;
+              options.headers['Content-Encoding'] = 'gzip';
+              // Dio will automatically calculate the new, much smaller Content-Length
+            }
+          } catch (e) {
+            // If encoding fails for any reason, it silently falls back to sending raw JSON
+            // debugPrint('Payload compression failed: $e');
+          }
+        }
+
         handler.next(options);
       },
 
@@ -62,6 +87,11 @@ class ApiService {
             final refreshToken =
                 await _storage.read(key: 'mitra_refresh_token');
 
+            // ✨ PERMANENT FIX 1: Don't ping the server if the refresh token is completely gone
+            if (refreshToken == null || refreshToken.isEmpty) {
+              throw Exception('Refresh token missing or expired');
+            }
+
             // 🚨 FIX 2: Added the CORS Disguise to the refresh mechanism as well
             final refreshDio = Dio(BaseOptions(headers: {
               'Content-Type': 'application/json',
@@ -76,8 +106,7 @@ class ApiService {
 
             final newToken = res.data?['access_token'] as String?;
             if (newToken == null) {
-              handler.reject(error);
-              return;
+              throw Exception('Invalid token received');
             }
             await _storage.write(key: 'mitra_access_token', value: newToken);
 
@@ -88,8 +117,18 @@ class ApiService {
             handler.resolve(retryRes);
             return;
           } catch (_) {
+            // ✨ PERMANENT FIX 2: Graceful Session Expiration (Auto-Logout)
+            // Wipe the dead tokens so the app knows we are unauthenticated
             await _storage.delete(key: 'mitra_access_token');
             await _storage.delete(key: 'mitra_refresh_token');
+
+            // Force the app back to the login screen using your global router key!
+            if (rootNavigatorKey.currentContext != null) {
+              rootNavigatorKey.currentContext!.go('/login');
+            }
+
+            handler.reject(error);
+            return;
           }
         }
         handler.reject(error);

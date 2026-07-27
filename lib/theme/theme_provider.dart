@@ -14,6 +14,9 @@ enum MitraTheme {
   twilightPurple,
   warmCharcoal,
   abyssalBlue,
+  // ── Light themes ─────────────────────────
+  banyanGreen, // Option 3: mint white + emerald
+  riverSky, // Option 5: ice white + cerulean blue
 }
 
 // 3. ✨ NEW: The Smart Theme Notifier (Replaces StateProvider)
@@ -63,6 +66,13 @@ class ThemeHelper {
         return [const Color(0xFF292524), const Color(0xFF1C1917)];
       case MitraTheme.abyssalBlue:
         return [const Color(0xFF1E3A8A), const Color(0xFF172554)];
+      // ── Light themes ───────────────────────────────────────
+      case MitraTheme.banyanGreen:
+        // Soft mint white fading to a slightly deeper mint
+        return [const Color(0xFFF0FDF4), const Color(0xFFDCFCE7)];
+      case MitraTheme.riverSky:
+        // Cool ice white fading to a light sky tint
+        return [const Color(0xFFF0F9FF), const Color(0xFFE0F2FE)];
     }
   }
 
@@ -78,6 +88,11 @@ class ThemeHelper {
         return const Color(0xFFFCD34D);
       case MitraTheme.abyssalBlue:
         return const Color(0xFFFB923C);
+      // ── Light themes ───────────────────────────────────────
+      case MitraTheme.banyanGreen:
+        return const Color(0xFF16A34A); // Emerald green
+      case MitraTheme.riverSky:
+        return const Color(0xFF0284C7); // Cerulean blue
     }
   }
 
@@ -93,6 +108,11 @@ class ThemeHelper {
         return "Warm Charcoal";
       case MitraTheme.abyssalBlue:
         return "Abyssal Blue";
+      // ── Light themes ───────────────────────────────────────
+      case MitraTheme.banyanGreen:
+        return "Banyan Green";
+      case MitraTheme.riverSky:
+        return "River Sky";
     }
   }
 
@@ -102,14 +122,29 @@ class ThemeHelper {
     final baseColor = bgColors.last;
 
     return ThemeData(
-      brightness: Brightness.dark,
+      // Light themes use Brightness.light so Flutter automatically
+      // renders dark text, dark icons, and a dark status bar,
+      // which is correct on a white/mint/ice background.
+      brightness: _isLightTheme(theme) ? Brightness.light : Brightness.dark,
       scaffoldBackgroundColor: baseColor,
       primaryColor: highlight,
-      colorScheme: ColorScheme.dark(
-        primary: highlight,
-        surface: baseColor,
-      ),
+      colorScheme: _isLightTheme(theme)
+          ? ColorScheme.light(
+              primary: highlight,
+              surface: baseColor,
+              onSurface: const Color(0xFF1A1A2E), // dark text on light bg
+            )
+          : ColorScheme.dark(
+              primary: highlight,
+              surface: baseColor,
+            ),
       fontFamily: 'Mukta',
     );
+  }
+
+  // Returns true for themes that use a light/white background.
+  // Add new light themes to this list as you create them.
+  static bool _isLightTheme(MitraTheme theme) {
+    return theme == MitraTheme.banyanGreen || theme == MitraTheme.riverSky;
   }
 }

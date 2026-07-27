@@ -93,12 +93,16 @@ class StudentProfileScreen extends ConsumerWidget {
                             backgroundColor: Colors
                                 .transparent, // Keeps container overlay translucent
                             collapsedBackgroundColor: Colors.transparent,
-                            title: const Text('Themes',
+                            title: Text('Themes',
                                 style: TextStyle(
                                     fontFamily: 'Baloo2',
                                     fontWeight: FontWeight.w700,
                                     fontSize: 18,
-                                    color: Colors.white)),
+                                    // Adapts: dark text on light themes,
+                                    // white text on dark themes.
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface)),
                             leading: const Text('🎨',
                                 style: TextStyle(fontSize: 20)),
                             iconColor: Colors.white,
