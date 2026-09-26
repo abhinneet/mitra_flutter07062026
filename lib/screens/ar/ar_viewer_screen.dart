@@ -13,6 +13,7 @@ import '../../constants/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/telemetry_provider.dart';
 import '../../services/achievement_engine.dart'; // ✨ Added Engine Import
+import '../../theme/theme_provider.dart';
 
 class ArViewerScreen extends ConsumerStatefulWidget {
   final String topicId;
@@ -329,20 +330,22 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
                           width: double.infinity,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.05),
+                            color: ThemeHelper.ctxGlassFill(context,
+                                dark: 0.05, light: 0.04),
                             borderRadius:
                                 BorderRadius.circular(MitraRadius.pill),
                             border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2)),
+                                color: ThemeHelper.ctxGlassBorder(context,
+                                    dark: 0.2, light: 0.15)),
                           ),
                           alignment: Alignment.center,
-                          child: const Text(
+                          child: Text(
                             '👀 View 3D Model on Screen',
                             style: TextStyle(
                                 fontFamily: 'Baloo2',
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
-                                color: Colors.white),
+                                color: ThemeHelper.ctxTextPrimary(context)),
                           ),
                         ),
                       ),
@@ -395,20 +398,22 @@ class _ArViewerScreenState extends ConsumerState<ArViewerScreen>
                             child: Container(
                               height: 48,
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.1),
+                                color: ThemeHelper.ctxGlassFill(context,
+                                    dark: 0.1, light: 0.06),
                                 borderRadius:
                                     BorderRadius.circular(MitraRadius.pill),
                                 border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.2)),
+                                    color: ThemeHelper.ctxGlassBorder(context,
+                                        dark: 0.2, light: 0.15)),
                               ),
                               alignment: Alignment.center,
-                              child: const Text(
+                              child: Text(
                                 '🔄 Replay AR',
                                 style: TextStyle(
                                     fontFamily: 'Baloo2',
                                     fontWeight: FontWeight.w700,
                                     fontSize: 15,
-                                    color: Colors.white),
+                                    color: ThemeHelper.ctxTextPrimary(context)),
                               ),
                             ),
                           ),

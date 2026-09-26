@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -125,10 +125,10 @@ class ThemeHelper {
       // Light themes use Brightness.light so Flutter automatically
       // renders dark text, dark icons, and a dark status bar,
       // which is correct on a white/mint/ice background.
-      brightness: _isLightTheme(theme) ? Brightness.light : Brightness.dark,
+      brightness: isLightTheme(theme) ? Brightness.light : Brightness.dark,
       scaffoldBackgroundColor: baseColor,
       primaryColor: highlight,
-      colorScheme: _isLightTheme(theme)
+      colorScheme: isLightTheme(theme)
           ? ColorScheme.light(
               primary: highlight,
               surface: baseColor,
@@ -138,13 +138,66 @@ class ThemeHelper {
               primary: highlight,
               surface: baseColor,
             ),
+      // Legible text everywhere: any Text without an explicit color
+      // inherits dark ink on light themes, light ink on dark themes.
+      textTheme: Typography.blackMountainView.apply(
+        bodyColor: isLightTheme(theme) ? const Color(0xFF1A1A2E) : Colors.white,
+        displayColor:
+            isLightTheme(theme) ? const Color(0xFF1A1A2E) : Colors.white,
+        fontFamily: 'Mukta',
+      ),
+      iconTheme: IconThemeData(
+        color: isLightTheme(theme) ? const Color(0xFF1A1A2E) : Colors.white,
+      ),
       fontFamily: 'Mukta',
     );
   }
 
   // Returns true for themes that use a light/white background.
   // Add new light themes to this list as you create them.
-  static bool _isLightTheme(MitraTheme theme) {
+  static bool isLightTheme(MitraTheme theme) {
     return theme == MitraTheme.banyanGreen || theme == MitraTheme.riverSky;
   }
+
+  // ── Legible text colors, driven by theme brightness ──────
+  // Use these everywhere instead of hardcoded Colors.white*.
+  // On light themes (Banyan Green, River Sky) they return dark
+  // ink; on dark themes they return light ink — always legible.
+  static Color textPrimary(MitraTheme theme) =>
+      isLightTheme(theme) ? const Color(0xFF1A1A2E) : Colors.white;
+
+  static Color textSecondary(MitraTheme theme) => isLightTheme(theme)
+      ? const Color(0xFF1A1A2E).withValues(alpha: 0.70)
+      : Colors.white70;
+
+  static Color textMuted(MitraTheme theme) => isLightTheme(theme)
+      ? const Color(0xFF1A1A2E).withValues(alpha: 0.45)
+      : Colors.white38;
+
+  // ── Context-based helpers ────────────────────────────────
+  static bool ctxIsLight(BuildContext c) =>
+      Theme.of(c).brightness == Brightness.light;
+
+  static Color ctxTextPrimary(BuildContext c) =>
+      ctxIsLight(c) ? const Color(0xFF1A1A2E) : Colors.white;
+
+  static Color ctxTextSecondary(BuildContext c) => ctxIsLight(c)
+      ? const Color(0xFF1A1A2E).withValues(alpha: 0.70)
+      : Colors.white70;
+
+  static Color ctxTextMuted(BuildContext c) => ctxIsLight(c)
+      ? const Color(0xFF1A1A2E).withValues(alpha: 0.45)
+      : Colors.white38;
+
+  static Color ctxGlassFill(BuildContext c,
+          {double dark = 0.08, double light = 0.05}) =>
+      ctxIsLight(c)
+          ? Colors.black.withValues(alpha: light)
+          : Colors.white.withValues(alpha: dark);
+
+  static Color ctxGlassBorder(BuildContext c,
+          {double dark = 0.15, double light = 0.10}) =>
+      ctxIsLight(c)
+          ? Colors.black.withValues(alpha: light)
+          : Colors.white.withValues(alpha: dark);
 }

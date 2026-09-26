@@ -18,14 +18,14 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'App Settings',
           style: TextStyle(
               fontFamily: 'Baloo2',
-              color: Colors.white,
+              color: ThemeHelper.textPrimary(activeTheme),
               fontWeight: FontWeight.bold),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: ThemeHelper.textPrimary(activeTheme)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

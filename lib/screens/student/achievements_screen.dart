@@ -135,9 +135,12 @@ class AchievementsScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  // Bottom padding is handled by StudentShell's MediaQuery
-                  // override (barHeight), so top: 20 is sufficient here.
-                  padding: const EdgeInsets.only(bottom: 20, top: 20),
+                  // ✨ FIX: Dynamically calculate bottom padding to clear the StudentShell's bottom nav bar
+                  padding: EdgeInsets.only(
+                    top: 20,
+                    bottom: MediaQuery.paddingOf(context).bottom +
+                        100, // 100px provides ample clearance for the glass bottom bar
+                  ),
                   child: Column(
                     children: List.generate(_galacticTiers.length, (index) {
                       final tier = _galacticTiers[index];

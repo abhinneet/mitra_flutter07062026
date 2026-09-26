@@ -1,3 +1,4 @@
+﻿import '../../demo/demo_data.dart';
 // ═════════════════════════════════════════════════════════════
 // SCREEN: Learn — Curriculum tree + live quiz feed
 //
@@ -312,7 +313,7 @@ class ApiQuizRepository implements QuizRepository {
 
 /// Repository instance — override in tests with a mock.
 final quizRepositoryProvider = Provider<QuizRepository>((ref) {
-  return const ApiQuizRepository();
+  return kPresentationMode ? const DemoQuizRepository() : const ApiQuizRepository();
 });
 
 /// Derives quiz filter params from the current user profile.
@@ -1232,3 +1233,4 @@ class _RetryButton extends StatelessWidget {
     );
   }
 }
+

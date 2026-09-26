@@ -230,10 +230,10 @@ class TelemetryAPI {
   static Future<Response> send(Map<String, dynamic> payload) =>
       api.post('/api/analytics/telemetry', data: payload);
 
-  /// Primary Firestore path — authenticated, processed → BigQuery
-  /// Requires valid JWT. The Dio interceptor adds the Bearer token.
+  /// Primary telemetry path — writes to Firestore `telemetry_sessions`.
+  /// The Dio interceptor adds the Bearer token automatically.
   static Future<Response> sync(Map<String, dynamic> payload) =>
-      api.post('/api/v1/telemetry/sync', data: payload);
+      api.post('/api/analytics/telemetry', data: payload);
 
   // ✨ 3. The Piggyback Payload Generator
   // Your background offline-sync service can call this to inject the
@@ -292,13 +292,13 @@ class ConsentAPI {
     );
   }
 
-  /// Withdraw a specific consent or all
-  static Future<Response> withdraw(String consentType) =>
-      api.post('/api/consent/withdraw', data: {'consent_type': consentType});
+  /// Withdraw consent for the current student.
+  static Future<Response> withdraw(String studentId) =>
+      api.post('/api/consent/revoke', data: {'student_id': studentId});
 
-  /// Check parental consent for a student (minors)
-  static Future<Response> parentalStatus(String studentId) =>
-      api.get('/api/consent/parental/$studentId');
+  /// Check consent status for a student (backend is source of truth).
+  static Future<Response> parentalStatus(String studentId) => api
+      .get('/api/consent/status', queryParameters: {'student_id': studentId});
 }
 
 class AdsAPI {

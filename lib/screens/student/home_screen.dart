@@ -1,4 +1,4 @@
-// ═══════════════════════════════════════════════════════
+﻿// ═══════════════════════════════════════════════════════
 // SCREEN S-05: Student Home Dashboard
 // Back button handled entirely by StudentShell
 // Background animation moved to lib/widgets/language_alphabet_background.dart
@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
 import '../../services/api_service.dart';
+import '../../demo/demo_data.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/quotes_service.dart';
 import '../../services/brain_spark_service.dart';
@@ -101,19 +102,27 @@ final brainSparkProvider = Provider<BrainSparkFact>((ref) {
 });
 
 final subjectsProvider = FutureProvider<List<Subject>>((ref) async {
-  final res = await CurriculumAPI.tree();
-  // Backend returns flat nodes array — filter to subject-type nodes only
-  final allNodes = res.data['nodes'] as List<dynamic>? ?? [];
-  final rawSubjects = allNodes
-      .where((n) => (n as Map<String, dynamic>)['node_type'] == 'subject')
-      .toList();
-
   const colors = [
     Color(0x267C5CDD),
     Color(0x2600C389),
     Color(0x26FFB800),
     Color(0x260EA5E9),
   ];
+
+  // Presentation mode: seeded subjects, no network.
+  if (kPresentationMode) {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    return [
+      for (var i = 0; i < kDemoSubjects.length; i++)
+        Subject.fromJson(kDemoSubjects[i], colors[i % colors.length]),
+    ];
+  }
+
+  final res = await CurriculumAPI.tree();
+  final allNodes = res.data['nodes'] as List<dynamic>? ?? [];
+  final rawSubjects = allNodes
+      .where((n) => (n as Map<String, dynamic>)['node_type'] == 'subject')
+      .toList();
 
   return [
     for (var i = 0; i < rawSubjects.length; i++)
@@ -1078,3 +1087,4 @@ class _GlowingAchievementTextState extends State<_GlowingAchievementText>
     );
   }
 }
+

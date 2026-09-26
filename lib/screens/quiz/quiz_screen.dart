@@ -1,4 +1,4 @@
-// ═══════════════════════════════════════════════════════
+﻿// ═══════════════════════════════════════════════════════
 // SCREEN: Quiz Screen
 // Features: answer reveal, explanation, dot indicators,
 //           locked options after answer, question review
@@ -15,6 +15,7 @@ import '../../constants/colors.dart';
 import '../../services/api_service.dart';
 import '../../services/quiz_offline_service.dart';
 import '../../models/quiz_model.dart';
+import '../../demo/demo_data.dart';
 import '../../theme/theme_provider.dart';
 //import '../../providers/telemetry_provider.dart';
 import '../../stores/auth_store.dart';
@@ -75,6 +76,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
   }
 
   Future<void> _loadQuiz() async {
+    // Presentation mode: play seeded questions for THIS quiz id, no network.
+    if (kPresentationMode) {
+      final demo = kDemoQuestions[widget.quizId];
+      setState(() {
+        _questions = List.from(demo ?? _mockQuestions);
+        _studentAnswers.addAll(List.filled(_questions.length, null));
+        _loading = false;
+        _quizStartTime = DateTime.now();
+      });
+      return;
+    }
     try {
       final res = await QuizAPI.questions(widget.quizId);
       setState(() {
@@ -235,6 +247,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
   Widget build(BuildContext context) {
     final activeTheme = ref.watch(themeProvider);
     final themeHighlight = ThemeHelper.getActiveHighlight(activeTheme);
+    final isDark = !ThemeHelper.isLightTheme(activeTheme);
 
     if (_loading) {
       // Use a Stack so the background animation shows during loading too.
@@ -381,13 +394,19 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                                 bgColor = isSelected
                                     ? themeHighlight.withValues(alpha: 0.15)
                                     : MitraColors.bgCard.withValues(alpha: 0.5);
-                                textColor =
-                                    isSelected ? themeHighlight : Colors.white;
+                                textColor = isSelected
+                                    ? themeHighlight
+                                    : (isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1A1A2E));
                                 letterBg = isSelected
                                     ? themeHighlight
                                     : MitraColors.bgSurface;
-                                letterText =
-                                    isSelected ? Colors.black : Colors.white70;
+                                letterText = isSelected
+                                    ? Colors.black
+                                    : (isDark
+                                        ? Colors.white70
+                                        : const Color(0xB31A1A2E));
                               } else if (isSelected && isCorrect) {
                                 borderColor = MitraColors.emerald;
                                 bgColor =
@@ -615,7 +634,11 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                             fontFamily: 'Baloo2',
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
-                            color: _canAdvance ? Colors.black : Colors.white54),
+                            color: _canAdvance
+                                ? Colors.black
+                                : (isDark
+                                    ? Colors.white54
+                                    : const Color(0x8A1A1A2E))),
                       ),
                     ),
                   )
@@ -630,13 +653,15 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                           color: Colors.white.withValues(alpha: 0.1)),
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
+                    child: Text(
                       'Select an answer',
                       style: TextStyle(
                           fontFamily: 'Baloo2',
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
-                          color: Colors.white38),
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0x991A1A2E)),
                     ),
                   ),
               ], // ✨ FIX: Closes the Column children

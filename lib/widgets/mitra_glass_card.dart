@@ -66,7 +66,7 @@ class MitraGlassCard extends StatelessWidget {
                     fontFamily: 'Mukta',
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     fontSize: 16,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     shadows: [
                       Shadow(
                         color: Colors.black.withValues(alpha: 0.3),

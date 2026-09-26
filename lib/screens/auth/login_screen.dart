@@ -202,13 +202,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await _storage.write(key: 'mitra_consumer_logged_in', value: 'true');
       await _storage.write(key: 'mitra_consumer_role', value: _role.name);
 
-      // ── Get backend JWT via verify-otp (dev bridge) ──────
-      // /api/auth/firebase not yet built on backend.
-      // Using verify-otp with master OTP as temporary bridge.
-      // TODO: swap for /api/auth/firebase once backend implements it.
+      // ── Get backend JWT by exchanging the Firebase ID token ──────
+      // The student is already signed in with real Firebase Phone OTP above.
+      // We hand that verified identity to the backend, which mints its own JWTs.
       try {
-        // Use a plain Dio instance — bypasses the auth interceptor
-        // so a 401 from verify-otp doesn't trigger the refresh loop
+        final firebaseIdToken = await firebaseUser.getIdToken();
+
         final plainDio = Dio(BaseOptions(
           baseUrl: ApiService.instance.dio.options.baseUrl,
           headers: {
@@ -217,15 +216,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           },
         ));
         final backendRes = await plainDio.post(
-          '/api/auth/verify-otp',
+          '/api/auth/firebase',
           data: {
-            'phone': firebaseUser.phoneNumber ?? '+910000000000',
-            'otp': '123456',
+            'id_token': firebaseIdToken,
             'role': _role.name,
           },
         );
-        final accessToken = backendRes.data['accessToken'] as String?;
-        final refreshToken = backendRes.data['refreshToken'] as String?;
+        final accessToken = backendRes.data['access_token'] as String?;
+        final refreshToken = backendRes.data['refresh_token'] as String?;
         if (accessToken != null) {
           await _storage.write(key: 'mitra_access_token', value: accessToken);
           debugPrint('✅ Backend JWT stored');

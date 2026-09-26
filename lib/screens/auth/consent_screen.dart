@@ -15,6 +15,7 @@ import '../../constants/colors.dart';
 import '../../stores/auth_store.dart';
 import '../../widgets/mitra_scaffold.dart';
 import '../../services/api_service.dart';
+import '../../theme/theme_provider.dart';
 
 // ── Constants ────────────────────────────────────────────────
 
@@ -545,9 +546,9 @@ class _GlassSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(MitraSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: ThemeHelper.ctxGlassFill(context),
         borderRadius: BorderRadius.circular(MitraRadius.md),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+        border: Border.all(color: ThemeHelper.ctxGlassBorder(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -699,12 +700,12 @@ class _ConsentCheckbox extends StatelessWidget {
       decoration: BoxDecoration(
         color: value
             ? MitraColors.saffron.withValues(alpha: 0.07)
-            : Colors.white.withValues(alpha: 0.05),
+            : ThemeHelper.ctxGlassFill(context, dark: 0.05, light: 0.04),
         borderRadius: BorderRadius.circular(MitraRadius.md),
         border: Border.all(
           color: value
               ? MitraColors.saffron.withValues(alpha: 0.40)
-              : Colors.white.withValues(alpha: 0.12),
+              : ThemeHelper.ctxGlassBorder(context, dark: 0.12, light: 0.10),
           width: 1.5,
         ),
       ),
@@ -722,7 +723,9 @@ class _ConsentCheckbox extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5)),
               side: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+                  color: ThemeHelper.ctxGlassBorder(context,
+                      dark: 0.3, light: 0.25),
+                  width: 1.5),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
@@ -804,7 +807,7 @@ class _GhostButton extends StatelessWidget {
         style: TextButton.styleFrom(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(MitraRadius.pill),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+            side: BorderSide(color: ThemeHelper.ctxGlassBorder(context)),
           ),
         ),
         child: Text(
